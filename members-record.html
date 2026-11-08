@@ -21,12 +21,21 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
 .info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 .info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
-.details-below{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:9px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.7)}
+.details-below{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:7px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
 .details-title{grid-column:1/-1;font-size:11px;font-weight:800;color:#197234}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.bottom-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;padding:0 2px}
+.polling-unit{min-width:0;flex:1}
+.actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:nowrap;margin:0}
+.action{white-space:nowrap;padding:7px 10px;font-size:11px}
 .action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:750;cursor:pointer}
 .whatsapp{background:#16a34a;color:white}.sms{background:#e8f4eb;color:#17652c;border:1px solid #c9e5d0}
-@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{padding:7px;gap:6px 8px}.action{font-size:11px;padding:7px 10px}}
+@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{padding:7px;gap:6px 8px}
+.bottom-row{gap:6px;align-items:flex-end}
+.actions{gap:5px}
+.action{font-size:10px;padding:7px 8px}
+.polling-unit{font-size:10px}
+} 
+@media(max-width:350px){.bottom-row{flex-wrap:wrap}.actions{width:100%;justify-content:flex-end}}
 </style></head>
 <body><main class="records-wrap"><section class="records-scroll" id="recordsList">
 
@@ -46,9 +55,11 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
 <div class="info"><strong>Ward</strong>Not provided</div>
 <div class="info"><strong>Local Government</strong>Not provided</div>
-<div class="info"><strong>Polling Unit</strong>Not provided</div>
 </div>
+<div class="bottom-row">
+<div class="info polling-unit"><strong>Polling Unit</strong>Not provided</div>
 <div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
+</div>
 </article>
 
 <article class="record-card" data-phone="">
@@ -67,9 +78,11 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
 <div class="info"><strong>Ward</strong>Not provided</div>
 <div class="info"><strong>Local Government</strong>Not provided</div>
-<div class="info"><strong>Polling Unit</strong>Not provided</div>
 </div>
+<div class="bottom-row">
+<div class="info polling-unit"><strong>Polling Unit</strong>Not provided</div>
 <div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
+</div>
 </article>
 
 </section></main>
