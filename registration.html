@@ -54,29 +54,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <section class="form-shell">
 <div class="form-scroll">
 <form id="memberForm">
-<div class="section-title">Member Photograph</div>
-<div class="photo-row">
-<div class="photo-preview" id="photoPreview">Member<br>Photo</div>
-<div class="photo-controls">
-<label for="memberPhoto">Upload Member Photograph</label>
-<input id="memberPhoto" name="memberPhoto" type="file" accept="image/*">
-<div class="helper">Photo upload preview is enabled. Cloudinary will be connected later.</div>
-</div>
-</div>
-
-<div class="section-title">Personal Information</div>
-<div class="grid">
-<div class="field full"><label for="fullName">Full Name *</label><input id="fullName" name="fullName" required placeholder="Enter member's full name"></div>
-<div class="field"><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></div>
-<div class="field"><label for="age">Age *</label><input id="age" name="age" type="number" min="1" max="120" required placeholder="Age"></div>
-<div class="field"><label for="phone">Phone Number *</label><input id="phone" name="phone" type="tel" required placeholder="080..."></div>
-<div class="field"><label for="businessType">Business Type</label><input id="businessType" name="businessType" placeholder="Enter business type"></div>
-<div class="field"><label for="accountName">Account Name</label><input id="accountName" name="accountName" placeholder="Bank account name"></div>
-<div class="field"><label for="accountNumber">Account Number</label><input id="accountNumber" name="accountNumber" inputmode="numeric" placeholder="Bank account number"></div>
-<div class="field"><label for="voterCardNumber">Voter’s Card Number</label><input id="voterCardNumber" name="voterCardNumber" placeholder="Enter voter’s card number"></div>
-</div>
-
-<div class="section-title" style="margin-top:16px">Membership and Team Assignment</div>
+<div class="section-title">Membership and Team Assignment</div>
 <div class="grid">
 <div class="field"><label for="category">Category / Role *</label>
 <select id="category" name="category" required>
@@ -89,14 +67,35 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="field hidden" id="leaderField"><label for="teamLeader">Assign Team Leader *</label>
 <select id="teamLeader" name="teamLeader"><option value="">Select team leader</option></select>
 <div class="helper">Team leaders will be loaded from registered Firebase records after integration.</div></div>
-<div class="field full"><div class="helper" id="roleHelp">Choose a category to determine whether this member needs a team leader assigned.</div></div>
+<div class="field full"><div class="helper" id="roleHelp">Select a category first. Team leaders do not need to select another team leader.</div></div>
 </div>
 
-<div class="section-title" style="margin-top:16px">Voter / Location Information</div>
+<div class="section-title" style="margin-top:16px">Personal Information</div>
+<div class="photo-row">
+<div class="photo-preview" id="photoPreview">Member<br>Photo</div>
+<div class="photo-controls">
+<label for="memberPhoto">Upload Member Photograph</label>
+<input id="memberPhoto" name="memberPhoto" type="file" accept="image/*">
+<div class="helper">Photo preview is enabled. Cloudinary will be connected later.</div>
+</div>
+</div>
 <div class="grid">
-<div class="field"><label for="localGovernment">Local Government *</label><input id="localGovernment" name="localGovernment" required placeholder="Local Government"></div>
-<div class="field"><label for="ward">Ward *</label><input id="ward" name="ward" required placeholder="Ward"></div>
-<div class="field full"><label for="pollingUnit">Polling Unit *</label><input id="pollingUnit" name="pollingUnit" required placeholder="Polling Unit"></div>
+<div class="field full"><label for="fullName">Full Name *</label><input id="fullName" name="fullName" required placeholder="Enter member's full name"></div>
+<div class="field"><label for="gender">Gender *</label><select id="gender" name="gender" required><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label for="age">Age *</label><input id="age" name="age" type="number" min="1" max="120" required placeholder="Age"></div>
+<div class="field"><label for="phone">Phone Number *</label><input id="phone" name="phone" type="tel" required placeholder="080..."></div>
+<div class="field"><label for="businessType">Business Type</label><input id="businessType" name="businessType" placeholder="Enter business type"></div>
+<div class="field"><label for="accountName">Account Name</label><input id="accountName" name="accountName" placeholder="Bank account name"></div>
+<div class="field"><label for="accountNumber">Account Number</label><input id="accountNumber" name="accountNumber" inputmode="numeric" placeholder="Bank account number"></div>
+</div>
+
+<div class="section-title" style="margin-top:16px">Voter’s Card Code</div>
+<div class="grid">
+<div class="field"><label for="stateCode">State Code *</label><input id="stateCode" name="stateCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="36"></div>
+<div class="field"><label for="lgaCode">Local Government Code *</label><input id="lgaCode" name="lgaCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="07"></div>
+<div class="field"><label for="wardCode">Ward Code *</label><input id="wardCode" name="wardCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="01"></div>
+<div class="field"><label for="pollingUnitCode">Polling Unit Code *</label><input id="pollingUnitCode" name="pollingUnitCode" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" required placeholder="001"></div>
+<div class="field full"><div class="helper">Enter the four code parts. Firebase will later use these codes to look up and display the state, local government, ward, and polling unit names on the member card. The code itself will not be displayed on the card.</div></div>
 </div>
 <div class="submit-row"><button class="submit-btn" type="submit">Register Member</button></div>
 <div class="status" id="formStatus" aria-live="polite"></div>
@@ -111,16 +110,22 @@ const teamLeader=document.getElementById('teamLeader');
 const roleHelp=document.getElementById('roleHelp');
 category.addEventListener('change',()=>{
  const isLeader=category.value==='Team Leader';
- leaderField.classList.toggle('hidden',!category.value||isLeader);
- teamLeader.required=!!category.value&&!isLeader;
+ const needsLeader=!!category.value&&!isLeader;
+ leaderField.classList.toggle('hidden',!needsLeader);
+ teamLeader.required=needsLeader;
  roleHelp.textContent=isLeader
   ? 'Team Leader can register without selecting another team leader.'
-  : category.value
-    ? 'Please assign the member to a team leader. Team leader options will be connected to Firebase.'
-    : 'Choose a category to determine whether this member needs a team leader assigned.';
+  : needsLeader
+    ? 'Choose a registered team leader. The dropdown will be populated from Firebase after integration.'
+    : 'Select a category first. Team leaders do not need to select another team leader.';
 });
+function setNumericInput(id,maxLength){
+ const el=document.getElementById(id);
+ el.addEventListener('input',()=>{el.value=el.value.replace(/\\D/g,'').slice(0,maxLength);});
+}
+setNumericInput('stateCode',2);setNumericInput('lgaCode',2);setNumericInput('wardCode',2);setNumericInput('pollingUnitCode',3);
 document.getElementById('memberPhoto').addEventListener('change',event=>{
- const file=event.target.files?.[0]; if(!file)return;
+ const file=event.target.files?.[0];if(!file)return;
  if(!file.type.startsWith('image/')){alert('Please select an image file.');event.target.value='';return;}
  const preview=document.getElementById('photoPreview');
  const img=document.createElement('img');img.alt='Member photograph';img.src=URL.createObjectURL(file);
@@ -128,7 +133,7 @@ document.getElementById('memberPhoto').addEventListener('change',event=>{
 });
 document.getElementById('memberForm').addEventListener('submit',event=>{
  event.preventDefault();
- document.getElementById('formStatus').textContent='Form layout is ready. Firebase saving and Cloudinary photo upload will be connected next.';
+ document.getElementById('formStatus').textContent='Registration form is ready. Firebase code lookup, saving, and Cloudinary photo upload will be connected next.';
 });
 </script>
 </body>
