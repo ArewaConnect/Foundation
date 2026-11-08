@@ -74,6 +74,39 @@ h1{display:none}
  .toggle-password svg{width:28px;height:28px}
  .login-button{min-height:72px;margin-top:12px;font-size:29px}
 }
+
+/* Refined moderate-size login layout */
+body{padding:20px 16px}
+.page{width:min(100%,390px);gap:18px}
+.foundation-logo img{width:clamp(145px,38vw,205px)}
+.login-card{padding:22px;border-radius:22px}
+.field{min-height:58px;margin-bottom:14px;padding:0 16px;gap:12px;border-radius:16px}
+.field-icon{width:25px;height:25px}
+.field input{font-size:17px}
+.toggle-password{padding:4px}
+.toggle-password svg{width:23px;height:23px}
+.login-button{min-height:58px;margin-top:8px;border-radius:16px;font-size:20px;font-weight:700}
+.message{font-size:13px}
+@media(max-width:600px){
+ body{padding:18px 18px}
+ .page{width:min(100%,360px);gap:16px}
+ .foundation-logo img{width:clamp(135px,40vw,185px)}
+ .login-card{padding:20px;border-radius:20px}
+ .field{min-height:56px;margin-bottom:13px;padding:0 14px;gap:11px}
+ .field-icon{width:24px;height:24px}
+ .field input{font-size:16px}
+ .toggle-password svg{width:22px;height:22px}
+ .login-button{min-height:56px;margin-top:7px;font-size:19px}
+}
+@media(max-height:650px) and (max-width:600px){
+ body{padding:10px 16px}
+ .page{gap:10px}
+ .foundation-logo img{width:110px}
+ .login-card{padding:15px}
+ .field{min-height:48px;margin-bottom:9px}
+ .login-button{min-height:48px}
+}
+
 </style>
 
 </head>
