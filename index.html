@@ -107,6 +107,28 @@ body{padding:20px 16px}
  .login-button{min-height:48px}
 }
 
+
+/* Latest refinement: larger centered foundation logo and slim full-width fields */
+.page{width:min(100%,430px);gap:17px}
+.foundation-logo{width:100%;justify-content:center}
+.foundation-logo img{width:clamp(175px,45vw,235px);max-width:100%}
+.login-card{width:100%;padding:20px 22px;border-radius:20px}
+.field{width:100%;min-height:48px;margin-bottom:12px;padding:0 15px;gap:12px;border-radius:12px}
+.field-icon{width:23px;height:23px}
+.field input{font-size:16px}
+.toggle-password svg{width:21px;height:21px}
+.login-button{width:100%;min-height:50px;margin-top:7px;border-radius:12px;font-size:19px}
+@media(max-width:600px){
+ body{padding:16px 14px}
+ .page{width:100%;max-width:430px;gap:15px}
+ .foundation-logo img{width:clamp(175px,48vw,230px)}
+ .login-card{width:100%;padding:18px 16px;border-radius:18px}
+ .field{min-height:46px;margin-bottom:11px;padding:0 13px;border-radius:11px}
+ .field-icon{width:22px;height:22px}
+ .field input{font-size:16px}
+ .login-button{min-height:48px;font-size:18px}
+}
+
 </style>
 
 </head>
