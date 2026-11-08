@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#087d24">
-  <title> | Engineer Haruna Foundation</title>
+  <title>Login | Engineer Haruna Foundation</title>
   <style>
 :root{--green:#079b16;--green-dark:#006b12;--red:#ed1c24;--blue:#10a9e5}
 *{box-sizing:border-box}
@@ -167,10 +167,47 @@ body{padding:20px 16px}
     </section>
 </main>
 
-  <script>
+  <!-- Firebase Authentication integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
+  authDomain: "ehfoundation-48f1d.firebaseapp.com",
+  projectId: "ehfoundation-48f1d",
+  storageBucket: "ehfoundation-48f1d.firebasestorage.app",
+  messagingSenderId: "126063666222",
+  appId: "1:126063666222:web:8793cae852361441fb6bbf"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
     const passwordInput = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
     const togglePassword = document.getElementById('togglePassword');
     const message = document.getElementById('message');
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = loginForm.querySelector('.login-button');
+
+    // Firebase Authentication uses email/password.
+    // This field therefore accepts the account email, not a Firestore username.
+    usernameInput.type = 'email';
+    usernameInput.name = 'email';
+    usernameInput.autocomplete = 'username';
+    usernameInput.placeholder = 'Email address';
+    usernameInput.setAttribute('aria-label', 'Email address');
+
+    function showMessage(text) {
+      message.textContent = text;
+      message.classList.add('show');
+    }
 
     togglePassword.addEventListener('click', () => {
       const show = passwordInput.type === 'password';
@@ -181,10 +218,78 @@ body{padding:20px 16px}
         : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>';
     });
 
-    document.getElementById('loginForm').addEventListener('submit', (event) => {
+    async function routeSignedInUser(user) {
+      try {
+        const tokenResult = await user.getIdTokenResult(true);
+        const claims = tokenResult.claims || {};
+        const role = String(claims.role || '').toLowerCase();
+        const permissions = Array.isArray(claims.permissions) ? claims.permissions : [];
+
+        if (claims.superAdmin === true || claims.admin === true) {
+          window.location.replace('super-admin-dashboard.html');
+          return;
+        }
+
+        if (role === 'founder') {
+          if (permissions.includes('founder-dashboard')) {
+            window.location.replace('founder-dashboard.html');
+            return;
+          }
+          showMessage('Your account does not have Founder Dashboard permission. Please contact the Super Admin.');
+          await signOut(auth);
+          return;
+        }
+
+        if (role === 'registration agent' || role === 'registrationagent' || role === 'agent') {
+          if (permissions.includes('registration')) {
+            window.location.replace('registration.html');
+            return;
+          }
+          showMessage('Your account does not have Registration permission. Please contact the Super Admin.');
+          await signOut(auth);
+          return;
+        }
+
+        showMessage('Your account role is not configured. Please contact the Super Admin.');
+        await signOut(auth);
+      } catch (error) {
+        console.error('Role verification error:', error);
+        showMessage('Unable to verify your account permissions. Please try again.');
+        await signOut(auth);
+      }
+    }
+
+    loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      message.textContent = 'The login interface is ready. Connect Firebase Authentication or your secure login backend to enable real sign-in.';
-      message.classList.add('show');
+      message.classList.remove('show');
+      loginButton.disabled = true;
+      loginButton.textContent = 'Signing in...';
+
+      const email = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      try {
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        await routeSignedInUser(credential.user);
+      } catch (error) {
+        console.error('Firebase sign-in error:', error);
+        const messages = {
+          'auth/invalid-credential': 'Incorrect email or password.',
+          'auth/invalid-email': 'Please enter a valid email address.',
+          'auth/user-disabled': 'This account has been disabled. Contact the Super Admin.',
+          'auth/too-many-requests': 'Too many login attempts. Please wait and try again.',
+          'auth/network-request-failed': 'Network error. Check your internet connection.'
+        };
+        showMessage(messages[error.code] || 'Login failed. Please check your details and try again.');
+      } finally {
+        loginButton.disabled = false;
+        loginButton.innerHTML = '<span aria-hidden="true">➜</span> &nbsp; Login';
+      }
+    });
+
+    // If an authenticated user returns to this page, route them by their claims.
+    onAuthStateChanged(auth, (user) => {
+      if (user) routeSignedInUser(user);
     });
   </script>
 </body>
