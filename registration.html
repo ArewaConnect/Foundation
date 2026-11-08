@@ -66,7 +66,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </select></div>
 <div class="field hidden" id="leaderField"><label for="teamLeader">Assign Team Leader *</label>
 <select id="teamLeader" name="teamLeader"><option value="">Select team leader</option></select>
-<div class="helper">Team leaders will be loaded from registered Firebase records after integration.</div></div>
+<div class="helper">Choose a team leader already registered in the foundation.</div></div>
 <div class="field full"><div class="helper" id="roleHelp">Select a category first. Team leaders do not need to select another team leader.</div></div>
 </div>
 
@@ -76,7 +76,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="photo-controls">
 <label for="memberPhoto">Upload Member Photograph</label>
 <input id="memberPhoto" name="memberPhoto" type="file" accept="image/*">
-<div class="helper">Photo preview is enabled. Cloudinary will be connected later.</div>
+<div class="helper">Photo preview is enabled. Registration saves photo as an image data URL (keep photos reasonably small).</div>
 </div>
 </div>
 <div class="grid">
@@ -103,7 +103,12 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </div>
 </section>
 </main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
 const category=document.getElementById('category');
 const leaderField=document.getElementById('leaderField');
 const teamLeader=document.getElementById('teamLeader');
@@ -116,7 +121,7 @@ category.addEventListener('change',()=>{
  roleHelp.textContent=isLeader
   ? 'Team Leader can register without selecting another team leader.'
   : needsLeader
-    ? 'Choose a registered team leader. The dropdown will be populated from Firebase after integration.'
+    ? 'Choose a registered team leader from the Firebase list.'
     : 'Select a category first. Team leaders do not need to select another team leader.';
 });
 function setNumericInput(id,maxLength){
@@ -131,9 +136,27 @@ document.getElementById('memberPhoto').addEventListener('change',event=>{
  const img=document.createElement('img');img.alt='Member photograph';img.src=URL.createObjectURL(file);
  preview.replaceChildren(img);
 });
-document.getElementById('memberForm').addEventListener('submit',event=>{
- event.preventDefault();
- document.getElementById('formStatus').textContent='Registration form is ready. Firebase code lookup, saving, and Cloudinary photo upload will be connected next.';
+const statusEl=document.getElementById('formStatus');
+async function loadTeamLeaders(){
+ try{const snap=await db.collection('members').where('category','==','Team Leader').get();
+ teamLeader.innerHTML='<option value="">Select team leader</option>';
+ snap.forEach(doc=>{const m=doc.data();const opt=document.createElement('option');opt.value=doc.id;opt.textContent=m.fullName+(m.phone?' — '+m.phone:'');teamLeader.appendChild(opt);});
+ }catch(e){console.error(e);roleHelp.textContent='Could not load team leaders. Check Firebase access/rules and internet connection.';}
+}
+loadTeamLeaders();
+document.getElementById('memberForm').addEventListener('submit',async event=>{
+ event.preventDefault();const button=event.submitter;button.disabled=true;button.textContent='Saving...';statusEl.textContent='';
+ try{
+  const f=event.currentTarget;const data={category:category.value,teamLeaderId:teamLeader.value||null,teamLeaderName:teamLeader.selectedOptions[0]?.textContent||null,
+   fullName:f.fullName.value.trim(),gender:f.gender.value,age:Number(f.age.value),phone:f.phone.value.trim(),businessType:f.businessType.value.trim(),
+   accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),stateCode:f.stateCode.value,lgaCode:f.lgaCode.value,wardCode:f.wardCode.value,pollingUnitCode:f.pollingUnitCode.value,
+   voterCardCode:f.stateCode.value+f.lgaCode.value+f.wardCode.value+f.pollingUnitCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
+  const photo=document.getElementById('memberPhoto').files?.[0];
+  if(photo){if(photo.size>450000){throw new Error('Photo is too large for direct Firestore storage (maximum 450 KB). Please choose a smaller image.');}
+   data.photoDataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(photo);});}
+  const doc=await db.collection('members').add(data);statusEl.textContent='Registration saved successfully. Registration ID: '+doc.id;f.reset();document.getElementById('photoPreview').textContent='Member Photo';leaderField.classList.add('hidden');loadTeamLeaders();
+ }catch(e){console.error(e);statusEl.textContent='Registration failed: '+(e.message||'Please check internet connection and Firestore rules.');}
+ finally{button.disabled=false;button.textContent='Register Member';}
 });
 </script>
 </body>

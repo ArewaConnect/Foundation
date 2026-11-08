@@ -39,59 +39,19 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </style></head>
 <body><main class="records-wrap"><section class="records-scroll" id="recordsList">
 
-<article class="record-card" data-phone="">
-<div class="record-top">
-<div class="member-photo">Member<br>Photo</div>
-<div class="member-info">
-<h2 class="member-name">Member Full Name</h2>
-<div class="info"><strong>Gender</strong>Not provided</div>
-<div class="info"><strong>Age</strong>Not provided</div>
-<div class="info"><strong>Account Name</strong>Not provided</div>
-<div class="info"><strong>Account Number</strong>Not provided</div>
-</div></div>
-<div class="details-below">
-<div class="details-title">Voter / Contact Details</div>
-<div class="info"><strong>Phone Number</strong>Not provided</div>
-<div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
-<div class="info"><strong>Ward</strong>Not provided</div>
-<div class="info"><strong>Local Government</strong>Not provided</div>
-</div>
-<div class="bottom-row">
-<div class="info polling-unit"><strong>Polling Unit</strong>Not provided</div>
-<div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
-</div>
-</article>
-
-<article class="record-card" data-phone="">
-<div class="record-top">
-<div class="member-photo">Member<br>Photo</div>
-<div class="member-info">
-<h2 class="member-name">Member Full Name</h2>
-<div class="info"><strong>Gender</strong>Not provided</div>
-<div class="info"><strong>Age</strong>Not provided</div>
-<div class="info"><strong>Account Name</strong>Not provided</div>
-<div class="info"><strong>Account Number</strong>Not provided</div>
-</div></div>
-<div class="details-below">
-<div class="details-title">Voter / Contact Details</div>
-<div class="info"><strong>Phone Number</strong>Not provided</div>
-<div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
-<div class="info"><strong>Ward</strong>Not provided</div>
-<div class="info"><strong>Local Government</strong>Not provided</div>
-</div>
-<div class="bottom-row">
-<div class="info polling-unit"><strong>Polling Unit</strong>Not provided</div>
-<div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
-</div>
-</article>
-
+<div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div>
 </section></main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-function normalizePhone(phone){let digits=String(phone||"").replace(/\D/g,"");if(digits.startsWith("0"))digits="234"+digits.slice(1);return digits}
-document.querySelectorAll('[data-action]').forEach(link=>link.addEventListener('click',e=>{
-e.preventDefault();let phone=link.closest('.record-card')?.dataset.phone||'';
-if(!phone){alert('Member phone number is not available yet.');return}
-if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');
-else window.location.href='sms:'+phone;
-}));
+const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits}
+function card(m,id){const ward=m.wardName||m.wardCode||'Not provided',lga=m.lgaName||m.lgaCode||'Not provided',pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
+return `<article class="record-card" data-phone="${esc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info"><h2 class="member-name">${esc(m.fullName)}</h2><div class="info"><strong>Role</strong>${esc(m.category)}</div><div class="info"><strong>Gender</strong>${esc(m.gender)}</div><div class="info"><strong>Age</strong>${esc(m.age)}</div><div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div><div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div></div></div><div class="details-below"><div class="details-title">Voter / Contact Details</div><div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div><div class="info"><strong>Voter’s Card Number</strong>${esc(m.voterCardCode)}</div><div class="info"><strong>Ward</strong>${esc(ward)}</div><div class="info"><strong>Local Government</strong>${esc(lga)}</div></div><div class="bottom-row"><div class="info polling-unit"><strong>Polling Unit</strong>${esc(pu)}</div><div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div></div></article>`;}
+const list=document.getElementById('recordsList');
+db.collection('members').orderBy('createdAt','desc').onSnapshot(snap=>{if(!snap.size){list.innerHTML='<div style="text-align:center;padding:25px;color:#164b2b">No registrations have been saved yet.</div>';return;}list.innerHTML=snap.docs.map(d=>card(d.data(),d.id)).join('');},err=>{console.error(err);list.innerHTML='<div style="padding:20px;color:#a00">Unable to load members. Check Firebase connection and Firestore rules.</div>';});
+document.addEventListener('click',e=>{const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else window.location.href='sms:'+phone;});
 </script></body></html>

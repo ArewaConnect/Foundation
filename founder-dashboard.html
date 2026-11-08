@@ -83,6 +83,12 @@
 <section class="glass profile"><div class="avatar">FOUNDER</div><div><div class="role">Founder</div><h1>Engineer Aruna Dahiru Musawo</h1><p>Foundation leadership dashboard</p></div></section>
 
 
+<section class="summary" aria-label="Registered personnel summary">
+ <div class="glass summary-card"><div class="label">Team Leaders</div><div class="big" id="teamLeaderCount">0</div></div>
+ <div class="glass summary-card"><div class="label">Polling Unit Agents</div><div class="big" id="puAgentCount">0</div></div>
+ <div class="glass summary-card"><div class="label">Mobilization Agents</div><div class="big" id="mobilizationAgentCount">0</div></div>
+ <div class="glass summary-card"><div class="label">Members</div><div class="big" id="memberCount">0</div></div>
+</section>
 <section class="glass programs-panel" id="programsPanel">
   <div class="programs-head">
     <h2>Foundation Programs & Achievements</h2>
@@ -125,7 +131,12 @@
 
 <footer>Engineer Haruna Foundation · Founder Dashboard</footer>
 </main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
 const wardNames=["Ward 1","Ward 2","Ward 3","Ward 4","Ward 5","Ward 6","Ward 7","Ward 8","Ward 9","Ward 10","Ward 11"];
 const wards=wardNames.map((name,i)=>({id:i+1,name,registered:0,captured:0,verified:0}));
 const fmt=n=>Number(n||0).toLocaleString(), pct=(n,d)=>d?Math.round(n/d*100):0;
@@ -147,6 +158,14 @@ function render(){
  <div class="metric vr"><div class="pct">${pct(w.verified,w.captured)}%</div><div class="number">${fmt(w.verified)}</div><div class="caption">VR · Verified members</div></div>
  <div class="metric remaining"><div class="pct">${pct(left,w.registered)}%</div><div class="number">${fmt(left)}</div><div class="caption">Remaining · Not captured</div></div></div></article>`}).join("");
 }
+db.collection('members').onSnapshot(snapshot=>{
+ const counts={'Team Leader':0,'Polling Unit Agent':0,'Mobilization Agent':0,'Member':0};
+ snapshot.forEach(doc=>{const role=doc.data().category;if(Object.prototype.hasOwnProperty.call(counts,role))counts[role]++;});
+ document.getElementById('teamLeaderCount').textContent=fmt(counts['Team Leader']);
+ document.getElementById('puAgentCount').textContent=fmt(counts['Polling Unit Agent']);
+ document.getElementById('mobilizationAgentCount').textContent=fmt(counts['Mobilization Agent']);
+ document.getElementById('memberCount').textContent=fmt(counts['Member']);
+},err=>console.error('Firebase member count listener:',err));
 function logout(){ window.location.href='index.html'; }
 function openWard(id){alert("Ward Statistics page for "+wards.find(w=>w.id===id).name+" will be connected here.");}
 render();
