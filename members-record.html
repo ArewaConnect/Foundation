@@ -1,134 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#087d24">
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Members Record | Engineer Haruna Foundation</title>
 <style>
-body{margin:0;min-height:100%;width:100%}
-body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0;filter:blur(.5px)}
-body:before{
- top:-90px;left:-130px;width:490px;height:260px;
- background:linear-gradient(145deg,#079b16 0 30%,#fff 30% 42%,#10a9e5 42% 57%,#ed1c24 57% 69%,transparent 69%);
- border-radius:0 0 100% 0;transform:rotate(-8deg)
-}
-body:after{content:"";position:fixed;pointer-events:none;z-index:0;filter:blur(.5px)}
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;min-height:100%;font-family:Inter,"Segoe UI",Arial,sans-serif}
-body{min-height:100vh;min-height:100dvh;display:block;padding:24px 16px 34px;overflow-x:hidden}
-.page{position:relative;z-index:1;width:min(100%,980px);margin:0 auto}
-.page-header{text-align:center;margin:0 auto 22px;color:#14552b}
-.page-header h1{font-size:clamp(23px,4vw,34px);margin:0 0 5px;font-weight:800;letter-spacing:.2px}
-.page-header p{margin:0;color:#53705e;font-size:14px}
-.members-shell{background:rgba(255,255,255,.48);border:1px solid rgba(255,255,255,.85);border-radius:28px;padding:18px;box-shadow:0 15px 38px rgba(30,48,70,.14),inset 0 1px 0 rgba(255,255,255,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.members-scroll{max-height:calc(100dvh - 145px);min-height:300px;overflow-y:auto;overscroll-behavior:contain;padding:3px 5px 5px;scrollbar-width:thin;scrollbar-color:rgba(0,120,25,.45) transparent}
-.member-card{display:flex;gap:18px;align-items:flex-start;padding:18px;margin:0 0 16px;border-radius:20px;background:rgba(255,255,255,.84);border:1px solid rgba(255,255,255,.95);box-shadow:0 7px 18px rgba(34,53,70,.11);position:relative}
-.member-card:last-child{margin-bottom:0}
-.member-photo{width:116px;height:132px;flex:0 0 116px;object-fit:cover;display:flex;align-items:center;justify-content:center;border-radius:13px;border:2px solid rgba(8,135,35,.22);background:linear-gradient(145deg,#e7f3e9,#dcecf5);color:#438153;font-size:12px;text-align:center;overflow:hidden}
+*{box-sizing:border-box}html,body{margin:0;width:100%;font-family:Arial,sans-serif}
+body{min-height:100vh;min-height:100dvh;padding:14px 10px;overflow:hidden}
+
+body{background:linear-gradient(135deg,#e8f5f8,#f7fbfd);position:relative}
+body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
+body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
+body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
+
+.records-wrap{position:relative;z-index:1;width:min(100%,760px);margin:0 auto}
+.records-scroll{height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;padding:3px 3px 20px;scrollbar-width:thin;scrollbar-color:rgba(0,120,25,.4) transparent}
+.record-card{margin:0 0 12px;padding:12px;border-radius:18px;background:rgba(255,255,255,.53);border:1px solid rgba(255,255,255,.9);box-shadow:0 10px 25px rgba(35,50,65,.12),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.record-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:11px;align-items:start}
+.member-photo{width:84px;height:100px;border-radius:11px;border:1px solid #b6d9c2;background:linear-gradient(145deg,#e8f4eb,#dcecf5);display:flex;align-items:center;justify-content:center;color:#438153;text-align:center;font-size:11px;overflow:hidden}
 .member-photo img{width:100%;height:100%;object-fit:cover}
-.member-main{min-width:0;flex:1}
-.member-name{font-size:21px;font-weight:800;color:#174a2b;margin:0 0 10px;overflow-wrap:anywhere}
-.member-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
-.field-item{font-size:13px;color:#52645a;line-height:1.4;min-width:0;overflow-wrap:anywhere}
-.field-item strong{display:block;color:#233a2c;font-size:12px;font-weight:700;margin-bottom:2px}
-.voter-block{grid-column:1/-1;margin-top:3px;padding:10px 12px;border-radius:12px;background:rgba(7,155,22,.055);border:1px solid rgba(7,155,22,.13)}
-.voter-title{font-size:12px;font-weight:800;color:#16732b;margin-bottom:7px}
-.voter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.member-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:0;border-radius:10px;padding:10px 15px;font-size:13px;font-weight:750;cursor:pointer;transition:filter .15s,transform .15s}
-.action-btn:hover{filter:brightness(1.05)}.action-btn:active{transform:translateY(1px)}
-.whatsapp{background:#16a34a;color:white}.message-btn{background:#e9f4ec;color:#17652c;border:1px solid #c9e5d0}
-.empty-state{text-align:center;padding:42px 16px;color:#54715c;font-size:14px}
-.empty-state strong{display:block;color:#225b32;font-size:17px;margin-bottom:6px}
-@media(max-width:650px){
- body{padding:15px 10px 24px}
- .page-header{margin-bottom:14px}
- .members-shell{padding:10px;border-radius:20px}
- .members-scroll{max-height:calc(100dvh - 125px);padding:2px}
- .member-card{gap:12px;padding:12px;border-radius:16px}
- .member-photo{width:82px;height:98px;flex-basis:82px;border-radius:10px}
- .member-name{font-size:17px;margin-bottom:8px}
- .member-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px}
- .field-item{font-size:12px}
- .field-item strong{font-size:11px}
- .voter-block{padding:8px}
- .voter-grid{grid-template-columns:1fr 1fr}
- .action-btn{padding:9px 12px;font-size:12px}
-}
-@media(max-width:390px){
- .member-card{flex-direction:column}
- .member-photo{width:90px;height:105px;flex-basis:auto}
- .member-fields{grid-template-columns:1fr 1fr}
-}
-</style>
-</head>
-<body>
-<main class="page">
-  <header class="page-header">
-    <h1>Members Record</h1>
-    <p>Engineer Haruna Foundation</p>
-  </header>
-  <section class="members-shell" aria-label="Members list">
-    <div class="members-scroll" id="membersList">
-      <article class="member-card">
-        <div class="member-photo">Member<br>Photo</div>
-        <div class="member-main">
-          <h2 class="member-name">Member Full Name</h2>
-          <div class="member-fields">
-            <div class="field-item"><strong>Gender</strong>Not provided</div>
-            <div class="field-item"><strong>Age</strong>Not provided</div>
-            <div class="field-item"><strong>Account Name</strong>Not provided</div>
-            <div class="field-item"><strong>Account Number</strong>Not provided</div>
-            <div class="field-item"><strong>Phone Number</strong>Not provided</div>
-            <div class="field-item"><strong>Voter’s Card Number</strong>Not provided</div>
-            <div class="voter-block">
-              <div class="voter-title">Voter / Electoral Details</div>
-              <div class="voter-grid">
-                <div class="field-item"><strong>Ward</strong>Not provided</div>
-                <div class="field-item"><strong>Local Government</strong>Not provided</div>
-                <div class="field-item"><strong>Polling Unit</strong>Not provided</div>
-              </div>
-            </div>
-          </div>
-          <div class="member-actions">
-            <a class="action-btn whatsapp" href="#" data-action="whatsapp">WhatsApp Message</a>
-            <a class="action-btn message-btn" href="#" data-action="sms">Send Message</a>
-          </div>
-        </div>
-      </article>
-      <div class="empty-state">
-        <strong>Member records will appear here</strong>
-        This page is ready for Firebase data integration.
-      </div>
-    </div>
-  </section>
-</main>
+.member-info{min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 10px}
+.member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
+.info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+.info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
+.details-below{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:9px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.7)}
+.details-title{grid-column:1/-1;font-size:11px;font-weight:800;color:#197234}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:750;cursor:pointer}
+.whatsapp{background:#16a34a;color:white}.sms{background:#e8f4eb;color:#17652c;border:1px solid #c9e5d0}
+@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{padding:7px;gap:6px 8px}.action{font-size:11px;padding:7px 10px}}
+</style></head>
+<body><main class="records-wrap"><section class="records-scroll" id="recordsList">
+
+<article class="record-card" data-phone="">
+<div class="record-top">
+<div class="member-photo">Member<br>Photo</div>
+<div class="member-info">
+<h2 class="member-name">Member Full Name</h2>
+<div class="info"><strong>Gender</strong>Not provided</div>
+<div class="info"><strong>Age</strong>Not provided</div>
+<div class="info"><strong>Account Name</strong>Not provided</div>
+<div class="info"><strong>Account Number</strong>Not provided</div>
+</div></div>
+<div class="details-below">
+<div class="details-title">Voter / Contact Details</div>
+<div class="info"><strong>Phone Number</strong>Not provided</div>
+<div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
+<div class="info"><strong>Ward</strong>Not provided</div>
+<div class="info"><strong>Local Government</strong>Not provided</div>
+<div class="info"><strong>Polling Unit</strong>Not provided</div>
+</div>
+<div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
+</article>
+
+<article class="record-card" data-phone="">
+<div class="record-top">
+<div class="member-photo">Member<br>Photo</div>
+<div class="member-info">
+<h2 class="member-name">Member Full Name</h2>
+<div class="info"><strong>Gender</strong>Not provided</div>
+<div class="info"><strong>Age</strong>Not provided</div>
+<div class="info"><strong>Account Name</strong>Not provided</div>
+<div class="info"><strong>Account Number</strong>Not provided</div>
+</div></div>
+<div class="details-below">
+<div class="details-title">Voter / Contact Details</div>
+<div class="info"><strong>Phone Number</strong>Not provided</div>
+<div class="info"><strong>Voter’s Card Number</strong>Not provided</div>
+<div class="info"><strong>Ward</strong>Not provided</div>
+<div class="info"><strong>Local Government</strong>Not provided</div>
+<div class="info"><strong>Polling Unit</strong>Not provided</div>
+</div>
+<div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
+</article>
+
+</section></main>
 <script>
-/*
-  Firebase integration will be added in the next step.
-  Expected member fields:
-  photoUrl, fullName, gender, age, accountName, accountNumber,
-  phone, voterCardNumber, ward, localGovernment, pollingUnit.
-*/
-function normalizePhone(phone){
-  let digits=String(phone||"").replace(/\\D/g,"");
-  if(digits.startsWith("0")) digits="234"+digits.slice(1);
-  return digits;
-}
-document.querySelectorAll('[data-action]').forEach(link=>{
-  link.addEventListener('click',event=>{
-    event.preventDefault();
-    const phone=link.closest('.member-card')?.dataset.phone||"";
-    if(!phone){alert("Member phone number is not available yet.");return;}
-    const number=normalizePhone(phone);
-    if(link.dataset.action==="whatsapp"){
-      window.open("https://wa.me/"+number+"?text="+encodeURIComponent("Hello, "),"_blank","noopener");
-    }else{
-      window.location.href="sms:"+phone;
-    }
-  });
-});
-</script>
-</body>
-</html>
+function normalizePhone(phone){let digits=String(phone||"").replace(/\D/g,"");if(digits.startsWith("0"))digits="234"+digits.slice(1);return digits}
+document.querySelectorAll('[data-action]').forEach(link=>link.addEventListener('click',e=>{
+e.preventDefault();let phone=link.closest('.record-card')?.dataset.phone||'';
+if(!phone){alert('Member phone number is not available yet.');return}
+if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');
+else window.location.href='sms:'+phone;
+}));
+</script></body></html>
