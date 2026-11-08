@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineer Haruna Foundation — Founder Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#173b2b;background:linear-gradient(135deg,#e8f8ed,#eaf6ff,#fff1f2)}
+.page{max-width:1150px;margin:auto;padding:20px 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;color:#166534;font-weight:bold}
+.glass{background:rgba(255,255,255,.76);border:1px solid rgba(255,255,255,.8);backdrop-filter:blur(12px);border-radius:20px;box-shadow:0 12px 30px rgba(20,70,45,.12)}
+.profile{display:flex;align-items:center;gap:18px;padding:20px;margin-bottom:24px}.avatar{width:105px;height:105px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#dbeafe);border:4px solid white;display:grid;place-items:center;color:#166534;font-weight:bold;flex-shrink:0}
+.role{font-size:13px;color:#15803d;font-weight:bold;letter-spacing:1px;text-transform:uppercase}.profile h1{font-size:clamp(22px,4vw,32px);margin:7px 0}.profile p{margin:0;color:#64748b}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 2px 14px}.heading h2{margin:0}.pill{background:#ffffffa8;border-radius:30px;padding:8px 12px;font-size:12px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.summary-card{padding:17px}.label{color:#64748b;font-size:13px}.big{font-size:32px;font-weight:800;margin-top:7px}
+.wards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ward{padding:16px;cursor:pointer;transition:.2s}.ward:hover{transform:translateY(-3px)}.ward-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.ward h3{margin:0}.ward-head span{font-size:12px;color:#15803d;font-weight:bold}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{padding:12px;border-radius:13px;background:#ffffffbd;min-height:88px}.pct{font-size:12px;color:#15803d;font-weight:bold}.number{font-size:25px;font-weight:800;margin-top:3px}.caption{font-size:11px;color:#64748b;margin-top:4px}.rg{border-left:4px solid #0ea5e9}.mc{border-left:4px solid #22c55e}.vr{border-left:4px solid #ef4444}.remaining{border-left:4px solid #f59e0b}
+.note{font-size:12px;color:#64748b;margin-top:15px}footer{text-align:center;font-size:12px;color:#64748b;margin:25px 0}
+@media(max-width:640px){.summary{grid-template-columns:1fr}.wards{grid-template-columns:1fr}.profile{padding:15px}.avatar{width:82px;height:82px}.heading{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body><main class="page">
+<header class="top"><div>Engineer Haruna Foundation</div><span class="pill">Founder Dashboard</span></header>
+<section class="glass profile"><div class="avatar">FOUNDER</div><div><div class="role">Founder</div><h1>Engineer Aruna Dahiru Musawo</h1><p>Foundation leadership dashboard</p></div></section>
+<div class="heading"><div><h2>Gusau Ward Statistics</h2><p style="color:#64748b;margin:6px 0 0">Registered voters, members captured, and verification.</p></div><span class="pill">11 Wards</span></div>
+<section class="summary">
+<div class="glass summary-card"><div class="label">RG · Registered voters</div><div class="big" id="totalRG">0</div></div>
+<div class="glass summary-card"><div class="label">MC · Members captured</div><div class="big" id="totalMC">0</div></div>
+<div class="glass summary-card"><div class="label">VR · Verified members</div><div class="big" id="totalVR">0</div></div>
+</section>
+<section class="wards" id="wardGrid"></section>
+<p class="note">Ward names and figures are placeholders until connected to Firebase and populated with verified data. Select a ward to open its future Ward Statistics page.</p>
+<footer>Engineer Haruna Foundation · Founder Dashboard</footer>
+</main>
+<script>
+const wardNames=["Ward 1","Ward 2","Ward 3","Ward 4","Ward 5","Ward 6","Ward 7","Ward 8","Ward 9","Ward 10","Ward 11"];
+const wards=wardNames.map((name,i)=>({id:i+1,name,registered:0,captured:0,verified:0}));
+const fmt=n=>Number(n||0).toLocaleString(), pct=(n,d)=>d?Math.round(n/d*100):0;
+function render(){
+ let totals=wards.reduce((a,w)=>(a.rg+=w.registered,a.mc+=w.captured,a.vr+=w.verified,a),{rg:0,mc:0,vr:0});
+ totalRG.textContent=fmt(totals.rg);totalMC.textContent=fmt(totals.mc);totalVR.textContent=fmt(totals.vr);
+ wardGrid.innerHTML=wards.map(w=>{let left=Math.max(w.registered-w.captured,0);return `<article class="glass ward" tabindex="0" onclick="openWard(${w.id})" onkeydown="if(event.key==='Enter')openWard(${w.id})"><div class="ward-head"><h3>${w.name}</h3><span>View details →</span></div><div class="metrics">
+ <div class="metric rg"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.registered)}</div><div class="caption">RG · Registered voters</div></div>
+ <div class="metric mc"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.captured)}</div><div class="caption">MC · Members captured</div></div>
+ <div class="metric vr"><div class="pct">${pct(w.verified,w.captured)}%</div><div class="number">${fmt(w.verified)}</div><div class="caption">VR · Verified members</div></div>
+ <div class="metric remaining"><div class="pct">${pct(left,w.registered)}%</div><div class="number">${fmt(left)}</div><div class="caption">Remaining · Not captured</div></div></div></article>`}).join("");
+}
+function openWard(id){alert("Ward Statistics page for "+wards.find(w=>w.id===id).name+" will be connected here.");}
+render();
+</script></body></html>
