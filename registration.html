@@ -76,7 +76,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="photo-controls">
 <label for="memberPhoto">Upload Member Photograph</label>
 <input id="memberPhoto" name="memberPhoto" type="file" accept="image/*">
-<div class="helper">Photo preview is enabled. Registration saves photo as an image data URL (keep photos reasonably small).</div>
+<div class="helper">Photo will be automatically resized and compressed to approximately 450–500 KB before saving.</div>
 </div>
 </div>
 <div class="grid">
@@ -137,6 +137,42 @@ document.getElementById('memberPhoto').addEventListener('change',event=>{
  const img=document.createElement('img');img.alt='Member photograph';img.src=URL.createObjectURL(file);
  preview.replaceChildren(img);
 });
+// Browser-side member photo compression before Firestore save.
+// Compresses/resizes the image to stay at or below 500 KB when possible.
+async function compressMemberPhoto(file,targetKB=500){
+ if(!file||!file.type.startsWith('image/')) throw new Error('Please select a valid image.');
+ const objectUrl=URL.createObjectURL(file);
+ try{
+  const img=new Image(); img.src=objectUrl;
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Could not read the selected photograph.'));});
+  const maxDimension=1600;
+  let width=img.naturalWidth||img.width, height=img.naturalHeight||img.height;
+  const scale=Math.min(1,maxDimension/Math.max(width,height));
+  width=Math.max(1,Math.round(width*scale)); height=Math.max(1,Math.round(height*scale));
+  const canvas=document.createElement('canvas'); canvas.width=width; canvas.height=height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx) throw new Error('Image compression is not supported by this browser.');
+  const maxBytes=targetKB*1024;
+  let blob;
+  async function makeBlob(q){
+   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+   ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   return await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',q));
+  }
+  let quality=0.88; blob=await makeBlob(quality);
+  while(blob&&blob.size>maxBytes&&quality>0.25){
+   quality=Math.max(0.25,quality-0.07); blob=await makeBlob(quality);
+  }
+  while(blob&&blob.size>maxBytes&&width>600){
+   width=Math.round(width*0.85);height=Math.round(height*0.85);
+   canvas.width=width;canvas.height=height;quality=0.72;blob=await makeBlob(quality);
+  }
+  if(!blob) throw new Error('Image compression failed. Please try another photograph.');
+  if(blob.size>maxBytes) throw new Error('This photograph could not be compressed below 500 KB. Please choose another image.');
+  return blob;
+ }finally{URL.revokeObjectURL(objectUrl);}
+}
+
 const statusEl=document.getElementById('formStatus');
 async function loadTeamLeaders(){
   teamLeader.innerHTML='<option value="">Loading team leaders…</option>';
@@ -209,8 +245,12 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
    accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),stateCode:f.stateCode.value,lgaCode:f.lgaCode.value,wardCode:f.wardCode.value,pollingUnitCode:f.pollingUnitCode.value,
    voterCardCode:f.stateCode.value+f.lgaCode.value+f.wardCode.value+f.pollingUnitCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
   const photo=document.getElementById('memberPhoto').files?.[0];
-  if(photo){if(photo.size>450000){throw new Error('Photo is too large for direct Firestore storage (maximum 450 KB). Please choose a smaller image.');}
-   data.photoDataUrl=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(photo);});}
+  if(photo){
+   const compressedPhoto=await compressMemberPhoto(photo,500);
+   data.photoDataUrl=await new Promise((resolve,reject)=>{
+    const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(compressedPhoto);
+   });
+  }
   const doc=await db.collection('members').add(data);statusEl.textContent='Registration saved successfully. Registration ID: '+doc.id;f.reset();document.getElementById('photoPreview').textContent='Member Photo';leaderField.classList.add('hidden');loadTeamLeaders();
  }catch(e){console.error(e);statusEl.textContent='Registration failed: '+(e.message||'Please check internet connection and Firestore rules.');}
  finally{button.disabled=false;button.textContent='Register Member';}
