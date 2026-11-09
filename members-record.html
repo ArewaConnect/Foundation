@@ -17,25 +17,21 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .record-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:11px;align-items:start}
 .member-photo{width:84px;height:100px;border-radius:11px;border:1px solid #b6d9c2;background:linear-gradient(145deg,#e8f4eb,#dcecf5);display:flex;align-items:center;justify-content:center;color:#438153;text-align:center;font-size:11px;overflow:hidden}
 .member-photo img{width:100%;height:100%;object-fit:cover}
-.member-info{min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 10px}
+.member-info{min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 10px}
 .member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
 .info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 .info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
-.details-below{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:7px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
+.details-below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 10px;margin-top:7px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
 .details-title{grid-column:1/-1;font-size:11px;font-weight:800;color:#197234}
-.bottom-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;padding:0 2px}
+.bottom-row{display:flex;flex-direction:column;align-items:stretch;gap:9px;margin-top:9px;padding:0 2px}
 .polling-unit{min-width:0;flex:1}
-.actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:nowrap;margin:0}
-.action{white-space:nowrap;padding:7px 10px;font-size:11px}
-.action{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:750;cursor:pointer}
-.whatsapp{background:#16a34a;color:white}.sms{background:#e8f4eb;color:#17652c;border:1px solid #c9e5d0}
-@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{padding:7px;gap:6px 8px}
-.bottom-row{gap:6px;align-items:flex-end}
-.actions{gap:5px}
-.action{font-size:10px;padding:7px 8px}
-.polling-unit{font-size:10px}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;justify-content:center;gap:8px;width:100%;margin:0}
+.action{white-space:nowrap;padding:10px 6px;font-size:11px;min-height:38px;width:100%;}
+.action{display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;border:0;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:750;cursor:pointer}
+.call{background:#176b35;color:#fff}.whatsapp{background:#16a34a;color:white}.sms{background:#e8f4eb;color:#17652c;border:1px solid #c9e5d0}
+@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{grid-template-columns:repeat(4,minmax(0,1fr));padding:7px;gap:6px 5px}.bottom-row{gap:8px}.actions{gap:6px}.action{font-size:10px;padding:9px 3px;min-height:36px}.info{overflow-wrap:anywhere}
 } 
-@media(max-width:350px){.bottom-row{flex-wrap:wrap}.actions{width:100%;justify-content:flex-end}}
+@media(max-width:350px){.member-info{gap:6px 5px}.details-below{gap:5px 3px}.details-below .info{font-size:9px}.details-below .info strong{font-size:9px}.actions{gap:4px}.action{font-size:9px;padding:8px 2px}}
 
 .records-wrap{height:calc(100dvh - 28px);display:flex;flex-direction:column;gap:9px}
 .foundation-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.9);border-radius:16px;background:linear-gradient(110deg,rgba(255,255,255,.92),rgba(231,246,250,.88));box-shadow:0 8px 22px rgba(35,50,65,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
@@ -83,7 +79,6 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
         <option value="accountName">Account name</option>
         <option value="accountNumber">Account number</option>
         <option value="phone">Phone number</option>
-        <option value="voterCard">Voter's card number</option>
         <option value="lga">Local government</option>
         <option value="ward">Ward</option>
         <option value="pu">Polling unit</option>
@@ -113,28 +108,39 @@ const db=firebase.firestore();
 
 function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits}
-function card(m,id){const ward=m.wardName||m.wardCode||'Not provided',lga=m.lgaName||m.lgaCode||'Not provided',pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
-return `<article class="record-card" data-phone="${esc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info"><h2 class="member-name">${esc(m.fullName)}</h2><div class="info"><strong>Role</strong>${esc(m.category)}</div><div class="info"><strong>Gender</strong>${esc(m.gender)}</div><div class="info"><strong>Age</strong>${esc(m.age)}</div><div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div><div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div></div></div><div class="details-below"><div class="details-title">Voter / Contact Details</div><div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div><div class="info"><strong>Voter’s Card Number</strong>${esc(m.voterCardCode)}</div><div class="info"><strong>Ward</strong>${esc(ward)}</div><div class="info"><strong>Local Government</strong>${esc(lga)}</div></div><div class="bottom-row"><div class="info polling-unit"><strong>Polling Unit</strong>${esc(pu)}</div><div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div></div></article>`;}
-const list=document.getElementById('recordsList');
-const members=[];
-const searchName=document.getElementById('searchName');
-const filterType=document.getElementById('filterType');
-const filterOptions=document.getElementById('filterOptions');
-const filterOptionsTitle=document.getElementById('filterOptionsTitle');
-const filterCount=document.getElementById('filterCount');
-const selectedValues=new Set();
-
-const filterDefinitions={
-  role:{label:'Role',get:m=>m.category},
-  gender:{label:'Gender',get:m=>m.gender},
-  age:{label:'Age',get:m=>m.age},
-  accountName:{label:'Account name',get:m=>m.accountName},
-  accountNumber:{label:'Account number',get:m=>m.accountNumber},
-  phone:{label:'Phone number',get:m=>m.phone},
-  voterCard:{label:"Voter's card number",get:m=>m.voterCardCode},
-  lga:{label:'Local government',get:m=>m.lgaName||m.lgaCode},
-  ward:{label:'Ward',get:m=>m.wardName||m.wardCode},
-  pu:{label:'Polling unit',get:m=>m.pollingUnitName||m.pollingUnitCode}
+function card(m,id){
+  const ward=m.wardName||m.wardCode||'Not provided';
+  const lga=m.lgaName||m.lgaCode||'Not provided';
+  const pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
+  const bank=m.bankName||m.bank||'Not provided';
+  return `<article class="record-card" data-phone="${esc(m.phone||'')}">
+    <div class="record-top">
+      <div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div>
+      <div class="member-info">
+        <h2 class="member-name">${esc(m.fullName)}</h2>
+        <div class="info"><strong>Role</strong>${esc(m.category)}</div>
+        <div class="info"><strong>Gender</strong>${esc(m.gender)}</div>
+        <div class="info"><strong>Age</strong>${esc(m.age)}</div>
+        <div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div>
+        <div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div>
+        <div class="info"><strong>Bank Name</strong>${esc(bank)}</div>
+      </div>
+    </div>
+    <div class="details-below">
+      <div class="details-title">Contact Details</div>
+      <div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div>
+      <div class="info"><strong>Local Government</strong>${esc(lga)}</div>
+      <div class="info"><strong>Ward</strong>${esc(ward)}</div>
+      <div class="info"><strong>Polling Unit</strong>${esc(pu)}</div>
+    </div>
+    <div class="bottom-row">
+      <div class="actions">
+        <a class="action call" href="#" data-action="call">Call</a>
+        <a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a>
+        <a class="action sms" href="#" data-action="sms">Send Message</a>
+      </div>
+    </div>
+  </article>`;
 };
 
 function valueForFilter(member,key){
@@ -247,5 +253,5 @@ auth.onAuthStateChanged(async user=>{
     showError('Unable to verify your account profile: '+(err.message||'Firestore access denied.'));
   }
 });
-document.addEventListener('click',e=>{const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else window.location.href='sms:'+phone;});
+document.addEventListener('click',e=>{const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}if(link.dataset.action==='call')window.location.href='tel:'+phone;else if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else window.location.href='sms:'+phone;});
 </script></body></html>
