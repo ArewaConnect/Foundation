@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineer Haruna Foundation — Founder Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#173b2b;background:radial-gradient(circle at 10% 5%,rgba(255,255,255,.98),transparent 28%),linear-gradient(135deg,#f8fafc 0%,#eaf4ff 38%,#fff0f1 72%,#eef6ff 100%)}
+.page{max-width:1150px;margin:auto;padding:20px 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;color:#166534;font-weight:bold}
+.glass{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.42));border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border-radius:24px;box-shadow:0 16px 38px rgba(30,64,175,.10),inset 0 1px 0 rgba(255,255,255,.9)}
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 20px;margin-bottom:24px}.avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#dbeafe);border:4px solid white;display:grid;place-items:center;color:#166534;font-weight:bold;flex-shrink:0}
+.role{font-size:13px;color:#1d4ed8;font-weight:bold;letter-spacing:1px;text-transform:uppercase}.profile h1{font-size:clamp(22px,4vw,32px);margin:7px 0}.profile p{margin:0;color:#64748b}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 2px 14px}.heading h2{margin:0}.pill{background:#ffffffa8;border-radius:30px;padding:8px 12px;font-size:12px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.summary-card{padding:17px;border-top:4px solid #2563eb}.summary-card:nth-child(2){border-top-color:#dc2626}.summary-card:nth-child(3){border-top-color:#1d4ed8}.label{color:#64748b;font-size:13px}.big{font-size:32px;font-weight:800;margin-top:7px}
+.wards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ward{padding:16px;cursor:pointer;transition:.2s}.ward:hover{transform:translateY(-3px)}.ward-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.ward h3{margin:0}.ward-head span{font-size:12px;color:#1d4ed8;font-weight:bold}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{padding:12px;border-radius:13px;background:#ffffffbd;min-height:88px}.pct{font-size:12px;color:#1d4ed8;font-weight:bold}.number{font-size:25px;font-weight:800;margin-top:3px}.caption{font-size:11px;color:#64748b;margin-top:4px}.rg{border-left:5px solid #2563eb;background:linear-gradient(135deg,rgba(239,246,255,.92),rgba(255,255,255,.72))}.mc{border-left:5px solid #dc2626;background:linear-gradient(135deg,rgba(254,242,242,.92),rgba(255,255,255,.72))}.vr{border-left:5px solid #1d4ed8;background:linear-gradient(135deg,rgba(239,246,255,.92),rgba(255,255,255,.72))}.remaining{border-left:5px solid #64748b;background:linear-gradient(135deg,rgba(248,250,252,.92),rgba(255,255,255,.72))}
+.note{font-size:12px;color:#64748b;margin-top:15px}footer{text-align:center;font-size:12px;color:#64748b;margin:25px 0}
+
+.chart-panel{padding:20px;margin-bottom:22px}
+.chart-title-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.chart-title-row h3{margin:0;font-size:20px}
+.chart-title-row p{margin:6px 0 0;color:#64748b;font-size:13px}
+.chart-area{height:280px;display:flex;gap:12px;padding:10px 4px 0}
+.y-axis{display:flex;flex-direction:column;justify-content:space-between;color:#64748b;font-size:10px;padding-bottom:25px}
+.bar-chart{flex:1;display:flex;align-items:stretch;justify-content:space-around;gap:12px;position:relative;
+ background:repeating-linear-gradient(to top,rgba(100,116,139,.16) 0,rgba(100,116,139,.16) 1px,transparent 1px,transparent 25%)}
+.bar-group{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.bar-value{font-size:12px;font-weight:800;color:#153b2b;margin-bottom:5px;text-align:center}
+.bar{width:min(54px,70%);min-height:3px;border-radius:10px 10px 3px 3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.55);transition:height .25s}
+.bar.blue{background:linear-gradient(180deg,#60a5fa,#2563eb)}
+.bar.red{background:linear-gradient(180deg,#f87171,#dc2626)}
+.bar.blue2{background:linear-gradient(180deg,#93c5fd,#1d4ed8)}
+.bar.gray{background:linear-gradient(180deg,#cbd5e1,#64748b)}
+
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;font-size:11px;color:#64748b}
+.chart-legend span{display:flex;align-items:center;gap:6px}
+.legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.legend-dot.blue{background:#2563eb}.legend-dot.red{background:#dc2626}.legend-dot.blue2{background:#1d4ed8}.legend-dot.gray{background:#64748b}
+.chart-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px}
+.chart-total{padding:10px;border-radius:12px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.8)}
+.chart-total small{display:block;color:#64748b;font-size:10px}.chart-total strong{display:block;font-size:18px;margin-top:4px;color:#153b2b}
+
+@media(max-width:640px){.page{padding:12px 10px}.glass{border-radius:22px}.wards{grid-template-columns:1fr;gap:12px}.profile{padding:20px 15px;flex-direction:column;align-items:center;text-align:center}.avatar{width:108px;height:108px}.heading{align-items:flex-start;flex-direction:column}.ward{padding:14px}.metric{padding:11px}.chart-panel{padding:14px}.chart-area{height:230px}.chart-legend{gap:8px}.chart-totals{grid-template-columns:repeat(2,minmax(0,1fr))}.bar-value{font-size:10px}}
+
+.top{position:sticky;top:0;z-index:20;margin:0 -14px 20px;padding:15px 20px;
+ display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:14px;
+ background:linear-gradient(110deg,rgba(248,250,252,.96),rgba(219,234,254,.94) 52%,rgba(254,226,226,.94));
+ border:1px solid rgba(255,255,255,.9);border-top:4px solid #2563eb;border-bottom:3px solid #dc2626;
+ border-radius:0 0 18px 18px;box-shadow:0 10px 25px rgba(30,64,175,.12);backdrop-filter:blur(18px)}
+.header-brand{font-size:clamp(16px,3.5vw,25px);font-weight:800;color:#166534;white-space:nowrap;line-height:1.2}
+.logout-btn{border:0;border-radius:12px;padding:11px 20px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;font-weight:800;font-size:14px;box-shadow:0 5px 14px rgba(185,28,28,.22);cursor:pointer;white-space:nowrap}
+.logout-btn:active{transform:scale(.97)}
+@media(max-width:640px){.top{margin:0 -10px 18px;padding:13px 12px;border-radius:0 0 15px 15px}.header-brand{font-size:clamp(14px,4vw,19px);white-space:nowrap}.logout-btn{padding:10px 13px;font-size:12px}}
+
+
+.programs-panel{padding:18px;margin:0 0 22px}
+.programs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.programs-head h2{font-size:clamp(18px,3vw,24px);margin:0;color:#166534}
+.add-program-btn{border:0;border-radius:12px;padding:10px 14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:700;cursor:pointer;white-space:nowrap}
+.program-carousel{position:relative;overflow:hidden;border-radius:18px;background:rgba(255,255,255,.48);min-height:210px}
+.program-slide{display:none;animation:carouselFade .45s ease}
+.program-slide.active{display:block}
+.program-slide img{width:100%;height:clamp(210px,42vw,360px);object-fit:cover;display:block;border-radius:16px}
+.program-image-placeholder{height:clamp(210px,42vw,360px);display:block;background:linear-gradient(135deg,rgba(219,234,254,.25),rgba(254,226,226,.22))}
+.program-caption{padding:12px 4px 4px}
+.program-caption h3{margin:0 0 5px;color:#153b2b;font-size:18px}
+.program-caption p{margin:0;color:#64748b;font-size:13px}
+.carousel-controls{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px}
+.carousel-arrow{display:none}
+.carousel-dots{display:flex;gap:7px;align-items:center;justify-content:center}
+.carousel-dot{width:9px;height:9px;border-radius:50%;border:0;background:#dc2626;padding:0;cursor:pointer;transition:all .2s}
+.carousel-dot.active{width:22px;height:9px;border-radius:8px;background:#2563eb}
+.program-upload-status{font-size:12px;color:#64748b;margin-top:8px}
+@keyframes carouselFade{from{opacity:.45}to{opacity:1}}
+@media(max-width:640px){.programs-panel{padding:13px}.programs-head{align-items:flex-start;flex-direction:column}.add-program-btn{width:100%}.program-carousel{border-radius:14px}}
+
+
+/* Enhanced frosted-glass styling inspired by the supplied login screen */
+body{
+ background:
+   radial-gradient(ellipse at 12% 8%, rgba(22,163,74,.20), transparent 26%),
+   radial-gradient(ellipse at 92% 18%, rgba(37,99,235,.18), transparent 30%),
+   radial-gradient(ellipse at 85% 78%, rgba(220,38,38,.15), transparent 28%),
+   linear-gradient(145deg,#f5f8fc 0%,#eaf1f8 42%,#f7f3f5 72%,#edf5f8 100%);
+ background-attachment:fixed;
+ position:relative;
+}
+body:before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:
+  linear-gradient(145deg,transparent 0 7%,rgba(22,163,74,.92) 7.2% 8.3%,transparent 8.5%),
+  linear-gradient(145deg,transparent 0 10%,rgba(37,99,235,.9) 10.2% 11.3%,transparent 11.5%),
+  linear-gradient(145deg,transparent 0 13%,rgba(220,38,38,.88) 13.2% 14.3%,transparent 14.5%),
+  linear-gradient(325deg,transparent 0 7%,rgba(22,163,74,.9) 7.2% 8.3%,transparent 8.5%),
+  linear-gradient(325deg,transparent 0 10%,rgba(37,99,235,.88) 10.2% 11.3%,transparent 11.5%),
+  linear-gradient(325deg,transparent 0 13%,rgba(220,38,38,.86) 13.2% 14.3%,transparent 14.5%);
+ opacity:.72;
+}
+.glass{
+ background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.48));
+ border:1px solid rgba(255,255,255,.92);
+ backdrop-filter:blur(26px) saturate(165%);
+ -webkit-backdrop-filter:blur(26px) saturate(165%);
+ box-shadow:0 18px 45px rgba(15,23,42,.14),0 5px 18px rgba(37,99,235,.08),inset 0 1px 0 rgba(255,255,255,.96);
+}
+.profile,.programs-panel,.chart-panel,.ward{
+ background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.42));
+ border:1px solid rgba(255,255,255,.9);
+}
+.top{
+ background:linear-gradient(110deg,rgba(255,255,255,.84),rgba(219,234,254,.78) 52%,rgba(254,226,226,.78));
+ backdrop-filter:blur(24px) saturate(160%);
+ -webkit-backdrop-filter:blur(24px) saturate(160%);
+}
+.program-carousel{
+ background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(226,232,240,.38));
+ border:1px solid rgba(255,255,255,.72);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+}
+.metric,.chart-total,.pill{
+ background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.48));
+ border:1px solid rgba(255,255,255,.72);
+ backdrop-filter:blur(12px);
+ -webkit-backdrop-filter:blur(12px);
+}
+
+
+/* Compact team/mobilization summary strip */
+.mobilization-strip{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+ padding:5px;margin:0 0 10px;align-items:stretch;
+}
+.mini-stat{
+ min-width:0;text-align:center;padding:4px 5px;border-radius:12px;
+ background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(226,232,240,.48));
+ border:1px solid rgba(255,255,255,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+.mini-stat strong{display:block;font-size:clamp(14px,3.2vw,18px);line-height:1.05;color:#166534}
+.mini-stat span{display:block;margin-top:2px;font-size:clamp(8px,2.2vw,10px);font-weight:700;color:#334155;line-height:1.2;overflow-wrap:anywhere}
+.ward-head{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px}
+.ward-head h3{width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.ward-actions{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;width:100%;margin:2px 0 12px}
+.ward-action-btn{
+ display:inline-flex;justify-content:center;align-items:center;text-align:center;
+ min-width:0;width:auto;max-width:100%;padding:3px 8px;
+ border:1.5px solid #dc2626;border-radius:999px;
+ background:linear-gradient(120deg,#dc2626 0%,#2563eb 100%);
+ color:#fff;font-size:9px;font-weight:800;line-height:1.1;
+ white-space:nowrap;box-shadow:0 3px 8px rgba(37,99,235,.15);cursor:pointer;
+}
+.ward-action-btn:active{transform:scale(.97)}
+.ward-head span{display:none}
+.ward{cursor:default}
+@media(max-width:640px){
+ .mobilization-strip{gap:4px;padding:4px;margin-bottom:8px}
+ .mini-stat{padding:4px 3px;border-radius:10px}
+ .mini-stat span{font-size:9px}
+ .ward-actions{gap:4px;margin-bottom:8px}
+ .ward-action-btn{font-size:8px;padding:3px 7px}
+}
+
+
+
+/* Four compact summary buttons */
+.mobilization-strip{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;
+ margin-bottom:10px;
+}
+.mini-stat{
+ appearance:none;-webkit-appearance:none;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ min-height:54px;padding:6px 5px;
+ border:1.5px solid #dc2626;
+ border-radius:13px;
+ background:linear-gradient(115deg,#dc2626 0%,#2563eb 100%);
+ color:#fff;cursor:default;
+}
+.mini-stat strong{color:#fff;font-size:clamp(14px,3.4vw,20px);line-height:1.05}
+.mini-stat span{color:#fff;font-size:clamp(8px,2.2vw,11px);font-weight:700;line-height:1.15;margin-top:3px;overflow-wrap:normal;word-break:normal}
+.programs-panel{margin-bottom:10px}
+.chart-panel{margin-top:0;margin-bottom:10px}
+@media(max-width:640px){
+ .mobilization-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:5px;margin-bottom:10px}
+ .mini-stat{min-height:48px;padding:5px 2px;border-radius:10px}
+ .mini-stat strong{font-size:14px}
+ .mini-stat span{font-size:clamp(7px,2vw,9px);white-space:normal;text-align:center}
+ .programs-panel{margin-bottom:10px}
+}
+
+</style>
+</head>
+<body><main class="page">
+<header class="top">
+  <div class="header-brand">Engineer Haruna Foundation</div>
+  <button class="logout-btn" type="button" onclick="logout()">Logout</button>
+</header>
+<section class="glass profile"><div class="avatar">FOUNDER</div><div><div class="role">Founder</div><h1>Engineer Aruna Dahiru Musawo</h1><p>Foundation leadership dashboard</p></div></section>
+
+<section class="glass mobilization-strip" aria-label="Team and mobilization summary">
+  <button class="mini-stat" type="button"><strong id="teamLeaderCount">0</strong><span>Team Leaders</span></button>
+  <button class="mini-stat" type="button"><strong id="puAgentCount">0</strong><span>PU Agents</span></button>
+  <button class="mini-stat" type="button"><strong id="mobilizationAgentCount">0</strong><span>Mobilization Agents</span></button>
+  <button class="mini-stat" type="button"><strong id="memberCount">0</strong><span>Members</span></button>
+</section>
+
+<section class="glass programs-panel" id="programsPanel">
+  <div class="programs-head">
+    <h2>Foundation Programs & Achievements</h2>
+  </div>
+  <div class="program-carousel" id="programCarousel">
+    <div class="program-slide active">
+      <div class="program-image-placeholder"></div>
+    </div>
+  </div>
+  <div class="carousel-controls">
+    <div class="carousel-dots" id="carouselDots"></div>
+  </div>
+  
+  
+</section>
+
+<section class="glass chart-panel">
+  <div class="chart-title-row">
+    <div>
+      <h3>Foundation Statistics</h3>
+      
+    </div>
+    <span class="pill">Bar Chart</span>
+  </div>
+  <div class="chart-area" role="img" aria-label="Vertical bar chart of foundation statistics">
+    <div class="y-axis">
+      <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0</span>
+    </div>
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+  <div class="chart-totals" id="chartTotals"></div>
+</section>
+<section class="wards" id="wardGrid"></section>
+
+<footer>Engineer Haruna Foundation · Founder Dashboard</footer>
+</main>
+<script>
+const wardNames=["Ward 1","Ward 2","Ward 3","Ward 4","Ward 5","Ward 6","Ward 7","Ward 8","Ward 9","Ward 10","Ward 11"];
+const wards=wardNames.map((name,i)=>({id:i+1,name,registered:0,captured:0,verified:0}));
+const fmt=n=>Number(n||0).toLocaleString(), pct=(n,d)=>d?Math.round(n/d*100):0;
+function render(){
+ let totals=wards.reduce((a,w)=>(a.rg+=w.registered,a.mc+=w.captured,a.vr+=w.verified,a),{rg:0,mc:0,vr:0});
+ const beneficiaryShare = 0; // Placeholder until beneficiary data is connected.
+ const chartItems=[
+  {label:"Registered<br>voters (RG)",value:totals.rg,color:"blue"},
+  {label:"Members<br>captured (MC)",value:totals.mc,color:"red"},
+  {label:"Verified<br>members (VR)",value:totals.vr,color:"blue2"},
+  {label:"Beneficiary<br>share",value:beneficiaryShare,color:"gray"}
+ ];
+ const maxValue=Math.max(1,...chartItems.map(x=>x.value));
+ barChart.innerHTML=chartItems.map(x=>`<div class="bar-group"><div class="bar-value">${fmt(x.value)}</div><div class="bar ${x.color}" style="height:${Math.max(2,(x.value/maxValue)*78)}%"></div></div>`).join("");
+ chartTotals.innerHTML=chartItems.map(x=>`<div class="chart-total"><small>${x.label.replace(/<br>/g," ")}</small><strong>${fmt(x.value)}</strong></div>`).join("");
+ wardGrid.innerHTML=wards.map(w=>{let left=Math.max(w.registered-w.captured,0);return `<article class="glass ward"><div class="ward-head"><h3>${w.name}</h3></div><div class="ward-actions"><button class="ward-action-btn" type="button" onclick="openWard(${w.id})">See more details</button></div><div class="metrics">
+ <div class="metric rg"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.registered)}</div><div class="caption">RG · Registered voters</div></div>
+ <div class="metric mc"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.captured)}</div><div class="caption">MC · Members captured</div></div>
+ <div class="metric vr"><div class="pct">${pct(w.verified,w.captured)}%</div><div class="number">${fmt(w.verified)}</div><div class="caption">VR · Verified members</div></div>
+ <div class="metric remaining"><div class="pct">${pct(left,w.registered)}%</div><div class="number">${fmt(left)}</div><div class="caption">Remaining · Not captured</div></div></div></article>`}).join("");
+}
+function logout(){ window.location.href='index.html'; }
+function openWard(id){alert("Ward Statistics page for "+wards.find(w=>w.id===id).name+" will be connected here.");}
+function editWard(id){alert("Edit options for "+wards.find(w=>w.id===id).name+" will be connected here.");}
+render();
+</script>
+<script>
+/* Program photos will be loaded from the Admin section / Firebase data after admin uploads to Cloudinary. */
+let programSlides = window.foundationProgramPhotos || [];
+let currentProgramIndex = 0;
+let programTimer = null;
+function escapeProgramText(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function renderProgramCarousel(){
+ const carousel=document.getElementById("programCarousel"),dots=document.getElementById("carouselDots");
+ if(!carousel||!dots)return;
+ if(!programSlides.length){carousel.innerHTML='<div class="program-slide active"><div class="program-image-placeholder"></div></div>';dots.innerHTML="";return;}
+ carousel.innerHTML=programSlides.map((p,i)=>`<div class="program-slide ${i===currentProgramIndex?'active':''}"><img src="${p.url}" alt="${escapeProgramText(p.title||'Foundation program')}"></div>`).join("");
+ dots.innerHTML=programSlides.map((p,i)=>`<button class="carousel-dot ${i===currentProgramIndex?'active':''}" aria-label="Show photo ${i+1}" onclick="showProgram(${i})"></button>`).join("");
+}
+function showProgram(index){if(!programSlides.length)return;currentProgramIndex=(index+programSlides.length)%programSlides.length;renderProgramCarousel();restartProgramTimer();}
+function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(programSlides.length>1)programTimer=setInterval(()=>showProgram(currentProgramIndex+1),5000);}
+document.addEventListener("DOMContentLoaded",()=>{renderProgramCarousel();restartProgramTimer();});
+</script>
+
+</body></html>
