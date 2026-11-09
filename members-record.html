@@ -108,6 +108,91 @@ const db=firebase.firestore();
 
 function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits}
+
+// Member list and filter state (required before rendering cards).
+const list=document.getElementById('recordsList');
+const members=[];
+const searchName=document.getElementById('searchName');
+const filterType=document.getElementById('filterType');
+const filterOptions=document.getElementById('filterOptions');
+const filterOptionsTitle=document.getElementById('filterOptionsTitle');
+const filterCount=document.getElementById('filterCount');
+const selectedValues=new Set();
+
+const filterDefinitions={
+  role:{label:'Role',get:m=>m.category},
+  gender:{label:'Gender',get:m=>m.gender},
+  age:{label:'Age',get:m=>m.age},
+  accountName:{label:'Account name',get:m=>m.accountName},
+  accountNumber:{label:'Account number',get:m=>m.accountNumber},
+  phone:{label:'Phone number',get:m=>m.phone},
+  lga:{label:'Local government',get:m=>m.lgaName||m.lgaCode},
+  ward:{label:'Ward',get:m=>m.wardName||m.wardCode},
+  pu:{label:'Polling unit',get:m=>m.pollingUnitName||m.pollingUnitCode}
+};
+
+function valueForFilter(member,key){
+  const raw=filterDefinitions[key].get(member);
+  return String(raw??'').trim();
+}
+function renderRecords(){
+  const query=searchName.value.trim().toLocaleLowerCase();
+  const key=filterType.value;
+  const filtered=members.filter(item=>{
+    const m=item.data;
+    if(!String(m.fullName||'').toLocaleLowerCase().includes(query))return false;
+    if(key&&selectedValues.size&&!selectedValues.has(valueForFilter(m,key)))return false;
+    return true;
+  });
+  list.innerHTML=filtered.length?filtered.map(item=>card(item.data,item.id)).join(''):
+    '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No members match the selected search and filters.</div>';
+  filterCount.textContent='Showing '+filtered.length+' of '+members.length+' members';
+}
+function buildFilterOptions(){
+  const key=filterType.value;
+  selectedValues.clear();
+  if(!key||!filterDefinitions[key]){
+    filterOptionsTitle.textContent='Select a filter category to display options';
+    filterOptions.innerHTML='<div style="grid-column:1/-1;color:#718078;font-size:12px">Choose a category above. You can tick more than one option.</div>';
+    renderRecords();
+    return;
+  }
+  const definition=filterDefinitions[key];
+  const values=[...new Set(members.map(item=>valueForFilter(item.data,key)).filter(Boolean))].sort((a,b)=>{
+    if(key==='age')return Number(a)-Number(b);
+    return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
+  });
+  filterOptionsTitle.textContent='Tick one or more '+definition.label.toLowerCase()+' options';
+  if(!values.length){
+    filterOptions.innerHTML='<div style="grid-column:1/-1;color:#718078;font-size:12px">No values available for this category.</div>';
+  }else{
+    filterOptions.innerHTML=values.map((value,index)=>{
+      const id='filterChoice'+index;
+      return '<label class="filter-option" for="'+id+'"><input type="checkbox" id="'+id+'" value="'+esc(value)+'"><span>'+esc(value)+'</span></label>';
+    }).join('');
+    filterOptions.querySelectorAll('input[type="checkbox"]').forEach(box=>{
+      box.addEventListener('change',()=>{
+        if(box.checked)selectedValues.add(box.value);
+        else selectedValues.delete(box.value);
+        renderRecords();
+      });
+    });
+  }
+  renderRecords();
+}
+function updateFilterOptions(){
+  // Rebuild options for the currently selected filter after Firestore updates.
+  buildFilterOptions();
+}
+searchName.addEventListener('input',renderRecords);
+filterType.addEventListener('change',buildFilterOptions);
+document.getElementById('clearFilters').addEventListener('click',()=>{
+  searchName.value='';
+  filterType.value='';
+  selectedValues.clear();
+  buildFilterOptions();
+});
+
 function card(m,id){
   const ward=m.wardName||m.wardCode||'Not provided';
   const lga=m.lgaName||m.lgaCode||'Not provided';
@@ -142,68 +227,6 @@ function card(m,id){
     </div>
   </article>`;
 };
-
-function valueForFilter(member,key){
-  const raw=filterDefinitions[key].get(member);
-  return String(raw??'').trim();
-}
-function buildFilterOptions(){
-  const key=filterType.value;
-  selectedValues.clear();
-  if(!key||!filterDefinitions[key]){
-    filterOptionsTitle.textContent='Select a filter category to display options';
-    filterOptions.innerHTML='<div style="grid-column:1/-1;color:#718078;font-size:12px">Choose a category above. You can tick more than one option.</div>';
-    renderRecords();
-    return;
-  }
-  const definition=filterDefinitions[key];
-  const values=[...new Set(members.map(item=>valueForFilter(item.data,key)).filter(Boolean))].sort((a,b)=>{
-    if(key==='age')return Number(a)-Number(b);
-    return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});
-  });
-  filterOptionsTitle.textContent='Tick one or more '+definition.label.toLowerCase()+' options';
-  if(!values.length){
-    filterOptions.innerHTML='<div style="grid-column:1/-1;color:#718078;font-size:12px">No values available for this category.</div>';
-  }else{
-    filterOptions.innerHTML=values.map((value,index)=>{
-      const id='filterChoice'+index;
-      return '<label class="filter-option" for="'+id+'"><input type="checkbox" id="'+id+'" value="'+esc(value)+'"><span>'+esc(value)+'</span></label>';
-    }).join('');
-    filterOptions.querySelectorAll('input[type="checkbox"]').forEach(box=>{
-      box.addEventListener('change',()=>{
-        if(box.checked)selectedValues.add(box.value);
-        else selectedValues.delete(box.value);
-        renderRecords();
-      });
-    });
-  }
-  renderRecords();
-}
-function renderRecords(){
-  const query=searchName.value.trim().toLocaleLowerCase();
-  const key=filterType.value;
-  const filtered=members.filter(item=>{
-    const m=item.data;
-    const name=String(m.fullName||'').toLocaleLowerCase();
-    if(!name.includes(query))return false;
-    if(key&&selectedValues.size){
-      const memberValue=valueForFilter(m,key);
-      if(!selectedValues.has(memberValue))return false;
-    }
-    return true;
-  });
-  list.innerHTML=filtered.length?filtered.map(item=>card(item.data,item.id)).join(''):
-    '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No members match the selected search and filters.</div>';
-  filterCount.textContent='Showing '+filtered.length+' of '+members.length+' members';
-}
-searchName.addEventListener('input',renderRecords);
-filterType.addEventListener('change',buildFilterOptions);
-document.getElementById('clearFilters').addEventListener('click',()=>{
-  searchName.value='';
-  filterType.value='';
-  selectedValues.clear();
-  buildFilterOptions();
-});
 
 function showError(message){
   list.innerHTML='<div style="padding:20px;color:#a00">'+esc(message)+'</div>';
