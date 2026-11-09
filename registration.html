@@ -144,15 +144,14 @@ async function loadTeamLeaders(){
     const user=auth.currentUser;
     if(!user){
       teamLeader.innerHTML='<option value="">Sign in first</option>';
-      roleHelp.textContent='Your Firebase login session is missing. Return to login, sign in, then reopen registration.';
+      roleHelp.textContent='Firebase login session is not available. Please sign in again, then reopen Member Registration.';
       return;
     }
 
-    // Verify the current user's Firestore profile and active status.
     const profileSnap=await db.collection('userAccounts').doc(user.uid).get();
     if(!profileSnap.exists){
-      teamLeader.innerHTML='<option value="">Account profile not found</option>';
-      roleHelp.textContent='Your userAccounts profile was not found for this Firebase UID.';
+      teamLeader.innerHTML='<option value="">Profile not found</option>';
+      roleHelp.textContent='No userAccounts profile exists for this Firebase Authentication UID.';
       return;
     }
 
@@ -161,19 +160,23 @@ async function loadTeamLeaders(){
     const permissions=Array.isArray(profile.permissions)?profile.permissions:[];
     const isSuperAdmin=profile.superAdmin===true||role==='Super Admin'||role==='super_admin';
     const isAdmin=role==='Admin'||role==='admin';
-    if(profile.active!==true || !(isSuperAdmin||isAdmin||permissions.includes('members-record')||permissions.includes('registration'))){
+    const hasRegistrationPermission=permissions.includes('registration')||permissions.includes('member-registration');
+    const hasMembersPermission=permissions.includes('members-record');
+
+    if(profile.active!==true || !(isSuperAdmin||isAdmin||hasRegistrationPermission||hasMembersPermission)){
       teamLeader.innerHTML='<option value="">Permission required</option>';
-      roleHelp.textContent='Your account must be active and have Members Record or Member Registration permission to load team leaders.';
+      roleHelp.textContent='Your account must be active and have Member Registration or Members Record permission.';
       return;
     }
 
     const snap=await db.collection('members').where('category','==','Team Leader').get();
     teamLeader.innerHTML='<option value="">Select team leader</option>';
     if(snap.empty){
-      teamLeader.innerHTML='<option value="">No registered team leaders found</option>';
-      roleHelp.textContent='No documents with category exactly "Team Leader" were found in the members collection.';
+      teamLeader.innerHTML='<option value="">No team leaders found</option>';
+      roleHelp.textContent='No members were found with category exactly "Team Leader". Check the saved category in Firestore.';
       return;
     }
+
     snap.forEach(doc=>{
       const m=doc.data()||{};
       const opt=document.createElement('option');
@@ -181,20 +184,21 @@ async function loadTeamLeaders(){
       opt.textContent=(m.fullName||'Unnamed Team Leader')+(m.phone?' — '+m.phone:'');
       teamLeader.appendChild(opt);
     });
-    roleHelp.textContent='Loaded '+snap.size+' registered team leader(s). Select one from the list.';
+    roleHelp.textContent='Loaded '+snap.size+' registered Team Leader(s). Select one from the list.';
   }catch(e){
-    console.error('Team leader query error:',e);
+    console.error('Team Leader dropdown load failed:',e);
     teamLeader.innerHTML='<option value="">Could not load team leaders</option>';
-    roleHelp.textContent='Firestore blocked the team-leader query. Check members read rules: your signed-in account needs members-record or registration permission. Error: '+(e.message||e.code||'unknown');
+    roleHelp.textContent=(e.code==='permission-denied')
+      ? 'Firestore permission denied. Firestore rules must allow this active account to read members.'
+      : 'Could not load Team Leaders: '+(e.message||'Check internet connection and Firebase settings.');
   }
 }
 
-// Wait for Firebase Authentication to restore the existing login session.
 auth.onAuthStateChanged(user=>{
   if(user) loadTeamLeaders();
   else {
     teamLeader.innerHTML='<option value="">Sign in first</option>';
-    roleHelp.textContent='Please sign in before opening member registration.';
+    roleHelp.textContent='Please sign in before loading Team Leaders.';
   }
 });
 document.getElementById('memberForm').addEventListener('submit',async event=>{
