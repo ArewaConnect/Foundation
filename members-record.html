@@ -36,10 +36,48 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .polling-unit{font-size:10px}
 } 
 @media(max-width:350px){.bottom-row{flex-wrap:wrap}.actions{width:100%;justify-content:flex-end}}
-</style></head>
-<body><main class="records-wrap"><section class="records-scroll" id="recordsList">
 
-<div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div>
+.records-wrap{height:calc(100dvh - 28px);display:flex;flex-direction:column;gap:9px}
+.foundation-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.9);border-radius:16px;background:linear-gradient(110deg,rgba(255,255,255,.92),rgba(231,246,250,.88));box-shadow:0 8px 22px rgba(35,50,65,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.foundation-brand{font-size:clamp(15px,4vw,20px);font-weight:850;color:#164b2b;line-height:1.2}
+.foundation-subtitle{font-size:10px;color:#61756a;margin-top:3px;letter-spacing:.5px;text-transform:uppercase}
+.back-button{flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:10px;background:#176b35;color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 3px 9px rgba(23,107,53,.18)}
+.back-button:active{transform:scale(.97)}
+.records-scroll{height:auto;min-height:0;flex:1;overflow-y:auto}
+.filters-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 11px;padding:11px;border:1px solid rgba(255,255,255,.9);border-radius:15px;background:rgba(255,255,255,.76);box-shadow:0 6px 17px rgba(35,50,65,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.filter-field{min-width:0;display:flex;flex-direction:column;gap:4px}
+.filter-field.search-field{grid-column:1/-1}
+.filter-field label{font-size:10px;font-weight:800;color:#245337}
+.filter-field input,.filter-field select{width:100%;min-width:0;height:36px;padding:0 9px;border:1px solid #cbded1;border-radius:9px;background:#fff;color:#34483b;font-size:11px;outline:none}
+.filter-field input:focus,.filter-field select:focus{border-color:#17934a;box-shadow:0 0 0 2px rgba(23,147,74,.12)}
+.filter-count{grid-column:1/-1;font-size:10px;color:#607267;text-align:right}
+@media(max-width:480px){.records-wrap{height:calc(100dvh - 16px)}.foundation-header{padding:11px 10px}.back-button{padding:8px 9px;font-size:11px}.filters-panel{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px}.filter-field.search-field{grid-column:1/-1}}
+
+</style></head>
+<body><main class="records-wrap">
+<header class="foundation-header">
+  <div>
+    <div class="foundation-brand">Engineer Haruna Foundation</div>
+    <div class="foundation-subtitle">Registered Members Record</div>
+  </div>
+  <a class="back-button" href="founder-dashboard.html" aria-label="Back to Founder Dashboard">← Back</a>
+</header>
+<section class="records-scroll">
+  <div class="filters-panel" aria-label="Member record filters">
+    <div class="filter-field search-field">
+      <label for="searchName">Search by name</label>
+      <input id="searchName" type="search" placeholder="Enter member name..." autocomplete="off">
+    </div>
+    <div class="filter-field"><label for="filterRole">Filter by role</label><select id="filterRole"><option value="">All roles</option></select></div>
+    <div class="filter-field"><label for="filterGender">Filter by gender</label><select id="filterGender"><option value="">All genders</option></select></div>
+    <div class="filter-field"><label for="filterLga">Filter by local government</label><select id="filterLga"><option value="">All local governments</option></select></div>
+    <div class="filter-field"><label for="filterWard">Filter by ward</label><select id="filterWard"><option value="">All wards</option></select></div>
+    <div class="filter-field"><label for="filterPu">Filter by polling unit</label><select id="filterPu"><option value="">All polling units</option></select></div>
+    <div class="filter-count" id="filterCount">Loading records...</div>
+  </div>
+  <div id="recordsList">
+    <div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div>
+  </div>
 </section></main>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -55,6 +93,58 @@ function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if
 function card(m,id){const ward=m.wardName||m.wardCode||'Not provided',lga=m.lgaName||m.lgaCode||'Not provided',pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
 return `<article class="record-card" data-phone="${esc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info"><h2 class="member-name">${esc(m.fullName)}</h2><div class="info"><strong>Role</strong>${esc(m.category)}</div><div class="info"><strong>Gender</strong>${esc(m.gender)}</div><div class="info"><strong>Age</strong>${esc(m.age)}</div><div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div><div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div></div></div><div class="details-below"><div class="details-title">Voter / Contact Details</div><div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div><div class="info"><strong>Voter’s Card Number</strong>${esc(m.voterCardCode)}</div><div class="info"><strong>Ward</strong>${esc(ward)}</div><div class="info"><strong>Local Government</strong>${esc(lga)}</div></div><div class="bottom-row"><div class="info polling-unit"><strong>Polling Unit</strong>${esc(pu)}</div><div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div></div></article>`;}
 const list=document.getElementById('recordsList');
+const members=[];
+const filterControls={
+  name:document.getElementById('searchName'),
+  role:document.getElementById('filterRole'),
+  gender:document.getElementById('filterGender'),
+  lga:document.getElementById('filterLga'),
+  ward:document.getElementById('filterWard'),
+  pu:document.getElementById('filterPu')
+};
+const filterCount=document.getElementById('filterCount');
+function memberFields(m){
+  return {
+    name:String(m.fullName||''),
+    role:String(m.category||'Not provided'),
+    gender:String(m.gender||'Not provided'),
+    lga:String(m.lgaName||m.lgaCode||'Not provided'),
+    ward:String(m.wardName||m.wardCode||'Not provided'),
+    pu:String(m.pollingUnitName||m.pollingUnitCode||'Not provided')
+  };
+}
+function fillFilter(select, values, defaultLabel){
+  const current=select.value;
+  const unique=[...new Set(values)].filter(v=>v&&v!=='Not provided').sort((a,b)=>a.localeCompare(b));
+  select.innerHTML='<option value="">'+esc(defaultLabel)+'</option>'+unique.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
+  if(unique.includes(current))select.value=current;
+}
+function updateFilterOptions(){
+  const fields=members.map(x=>memberFields(x.data));
+  fillFilter(filterControls.role,fields.map(x=>x.role),'All roles');
+  fillFilter(filterControls.gender,fields.map(x=>x.gender),'All genders');
+  fillFilter(filterControls.lga,fields.map(x=>x.lga),'All local governments');
+  fillFilter(filterControls.ward,fields.map(x=>x.ward),'All wards');
+  fillFilter(filterControls.pu,fields.map(x=>x.pu),'All polling units');
+}
+function renderRecords(){
+  const q=filterControls.name.value.trim().toLocaleLowerCase();
+  const selected={role:filterControls.role.value,gender:filterControls.gender.value,lga:filterControls.lga.value,ward:filterControls.ward.value,pu:filterControls.pu.value};
+  const filtered=members.filter(item=>{
+    const f=memberFields(item.data);
+    return f.name.toLocaleLowerCase().includes(q)&&
+      (!selected.role||f.role===selected.role)&&
+      (!selected.gender||f.gender===selected.gender)&&
+      (!selected.lga||f.lga===selected.lga)&&
+      (!selected.ward||f.ward===selected.ward)&&
+      (!selected.pu||f.pu===selected.pu);
+  });
+  list.innerHTML=filtered.length?filtered.map(item=>card(item.data,item.id)).join(''):
+    '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No members match the selected search and filters.</div>';
+  filterCount.textContent='Showing '+filtered.length+' of '+members.length+' members';
+}
+Object.values(filterControls).forEach(control=>control.addEventListener('input',renderRecords));
+Object.values(filterControls).forEach(control=>control.addEventListener('change',renderRecords));
 
 function showError(message){
   list.innerHTML='<div style="padding:20px;color:#a00">'+esc(message)+'</div>';
@@ -92,11 +182,9 @@ auth.onAuthStateChanged(async user=>{
     }
 
     db.collection('members').orderBy('createdAt','desc').onSnapshot(snap=>{
-      if(!snap.size){
-        list.innerHTML='<div style="text-align:center;padding:25px;color:#164b2b">No registrations have been saved yet.</div>';
-        return;
-      }
-      list.innerHTML=snap.docs.map(d=>card(d.data(),d.id)).join('');
+      members.splice(0,members.length,...snap.docs.map(d=>({id:d.id,data:d.data()})));
+      updateFilterOptions();
+      renderRecords();
     },err=>{
       console.error('Members query failed:',err);
       showError('Firestore denied access to members. Confirm your account has the members-record permission in userAccounts/'+user.uid+' and that Firestore rules use this permission.');
