@@ -243,8 +243,28 @@ body{padding:20px 16px}
         message.style.color = '#14532d';
         message.style.borderColor = '#bbf7d0';
 
-        // Keep the authenticated session active for the next page/app module.
-        // Dashboard navigation can be added once the exact dashboard filename is confirmed.
+        // Keep the authenticated session active and redirect according to Firestore role.
+        let dashboard = '';
+        if (profile.superAdmin === true || role === 'Super Admin' || role === 'super_admin') {
+          dashboard = 'super-admin-dashboard.html';
+        } else if (role === 'Founder') {
+          dashboard = 'founder-dashboard.html';
+        } else if (role === 'Registration Agent') {
+          dashboard = 'registration-agent-dashboard.html';
+        } else if (role === 'Admin' || role === 'admin') {
+          dashboard = 'admin-dashboard.html';
+        }
+
+        if (!dashboard) {
+          throw new Error('No dashboard is configured for role: ' + role);
+        }
+
+        sessionStorage.setItem('ehFoundationRole', role);
+        sessionStorage.setItem('ehFoundationPermissions', JSON.stringify(permissions));
+
+        setTimeout(() => {
+          window.location.href = dashboard;
+        }, 700);
       } catch (error) {
         let text = error?.message || 'Login failed.';
         if (error?.code === 'auth/invalid-credential' || error?.code === 'auth/wrong-password' || error?.code === 'auth/user-not-found') {
