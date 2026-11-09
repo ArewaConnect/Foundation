@@ -103,10 +103,11 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </div>
 </section>
 </main>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
 const db=firebase.firestore();
 
 const category=document.getElementById('category');
@@ -138,12 +139,64 @@ document.getElementById('memberPhoto').addEventListener('change',event=>{
 });
 const statusEl=document.getElementById('formStatus');
 async function loadTeamLeaders(){
- try{const snap=await db.collection('members').where('category','==','Team Leader').get();
- teamLeader.innerHTML='<option value="">Select team leader</option>';
- snap.forEach(doc=>{const m=doc.data();const opt=document.createElement('option');opt.value=doc.id;opt.textContent=m.fullName+(m.phone?' — '+m.phone:'');teamLeader.appendChild(opt);});
- }catch(e){console.error(e);roleHelp.textContent='Could not load team leaders. Check Firebase access/rules and internet connection.';}
+  teamLeader.innerHTML='<option value="">Loading team leaders…</option>';
+  try{
+    const user=auth.currentUser;
+    if(!user){
+      teamLeader.innerHTML='<option value="">Sign in first</option>';
+      roleHelp.textContent='Your Firebase login session is missing. Return to login, sign in, then reopen registration.';
+      return;
+    }
+
+    // Verify the current user's Firestore profile and active status.
+    const profileSnap=await db.collection('userAccounts').doc(user.uid).get();
+    if(!profileSnap.exists){
+      teamLeader.innerHTML='<option value="">Account profile not found</option>';
+      roleHelp.textContent='Your userAccounts profile was not found for this Firebase UID.';
+      return;
+    }
+
+    const profile=profileSnap.data()||{};
+    const role=String(profile.role||'');
+    const permissions=Array.isArray(profile.permissions)?profile.permissions:[];
+    const isSuperAdmin=profile.superAdmin===true||role==='Super Admin'||role==='super_admin';
+    const isAdmin=role==='Admin'||role==='admin';
+    if(profile.active!==true || !(isSuperAdmin||isAdmin||permissions.includes('members-record')||permissions.includes('registration'))){
+      teamLeader.innerHTML='<option value="">Permission required</option>';
+      roleHelp.textContent='Your account must be active and have Members Record or Member Registration permission to load team leaders.';
+      return;
+    }
+
+    const snap=await db.collection('members').where('category','==','Team Leader').get();
+    teamLeader.innerHTML='<option value="">Select team leader</option>';
+    if(snap.empty){
+      teamLeader.innerHTML='<option value="">No registered team leaders found</option>';
+      roleHelp.textContent='No documents with category exactly "Team Leader" were found in the members collection.';
+      return;
+    }
+    snap.forEach(doc=>{
+      const m=doc.data()||{};
+      const opt=document.createElement('option');
+      opt.value=doc.id;
+      opt.textContent=(m.fullName||'Unnamed Team Leader')+(m.phone?' — '+m.phone:'');
+      teamLeader.appendChild(opt);
+    });
+    roleHelp.textContent='Loaded '+snap.size+' registered team leader(s). Select one from the list.';
+  }catch(e){
+    console.error('Team leader query error:',e);
+    teamLeader.innerHTML='<option value="">Could not load team leaders</option>';
+    roleHelp.textContent='Firestore blocked the team-leader query. Check members read rules: your signed-in account needs members-record or registration permission. Error: '+(e.message||e.code||'unknown');
+  }
 }
-loadTeamLeaders();
+
+// Wait for Firebase Authentication to restore the existing login session.
+auth.onAuthStateChanged(user=>{
+  if(user) loadTeamLeaders();
+  else {
+    teamLeader.innerHTML='<option value="">Sign in first</option>';
+    roleHelp.textContent='Please sign in before opening member registration.';
+  }
+});
 document.getElementById('memberForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=event.submitter;button.disabled=true;button.textContent='Saving...';statusEl.textContent='';
  try{
