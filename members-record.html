@@ -41,10 +41,13 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 
 <div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div>
 </section></main>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
 const db=firebase.firestore();
 
 function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -52,6 +55,56 @@ function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if
 function card(m,id){const ward=m.wardName||m.wardCode||'Not provided',lga=m.lgaName||m.lgaCode||'Not provided',pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
 return `<article class="record-card" data-phone="${esc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info"><h2 class="member-name">${esc(m.fullName)}</h2><div class="info"><strong>Role</strong>${esc(m.category)}</div><div class="info"><strong>Gender</strong>${esc(m.gender)}</div><div class="info"><strong>Age</strong>${esc(m.age)}</div><div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div><div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div></div></div><div class="details-below"><div class="details-title">Voter / Contact Details</div><div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div><div class="info"><strong>Voter’s Card Number</strong>${esc(m.voterCardCode)}</div><div class="info"><strong>Ward</strong>${esc(ward)}</div><div class="info"><strong>Local Government</strong>${esc(lga)}</div></div><div class="bottom-row"><div class="info polling-unit"><strong>Polling Unit</strong>${esc(pu)}</div><div class="actions"><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div></div></article>`;}
 const list=document.getElementById('recordsList');
-db.collection('members').orderBy('createdAt','desc').onSnapshot(snap=>{if(!snap.size){list.innerHTML='<div style="text-align:center;padding:25px;color:#164b2b">No registrations have been saved yet.</div>';return;}list.innerHTML=snap.docs.map(d=>card(d.data(),d.id)).join('');},err=>{console.error(err);list.innerHTML='<div style="padding:20px;color:#a00">Unable to load members. Check Firebase connection and Firestore rules.</div>';});
+
+function showError(message){
+  list.innerHTML='<div style="padding:20px;color:#a00">'+esc(message)+'</div>';
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    showError('Your login session is not available. Please return to the login page and sign in again.');
+    return;
+  }
+
+  try{
+    // Verify this signed-in user's Firestore role profile before loading records.
+    const profileSnap=await db.collection('userAccounts').doc(user.uid).get();
+    if(!profileSnap.exists){
+      showError('Your account profile was not found in Firestore. Contact the Super Admin.');
+      return;
+    }
+
+    const profile=profileSnap.data()||{};
+    const role=String(profile.role||'');
+    const permissions=Array.isArray(profile.permissions)?profile.permissions:[];
+    const active=profile.active===true;
+    const superAdmin=profile.superAdmin===true||role==='Super Admin'||role==='super_admin';
+    const admin=role==='Admin'||role==='admin';
+
+    if(!active){
+      showError('Your account is inactive. Contact the Super Admin.');
+      return;
+    }
+
+    if(!(superAdmin||admin||permissions.includes('members-record'))){
+      showError('Your account does not have the Members Record permission.');
+      return;
+    }
+
+    db.collection('members').orderBy('createdAt','desc').onSnapshot(snap=>{
+      if(!snap.size){
+        list.innerHTML='<div style="text-align:center;padding:25px;color:#164b2b">No registrations have been saved yet.</div>';
+        return;
+      }
+      list.innerHTML=snap.docs.map(d=>card(d.data(),d.id)).join('');
+    },err=>{
+      console.error('Members query failed:',err);
+      showError('Firestore denied access to members. Confirm your account has the members-record permission in userAccounts/'+user.uid+' and that Firestore rules use this permission.');
+    });
+  }catch(err){
+    console.error('Profile verification failed:',err);
+    showError('Unable to verify your account profile: '+(err.message||'Firestore access denied.'));
+  }
+});
 document.addEventListener('click',e=>{const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else window.location.href='sms:'+phone;});
 </script></body></html>
