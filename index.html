@@ -173,9 +173,9 @@ body{padding:20px 16px}
     import {
       getAuth,
       signInWithEmailAndPassword,
-      onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
   apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
@@ -188,6 +188,7 @@ body{padding:20px 16px}
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const passwordInput = document.getElementById('password');
     const usernameInput = document.getElementById('username');
@@ -220,41 +221,47 @@ body{padding:20px 16px}
 
     async function routeSignedInUser(user) {
       try {
-        const tokenResult = await user.getIdTokenResult(true);
-        const claims = tokenResult.claims || {};
-        const role = String(claims.role || '').toLowerCase();
-        const permissions = Array.isArray(claims.permissions) ? claims.permissions : [];
+        // Firestore profile is the source of role and permission information.
+        // Document ID must be the Firebase Authentication UID.
+        const profileSnap = await getDoc(doc(db, 'users', user.uid));
+        if (!profileSnap.exists()) {
+          showMessage('Your account profile was not found in Firestore. Contact the administrator.');
+          await signOut(auth);
+          return;
+        }
 
-        if (claims.superAdmin === true || claims.admin === true) {
+        const profile = profileSnap.data();
+        const role = String(profile.role || '').trim().toLowerCase();
+        const active = profile.active !== false && profile.status !== 'disabled';
+        const permissions = Array.isArray(profile.permissions) ? profile.permissions : [];
+
+        if (!active) {
+          showMessage('This account is inactive. Please contact the administrator.');
+          await signOut(auth);
+          return;
+        }
+
+        if (profile.superAdmin === true || role === 'super_admin' || role === 'super admin') {
           window.location.replace('super-admin-dashboard.html');
           return;
         }
 
-        if (role === 'founder') {
-          if (permissions.includes('founder-dashboard')) {
-            window.location.replace('founder-dashboard.html');
-            return;
-          }
-          showMessage('Your account does not have Founder Dashboard permission. Please contact the Super Admin.');
-          await signOut(auth);
+        if (role === 'founder' && permissions.includes('founder-dashboard')) {
+          window.location.replace('founder-dashboard.html');
           return;
         }
 
-        if (role === 'registration agent' || role === 'registrationagent' || role === 'agent') {
-          if (permissions.includes('registration')) {
-            window.location.replace('registration.html');
-            return;
-          }
-          showMessage('Your account does not have Registration permission. Please contact the Super Admin.');
-          await signOut(auth);
+        if (['registration agent', 'registrationagent', 'agent'].includes(role) &&
+            (permissions.includes('registration') || profile.memberRegistration === true)) {
+          window.location.replace('registration.html');
           return;
         }
 
-        showMessage('Your account role is not configured. Please contact the Super Admin.');
+        showMessage('Your account role or permissions are not configured. Please contact the administrator.');
         await signOut(auth);
       } catch (error) {
-        console.error('Role verification error:', error);
-        showMessage('Unable to verify your account permissions. Please try again.');
+        console.error('Firestore role verification error:', error);
+        showMessage('Unable to verify your Firestore account profile. Check your internet connection and Firestore rules.');
         await signOut(auth);
       }
     }
@@ -287,10 +294,7 @@ body{padding:20px 16px}
       }
     });
 
-    // If an authenticated user returns to this page, route them by their claims.
-    onAuthStateChanged(auth, (user) => {
-      if (user) routeSignedInUser(user);
-    });
+    // Role routing runs after successful login to avoid duplicate redirects.
   </script>
 </body>
 </html>
