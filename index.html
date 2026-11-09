@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#087d24">
-  <title>Login | Engineer Haruna Foundation</title>
+  <title> | Engineer Haruna Foundation</title>
   <style>
 :root{--green:#079b16;--green-dark:#006b12;--red:#ed1c24;--blue:#10a9e5}
 *{box-sizing:border-box}
@@ -142,7 +142,7 @@ body{padding:20px 16px}
             <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
             <path d="M4 21v-2a8 8 0 0 1 16 0v2H4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           </svg>
-          <input id="username" name="username" type="text" placeholder="Username" autocomplete="username" required>
+          <input id="username" name="email" type="email" placeholder="Email address" autocomplete="username" required>
         </label>
 
         <label class="field">
@@ -167,48 +167,27 @@ body{padding:20px 16px}
     </section>
 </main>
 
-  <!-- Firebase Authentication integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
-  authDomain: "ehfoundation-48f1d.firebaseapp.com",
-  projectId: "ehfoundation-48f1d",
-  storageBucket: "ehfoundation-48f1d.firebasestorage.app",
-  messagingSenderId: "126063666222",
-  appId: "1:126063666222:web:8793cae852361441fb6bbf"
-};
+      apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
+      authDomain: "ehfoundation-48f1d.firebaseapp.com",
+      projectId: "ehfoundation-48f1d",
+      storageBucket: "ehfoundation-48f1d.firebasestorage.app",
+      messagingSenderId: "126063666222",
+      appId: "1:126063666222:web:8793cae852361441fb6bbf"
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const db = getFirestore(firebaseApp);
 
     const passwordInput = document.getElementById('password');
-    const usernameInput = document.getElementById('username');
     const togglePassword = document.getElementById('togglePassword');
     const message = document.getElementById('message');
-    const loginForm = document.getElementById('loginForm');
-    const loginButton = loginForm.querySelector('.login-button');
-
-    // Firebase Authentication uses email/password.
-    // This field therefore accepts the account email, not a Firestore username.
-    usernameInput.type = 'email';
-    usernameInput.name = 'email';
-    usernameInput.autocomplete = 'username';
-    usernameInput.placeholder = 'Email address';
-    usernameInput.setAttribute('aria-label', 'Email address');
-
-    function showMessage(text) {
-      message.textContent = text;
-      message.classList.add('show');
-    }
 
     togglePassword.addEventListener('click', () => {
       const show = passwordInput.type === 'password';
@@ -219,82 +198,70 @@ body{padding:20px 16px}
         : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>';
     });
 
-    async function routeSignedInUser(user) {
+    document.getElementById('loginForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const loginButton = document.querySelector('.login-button');
+      const email = document.getElementById('username').value.trim();
+      const password = passwordInput.value;
+
+      message.classList.add('show');
+      message.textContent = 'Signing in…';
+      loginButton.disabled = true;
+
       try {
-        // Firestore profile is the source of role and permission information.
-        // Document ID must be the Firebase Authentication UID.
-        const profileSnap = await getDoc(doc(db, 'users', user.uid));
+        // Firebase Authentication requires the account's email and password.
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        const user = credential.user;
+
+        // Verify this user's role profile using their Firebase Auth UID.
+        const profileRef = doc(db, 'userAccounts', user.uid);
+        const profileSnap = await getDoc(profileRef);
+
         if (!profileSnap.exists()) {
-          showMessage('Your account profile was not found in Firestore. Contact the administrator.');
           await signOut(auth);
-          return;
+          throw new Error('Your login is valid, but your Firestore userAccounts profile was not found. Ask Super Admin to save your profile using your Firebase Authentication UID.');
         }
 
         const profile = profileSnap.data();
-        const role = String(profile.role || '').trim().toLowerCase();
-        const active = profile.active !== false && profile.status !== 'disabled';
-        const permissions = Array.isArray(profile.permissions) ? profile.permissions : [];
-
-        if (!active) {
-          showMessage('This account is inactive. Please contact the administrator.');
+        if (profile.active !== true) {
           await signOut(auth);
-          return;
+          throw new Error('Your account is inactive. Please contact Super Admin.');
         }
 
-        if (profile.superAdmin === true || role === 'super_admin' || role === 'super admin') {
-          window.location.replace('super-admin-dashboard.html');
-          return;
+        const role = String(profile.role || '').trim();
+        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin'];
+        if (!allowedRoles.includes(role) && profile.superAdmin !== true) {
+          await signOut(auth);
+          throw new Error('Your account role is not recognized. Please contact Super Admin.');
         }
 
-        if (role === 'founder' && permissions.includes('founder-dashboard')) {
-          window.location.replace('founder-dashboard.html');
-          return;
-        }
+        const permissions = Array.isArray(profile.permissions) ? profile.permissions : [];
+        const permissionText = permissions.length ? permissions.join(', ') : 'No page permissions assigned';
 
-        if (['registration agent', 'registrationagent', 'agent'].includes(role) &&
-            (permissions.includes('registration') || profile.memberRegistration === true)) {
-          window.location.replace('registration.html');
-          return;
-        }
+        message.textContent = 'Login and Firestore verification successful. Role: ' + role + '. Permissions: ' + permissionText + '.';
+        message.style.background = '#eaf8ee';
+        message.style.color = '#14532d';
+        message.style.borderColor = '#bbf7d0';
 
-        showMessage('Your account role or permissions are not configured. Please contact the administrator.');
-        await signOut(auth);
+        // Keep the authenticated session active for the next page/app module.
+        // Dashboard navigation can be added once the exact dashboard filename is confirmed.
       } catch (error) {
-        console.error('Firestore role verification error:', error);
-        showMessage('Unable to verify your Firestore account profile. Check your internet connection and Firestore rules.');
-        await signOut(auth);
-      }
-    }
-
-    loginForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      message.classList.remove('show');
-      loginButton.disabled = true;
-      loginButton.textContent = 'Signing in...';
-
-      const email = usernameInput.value.trim();
-      const password = passwordInput.value;
-
-      try {
-        const credential = await signInWithEmailAndPassword(auth, email, password);
-        await routeSignedInUser(credential.user);
-      } catch (error) {
-        console.error('Firebase sign-in error:', error);
-        const messages = {
-          'auth/invalid-credential': 'Incorrect email or password.',
-          'auth/invalid-email': 'Please enter a valid email address.',
-          'auth/user-disabled': 'This account has been disabled. Contact the Super Admin.',
-          'auth/too-many-requests': 'Too many login attempts. Please wait and try again.',
-          'auth/network-request-failed': 'Network error. Check your internet connection.'
-        };
-        showMessage(messages[error.code] || 'Login failed. Please check your details and try again.');
+        let text = error?.message || 'Login failed.';
+        if (error?.code === 'auth/invalid-credential' || error?.code === 'auth/wrong-password' || error?.code === 'auth/user-not-found') {
+          text = 'Incorrect email or password. Please check your Firebase Authentication account.';
+        } else if (error?.code === 'permission-denied') {
+          text = 'Firestore denied access to your user profile. Check that the rules allow a signed-in user to read userAccounts/{their UID}.';
+        } else if (error?.code === 'auth/network-request-failed') {
+          text = 'Network connection failed. Check your internet and try again.';
+        }
+        message.textContent = text;
+        message.style.background = '';
+        message.style.color = '';
+        message.style.borderColor = '';
       } finally {
         loginButton.disabled = false;
-        loginButton.innerHTML = '<span aria-hidden="true">➜</span> &nbsp; Login';
       }
     });
-
-    // Role routing runs after successful login to avoid duplicate redirects.
   </script>
 </body>
 </html>
