@@ -200,7 +200,7 @@ body:before{
   <button class="mini-stat" type="button"><strong id="teamLeaderCount">0</strong><span>Team Leaders</span></button>
   <button class="mini-stat" type="button"><strong id="puAgentCount">0</strong><span>PU Agents</span></button>
   <button class="mini-stat" type="button"><strong id="mobilizationAgentCount">0</strong><span>Mobilization Agents</span></button>
-  <button class="mini-stat" type="button"><strong id="memberCount">0</strong><span>Members</span></button>
+  <button class="mini-stat" type="button" onclick="window.location.href='members-record.html'"><strong id="memberCount">0</strong><span>Members</span></button>
 </section>
 
 <section class="glass programs-panel" id="programsPanel">
@@ -284,4 +284,37 @@ function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(pr
 document.addEventListener("DOMContentLoaded",()=>{renderProgramCarousel();restartProgramTimer();});
 </script>
 
-</body></html>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
+  authDomain: "ehfoundation-48f1d.firebaseapp.com",
+  projectId: "ehfoundation-48f1d",
+  storageBucket: "ehfoundation-48f1d.firebasestorage.app",
+  messagingSenderId: "126063666222",
+  appId: "1:126063666222:web:8793cae852361441fb6bbf"
+};
+
+const foundationApp = initializeApp(firebaseConfig, "FounderMembersCount");
+const foundationDb = getFirestore(foundationApp);
+
+async function updateRegisteredMembersCount() {
+  const countElement = document.getElementById("memberCount");
+  if (!countElement) return;
+
+  try {
+    const result = await getCountFromServer(collection(foundationDb, "members"));
+    countElement.textContent = Number(result.data().count || 0).toLocaleString();
+  } catch (error) {
+    console.error("Could not load member count:", error);
+    countElement.textContent = "—";
+    countElement.title = "Could not load count. Check Firebase login and Firestore rules.";
+  }
+}
+
+updateRegisteredMembersCount();
+</script>
+\n</body></html>
