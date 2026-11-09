@@ -21,9 +21,9 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
 .info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 .info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
-.details-below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 10px;margin-top:7px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
+.details-below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 10px;margin-top:5px;padding:6px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
 .details-title{grid-column:1/-1;font-size:11px;font-weight:800;color:#197234}
-.bottom-row{display:flex;flex-direction:column;align-items:stretch;gap:9px;margin-top:9px;padding:0 2px}
+.bottom-row{display:flex;flex-direction:column;align-items:stretch;gap:5px;margin-top:5px;padding:0 2px}
 .polling-unit{min-width:0;flex:1}
 .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;justify-content:center;gap:8px;width:100%;margin:0}
 .action{white-space:nowrap;padding:10px 6px;font-size:11px;min-height:38px;width:100%;}
@@ -53,6 +53,10 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .clear-filter{border:1px solid #c9e5d0;border-radius:8px;background:#e8f4eb;color:#17652c;padding:7px 11px;font-size:11px;font-weight:800}
 .filter-count{font-size:11px;color:#607267;text-align:right}
 @media(max-width:480px){.records-wrap{height:calc(100dvh - 16px)}.foundation-header{padding:11px 10px}.back-button{padding:8px 9px;font-size:11px}.filters-panel{padding:9px}.filter-options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+.details-below .info strong{white-space:nowrap}
+.member-info .info strong{white-space:nowrap}
 
 </style></head>
 <body><main class="records-wrap">
@@ -207,14 +211,13 @@ function card(m,id){
         <div class="info"><strong>Gender</strong>${esc(m.gender)}</div>
         <div class="info"><strong>Age</strong>${esc(m.age)}</div>
         <div class="info"><strong>Account Name</strong>${esc(m.accountName)}</div>
-        <div class="info"><strong>Account Number</strong>${esc(m.accountNumber)}</div>
+        <div class="info"><strong>ACC NO</strong>${esc(m.accountNumber)}</div>
         <div class="info"><strong>Bank Name</strong>${esc(bank)}</div>
       </div>
     </div>
     <div class="details-below">
-      <div class="details-title">Contact Details</div>
       <div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div>
-      <div class="info"><strong>Local Government</strong>${esc(lga)}</div>
+      <div class="info"><strong>L.G.</strong>${esc(lga)}</div>
       <div class="info"><strong>Ward</strong>${esc(ward)}</div>
       <div class="info"><strong>Polling Unit</strong>${esc(pu)}</div>
     </div>
