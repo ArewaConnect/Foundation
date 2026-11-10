@@ -32,7 +32,6 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .field input:focus,.field select:focus{border-color:#16983a;box-shadow:0 0 0 3px rgba(22,163,74,.10)}
 .full{grid-column:1/-1}
 .helper{font-size:11px;color:#63766a;margin-top:5px;line-height:1.4}
-.location-select{width:100%;min-height:42px;border:1px solid rgba(100,140,112,.28);border-radius:10px;background:rgba(255,255,255,.88);padding:9px 11px;font-size:14px;color:#24392b}
 .hidden{display:none!important}
 .submit-row{display:flex;justify-content:flex-end;margin-top:15px}
 .submit-btn{border:0;border-radius:11px;background:#079b24;color:#fff;font-size:15px;font-weight:800;padding:12px 25px;cursor:pointer;box-shadow:0 5px 12px rgba(0,120,25,.16)}
@@ -90,14 +89,6 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="field"><label for="accountNumber">Account Number</label><input id="accountNumber" name="accountNumber" inputmode="numeric" placeholder="Bank account number"></div>
 </div>
 
-<div class="section-title" style="margin-top:16px">Member Location</div>
-<div class="grid">
- <div class="field full"><label for="memberState">State *</label><select class="location-select" id="memberState" required><option value="">Loading states…</option></select></div>
- <div class="field"><label for="memberLga">Local Government Area *</label><select class="location-select" id="memberLga" required disabled><option value="">Select LGA</option></select></div>
- <div class="field"><label for="memberWard">Ward *</label><select class="location-select" id="memberWard" required disabled><option value="">Select ward</option></select></div>
- <div class="field full"><label for="memberPollingUnit">Polling Unit *</label><select class="location-select" id="memberPollingUnit" required disabled><option value="">Select polling unit</option></select></div>
- <div class="field full"><div class="helper" id="locationStatus">Location options are loaded from Super Admin location management.</div></div>
-</div>
 <div class="section-title" style="margin-top:16px">Voter’s Card Code</div>
 <div class="grid">
 <div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="070105002" autocomplete="off"></div>
@@ -179,60 +170,6 @@ async function compressMemberPhoto(file,targetKB=500){
 }
 
 const statusEl=document.getElementById('formStatus');
-
-// Uses the same nested Firestore hierarchy as Super Admin location management.
-const memberState=document.getElementById('memberState');
-const memberLga=document.getElementById('memberLga');
-const memberWard=document.getElementById('memberWard');
-const memberPollingUnit=document.getElementById('memberPollingUnit');
-const locationStatus=document.getElementById('locationStatus');
-function setLocationOptions(select,items,placeholder){
-  select.innerHTML='';
-  const first=document.createElement('option');first.value='';first.textContent=placeholder;select.appendChild(first);
-  items.sort((a,b)=>String(a.code||a.id).localeCompare(String(b.code||b.id)));
-  items.forEach(item=>{
-    const option=document.createElement('option');option.value=item.id;
-    option.textContent=`${item.name||'Unnamed'} (${item.code||item.id})`;
-    option.dataset.name=item.name||'';option.dataset.code=item.code||item.id;
-    select.appendChild(option);
-  });
-}
-async function readLocationChildren(path){
-  const snap=await db.collection(path).get();
-  return snap.docs.map(d=>({id:d.id,...d.data()}));
-}
-async function loadMemberStates(){
-  try{
-    memberState.disabled=true;locationStatus.textContent='Loading states…';
-    const states=await readLocationChildren('states');
-    setLocationOptions(memberState,states,'Select state');memberState.disabled=false;
-    locationStatus.textContent=states.length?`Loaded ${states.length} state(s). Select the member’s location.`:'No states found. Super Admin must add states first.';
-  }catch(e){
-    memberState.innerHTML='<option value="">Could not load states</option>';
-    locationStatus.textContent='Could not load states: '+(e.message||'Check Firestore permissions.');
-    console.error('Location states load failed:',e);
-  }
-}
-memberState.addEventListener('change',async()=>{
-  setLocationOptions(memberLga,[],'Loading LGAs…');setLocationOptions(memberWard,[],'Select ward');setLocationOptions(memberPollingUnit,[],'Select polling unit');
-  memberLga.disabled=memberWard.disabled=memberPollingUnit.disabled=true;
-  if(!memberState.value)return;
-  try{const items=await readLocationChildren(`states/${memberState.value}/lgas`);setLocationOptions(memberLga,items,'Select LGA');memberLga.disabled=false;locationStatus.textContent=items.length?`Loaded ${items.length} LGA(s).`:'No LGAs saved under this state yet.';}
-  catch(e){locationStatus.textContent='Could not load LGAs: '+e.message;}
-});
-memberLga.addEventListener('change',async()=>{
-  setLocationOptions(memberWard,[],'Loading wards…');setLocationOptions(memberPollingUnit,[],'Select polling unit');memberWard.disabled=memberPollingUnit.disabled=true;
-  if(!memberState.value||!memberLga.value)return;
-  try{const items=await readLocationChildren(`states/${memberState.value}/lgas/${memberLga.value}/wards`);setLocationOptions(memberWard,items,'Select ward');memberWard.disabled=false;locationStatus.textContent=items.length?`Loaded ${items.length} ward(s).`:'No wards saved under this LGA yet.';}
-  catch(e){locationStatus.textContent='Could not load wards: '+e.message;}
-});
-memberWard.addEventListener('change',async()=>{
-  setLocationOptions(memberPollingUnit,[],'Loading polling units…');memberPollingUnit.disabled=true;
-  if(!memberState.value||!memberLga.value||!memberWard.value)return;
-  try{const items=await readLocationChildren(`states/${memberState.value}/lgas/${memberLga.value}/wards/${memberWard.value}/pollingUnits`);setLocationOptions(memberPollingUnit,items,'Select polling unit');memberPollingUnit.disabled=false;locationStatus.textContent=items.length?`Loaded ${items.length} polling unit(s).`:'No polling units saved under this ward yet.';}
-  catch(e){locationStatus.textContent='Could not load polling units: '+e.message;}
-});
-
 async function loadTeamLeaders(){
   teamLeader.innerHTML='<option value="">Loading team leaders…</option>';
   try{
@@ -290,7 +227,7 @@ async function loadTeamLeaders(){
 }
 
 auth.onAuthStateChanged(user=>{
-  if(user){ loadTeamLeaders(); loadMemberStates(); }
+  if(user) loadTeamLeaders();
   else {
     teamLeader.innerHTML='<option value="">Sign in first</option>';
     roleHelp.textContent='Please sign in before loading Team Leaders.';
@@ -299,16 +236,9 @@ auth.onAuthStateChanged(user=>{
 document.getElementById('memberForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=event.submitter;button.disabled=true;button.textContent='Saving...';statusEl.textContent='';
  try{
-  const f=event.currentTarget;
-  const stateOption=memberState.selectedOptions[0],lgaOption=memberLga.selectedOptions[0],wardOption=memberWard.selectedOptions[0],puOption=memberPollingUnit.selectedOptions[0];
-  if(!memberState.value||!memberLga.value||!memberWard.value||!memberPollingUnit.value) throw new Error('Please select the State, Local Government, Ward and Polling Unit before registering.');
-  const data={category:category.value,teamLeaderId:teamLeader.value||null,teamLeaderName:teamLeader.value?(teamLeader.selectedOptions[0]?.textContent||null):null,
+  const f=event.currentTarget;const data={category:category.value,teamLeaderId:teamLeader.value||null,teamLeaderName:teamLeader.selectedOptions[0]?.textContent||null,
    fullName:f.fullName.value.trim(),gender:f.gender.value,age:Number(f.age.value),phone:f.phone.value.trim(),businessType:f.businessType.value.trim(),
    accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),
-   stateId:memberState.value,stateName:stateOption.dataset.name,stateCode:stateOption.dataset.code,
-   lgaId:memberLga.value,lgaName:lgaOption.dataset.name,lgaCode:lgaOption.dataset.code,
-   wardId:memberWard.value,wardName:wardOption.dataset.name,wardCode:wardOption.dataset.code,
-   pollingUnitId:memberPollingUnit.value,pollingUnitName:puOption.dataset.name,pollingUnitCode:puOption.dataset.code,
    voterCardCode:f.voterCardCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
   const photo=document.getElementById('memberPhoto').files?.[0];
   if(photo){
@@ -317,9 +247,7 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
     const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(compressedPhoto);
    });
   }
-  const doc=await db.collection('members').add(data);statusEl.textContent='Registration saved successfully. Registration ID: '+doc.id;f.reset();document.getElementById('photoPreview').textContent='Member Photo';leaderField.classList.add('hidden');
-  setLocationOptions(memberLga,[],'Select LGA');setLocationOptions(memberWard,[],'Select ward');setLocationOptions(memberPollingUnit,[],'Select polling unit');
-  memberLga.disabled=memberWard.disabled=memberPollingUnit.disabled=true;loadTeamLeaders();
+  const doc=await db.collection('members').add(data);statusEl.textContent='Registration saved successfully. Registration ID: '+doc.id;f.reset();document.getElementById('photoPreview').textContent='Member Photo';leaderField.classList.add('hidden');loadTeamLeaders();
  }catch(e){console.error(e);statusEl.textContent='Registration failed: '+(e.message||'Please check internet connection and Firestore rules.');}
  finally{button.disabled=false;button.textContent='Register Member';}
 });

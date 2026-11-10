@@ -137,9 +137,17 @@ function openBenefitDetails(memberId,index){
 const list=document.getElementById('recordsList');
 const members=[];
 function renderRecords(){
-  list.innerHTML=members.length
-    ? members.map(item=>card(item.data,item.id)).join('')
-    : '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No registered members found.</div>';
+  const params=new URLSearchParams(location.search);
+  const stateFilter=params.get('state'),lgaFilter=params.get('lga'),wardFilter=params.get('ward');
+  const filtered=members.filter(item=>{
+    const code=String(item.data?.voterCardCode||'').replace(/\s/g,'');
+    if(!stateFilter&&!lgaFilter&&!wardFilter)return true;
+    if(!/^\d{9}$/.test(code))return false;
+    return (!stateFilter||code.slice(0,2)===stateFilter)&&(!lgaFilter||code.slice(2,4)===lgaFilter)&&(!wardFilter||code.slice(4,6)===wardFilter);
+  });
+  list.innerHTML=filtered.length
+    ? filtered.map(item=>card(item.data,item.id)).join('')
+    : '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No registered members found for this ward.</div>';
 }
 
 // Resolve the complete nine-digit voter card code against the location
