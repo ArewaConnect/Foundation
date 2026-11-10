@@ -191,6 +191,193 @@ body:before{
 }
 
 
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#173b2b;background:radial-gradient(circle at 10% 5%,rgba(255,255,255,.98),transparent 28%),linear-gradient(135deg,#f8fafc 0%,#eaf4ff 38%,#fff0f1 72%,#eef6ff 100%)}
+.page{max-width:1150px;margin:auto;padding:20px 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;color:#166534;font-weight:bold}
+.glass{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.42));border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border-radius:24px;box-shadow:0 16px 38px rgba(30,64,175,.10),inset 0 1px 0 rgba(255,255,255,.9)}
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 20px;margin-bottom:24px}.avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#dbeafe);border:4px solid white;display:grid;place-items:center;color:#166534;font-weight:bold;flex-shrink:0;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}
+.role{font-size:13px;color:#1d4ed8;font-weight:bold;letter-spacing:1px;text-transform:uppercase}.profile h1{font-size:clamp(22px,4vw,32px);margin:7px 0}.profile p{margin:0;color:#64748b}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 2px 14px}.heading h2{margin:0}.pill{background:#ffffffa8;border-radius:30px;padding:8px 12px;font-size:12px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.summary-card{padding:17px;border-top:4px solid #2563eb}.summary-card:nth-child(2){border-top-color:#dc2626}.summary-card:nth-child(3){border-top-color:#1d4ed8}.label{color:#64748b;font-size:13px}.big{font-size:32px;font-weight:800;margin-top:7px}
+.wards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ward{padding:16px;cursor:pointer;transition:.2s}.ward:hover{transform:translateY(-3px)}.ward-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.ward h3{margin:0}.ward-head span{font-size:12px;color:#1d4ed8;font-weight:bold}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{padding:12px;border-radius:13px;background:#ffffffbd;min-height:88px}.pct{font-size:12px;color:#1d4ed8;font-weight:bold}.number{font-size:25px;font-weight:800;margin-top:3px}.caption{font-size:11px;color:#64748b;margin-top:4px}.rg{border-left:5px solid #2563eb;background:linear-gradient(135deg,rgba(239,246,255,.92),rgba(255,255,255,.72))}.mc{border-left:5px solid #dc2626;background:linear-gradient(135deg,rgba(254,242,242,.92),rgba(255,255,255,.72))}.vr{border-left:5px solid #1d4ed8;background:linear-gradient(135deg,rgba(239,246,255,.92),rgba(255,255,255,.72))}.remaining{border-left:5px solid #64748b;background:linear-gradient(135deg,rgba(248,250,252,.92),rgba(255,255,255,.72))}
+.note{font-size:12px;color:#64748b;margin-top:15px}footer{text-align:center;font-size:12px;color:#64748b;margin:25px 0}
+
+.chart-panel{padding:20px;margin-bottom:22px}
+.chart-title-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.chart-title-row h3{margin:0;font-size:20px}
+.chart-title-row p{margin:6px 0 0;color:#64748b;font-size:13px}
+.chart-area{height:280px;display:flex;gap:12px;padding:10px 4px 0}
+.y-axis{display:flex;flex-direction:column;justify-content:space-between;color:#64748b;font-size:10px;padding-bottom:25px}
+.bar-chart{flex:1;display:flex;align-items:stretch;justify-content:space-around;gap:12px;position:relative;
+ background:repeating-linear-gradient(to top,rgba(100,116,139,.16) 0,rgba(100,116,139,.16) 1px,transparent 1px,transparent 25%)}
+.bar-group{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.bar-value{font-size:12px;font-weight:800;color:#153b2b;margin-bottom:5px;text-align:center}
+.bar{width:min(54px,70%);min-height:3px;border-radius:10px 10px 3px 3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.55);transition:height .25s}
+.bar.blue{background:linear-gradient(180deg,#60a5fa,#2563eb)}
+.bar.red{background:linear-gradient(180deg,#f87171,#dc2626)}
+.bar.blue2{background:linear-gradient(180deg,#93c5fd,#1d4ed8)}
+.bar.gray{background:linear-gradient(180deg,#cbd5e1,#64748b)}
+
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;font-size:11px;color:#64748b}
+.chart-legend span{display:flex;align-items:center;gap:6px}
+.legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.legend-dot.blue{background:#2563eb}.legend-dot.red{background:#dc2626}.legend-dot.blue2{background:#1d4ed8}.legend-dot.gray{background:#64748b}
+.chart-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:18px}
+.chart-total{padding:10px;border-radius:12px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.8)}
+.chart-total small{display:block;color:#64748b;font-size:10px}.chart-total strong{display:block;font-size:18px;margin-top:4px;color:#153b2b}
+
+@media(max-width:640px){.page{padding:12px 10px}.glass{border-radius:22px}.wards{grid-template-columns:1fr;gap:12px}.profile{padding:20px 15px;flex-direction:column;align-items:center;text-align:center}.avatar{width:108px;height:108px}.heading{align-items:flex-start;flex-direction:column}.ward{padding:14px}.metric{padding:11px}.chart-panel{padding:14px}.chart-area{height:230px}.chart-legend{gap:8px}.chart-totals{grid-template-columns:repeat(2,minmax(0,1fr))}.bar-value{font-size:10px}}
+
+.top{position:sticky;top:0;z-index:20;margin:0 -14px 20px;padding:15px 20px;
+ display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:14px;
+ background:linear-gradient(110deg,rgba(248,250,252,.96),rgba(219,234,254,.94) 52%,rgba(254,226,226,.94));
+ border:1px solid rgba(255,255,255,.9);border-top:4px solid #2563eb;border-bottom:3px solid #dc2626;
+ border-radius:0 0 18px 18px;box-shadow:0 10px 25px rgba(30,64,175,.12);backdrop-filter:blur(18px)}
+.header-brand{font-size:clamp(16px,3.5vw,25px);font-weight:800;color:#166534;white-space:nowrap;line-height:1.2}
+.logout-btn{border:0;border-radius:12px;padding:11px 20px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;font-weight:800;font-size:14px;box-shadow:0 5px 14px rgba(185,28,28,.22);cursor:pointer;white-space:nowrap}
+.logout-btn:active{transform:scale(.97)}
+@media(max-width:640px){.top{margin:0 -10px 18px;padding:13px 12px;border-radius:0 0 15px 15px}.header-brand{font-size:clamp(14px,4vw,19px);white-space:nowrap}.logout-btn{padding:10px 13px;font-size:12px}}
+
+
+.programs-panel{padding:18px;margin:0 0 22px}
+.programs-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.programs-head h2{font-size:clamp(18px,3vw,24px);margin:0;color:#166534}
+.add-program-btn{border:0;border-radius:12px;padding:10px 14px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:700;cursor:pointer;white-space:nowrap}
+.program-carousel{position:relative;overflow:hidden;border-radius:18px;background:rgba(255,255,255,.48);min-height:210px}
+.program-slide{display:none;animation:carouselFade .45s ease}
+.program-slide.active{display:block}
+.program-slide img{width:100%;height:clamp(210px,42vw,360px);object-fit:cover;display:block;border-radius:16px}
+.program-image-placeholder{height:clamp(210px,42vw,360px);display:block;background:linear-gradient(135deg,rgba(219,234,254,.25),rgba(254,226,226,.22))}
+.program-caption{padding:12px 4px 4px}
+.program-caption h3{margin:0 0 5px;color:#153b2b;font-size:18px}
+.program-caption p{margin:0;color:#64748b;font-size:13px}
+.carousel-controls{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px}
+.carousel-arrow{display:none}
+.carousel-dots{display:flex;gap:7px;align-items:center;justify-content:center}
+.carousel-dot{width:9px;height:9px;border-radius:50%;border:0;background:#dc2626;padding:0;cursor:pointer;transition:all .2s}
+.carousel-dot.active{width:22px;height:9px;border-radius:8px;background:#2563eb}
+.program-upload-status{font-size:12px;color:#64748b;margin-top:8px}
+@keyframes carouselFade{from{opacity:.45}to{opacity:1}}
+@media(max-width:640px){.programs-panel{padding:13px}.programs-head{align-items:flex-start;flex-direction:column}.add-program-btn{width:100%}.program-carousel{border-radius:14px}}
+
+
+/* Enhanced frosted-glass styling inspired by the supplied login screen */
+body{
+ background:
+   radial-gradient(ellipse at 12% 8%, rgba(22,163,74,.20), transparent 26%),
+   radial-gradient(ellipse at 92% 18%, rgba(37,99,235,.18), transparent 30%),
+   radial-gradient(ellipse at 85% 78%, rgba(220,38,38,.15), transparent 28%),
+   linear-gradient(145deg,#f5f8fc 0%,#eaf1f8 42%,#f7f3f5 72%,#edf5f8 100%);
+ background-attachment:fixed;
+ position:relative;
+}
+body:before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:
+  linear-gradient(145deg,transparent 0 7%,rgba(22,163,74,.92) 7.2% 8.3%,transparent 8.5%),
+  linear-gradient(145deg,transparent 0 10%,rgba(37,99,235,.9) 10.2% 11.3%,transparent 11.5%),
+  linear-gradient(145deg,transparent 0 13%,rgba(220,38,38,.88) 13.2% 14.3%,transparent 14.5%),
+  linear-gradient(325deg,transparent 0 7%,rgba(22,163,74,.9) 7.2% 8.3%,transparent 8.5%),
+  linear-gradient(325deg,transparent 0 10%,rgba(37,99,235,.88) 10.2% 11.3%,transparent 11.5%),
+  linear-gradient(325deg,transparent 0 13%,rgba(220,38,38,.86) 13.2% 14.3%,transparent 14.5%);
+ opacity:.72;
+}
+.glass{
+ background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.48));
+ border:1px solid rgba(255,255,255,.92);
+ backdrop-filter:blur(26px) saturate(165%);
+ -webkit-backdrop-filter:blur(26px) saturate(165%);
+ box-shadow:0 18px 45px rgba(15,23,42,.14),0 5px 18px rgba(37,99,235,.08),inset 0 1px 0 rgba(255,255,255,.96);
+}
+.profile,.programs-panel,.chart-panel,.ward{
+ background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(255,255,255,.42));
+ border:1px solid rgba(255,255,255,.9);
+}
+.top{
+ background:linear-gradient(110deg,rgba(255,255,255,.84),rgba(219,234,254,.78) 52%,rgba(254,226,226,.78));
+ backdrop-filter:blur(24px) saturate(160%);
+ -webkit-backdrop-filter:blur(24px) saturate(160%);
+}
+.program-carousel{
+ background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(226,232,240,.38));
+ border:1px solid rgba(255,255,255,.72);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+}
+.metric,.chart-total,.pill{
+ background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.48));
+ border:1px solid rgba(255,255,255,.72);
+ backdrop-filter:blur(12px);
+ -webkit-backdrop-filter:blur(12px);
+}
+
+
+/* Compact team/mobilization summary strip */
+.mobilization-strip{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+ padding:5px;margin:0 0 10px;align-items:stretch;
+}
+.mini-stat{
+ min-width:0;text-align:center;padding:4px 5px;border-radius:12px;
+ background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(226,232,240,.48));
+ border:1px solid rgba(255,255,255,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+.mini-stat strong{display:block;font-size:clamp(14px,3.2vw,18px);line-height:1.05;color:#166534}
+.mini-stat span{display:block;margin-top:2px;font-size:clamp(8px,2.2vw,10px);font-weight:700;color:#334155;line-height:1.2;overflow-wrap:anywhere}
+.ward-head{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px}
+.ward-head h3{width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.ward-actions{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;width:100%;margin:2px 0 12px}
+.ward-action-btn{
+ display:inline-flex;justify-content:center;align-items:center;text-align:center;
+ min-width:0;width:auto;max-width:100%;padding:3px 8px;
+ border:1.5px solid #dc2626;border-radius:999px;
+ background:linear-gradient(120deg,#dc2626 0%,#2563eb 100%);
+ color:#fff;font-size:9px;font-weight:800;line-height:1.1;
+ white-space:nowrap;box-shadow:0 3px 8px rgba(37,99,235,.15);cursor:pointer;
+}
+.ward-action-btn:active{transform:scale(.97)}
+.ward-head span{display:none}
+.ward{cursor:default}
+@media(max-width:640px){
+ .mobilization-strip{gap:4px;padding:4px;margin-bottom:8px}
+ .mini-stat{padding:4px 3px;border-radius:10px}
+ .mini-stat span{font-size:9px}
+ .ward-actions{gap:4px;margin-bottom:8px}
+ .ward-action-btn{font-size:8px;padding:3px 7px}
+}
+
+
+
+/* Four compact summary buttons */
+.mobilization-strip{
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;
+ margin-bottom:10px;
+}
+.mini-stat{
+ appearance:none;-webkit-appearance:none;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ min-height:54px;padding:6px 5px;
+ border:1.5px solid #dc2626;
+ border-radius:13px;
+ background:linear-gradient(115deg,#dc2626 0%,#2563eb 100%);
+ color:#fff;cursor:default;
+}
+.mini-stat strong{color:#fff;font-size:clamp(14px,3.4vw,20px);line-height:1.05}
+.mini-stat span{color:#fff;font-size:clamp(8px,2.2vw,11px);font-weight:700;line-height:1.15;margin-top:3px;overflow-wrap:normal;word-break:normal}
+.mobilization-strip .mini-stat{cursor:pointer}
+.mobilization-strip .mini-stat:focus-visible{outline:3px solid #166534;outline-offset:3px}
+.mobilization-strip .mini-stat:active{transform:scale(.98)}
+.programs-panel{margin-bottom:10px}
+.chart-panel{margin-top:0;margin-bottom:10px}
+@media(max-width:640px){
+ .mobilization-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:5px;margin-bottom:10px}
+ .mini-stat{min-height:48px;padding:5px 2px;border-radius:10px}
+ .mini-stat strong{font-size:14px}
+ .mini-stat span{font-size:clamp(7px,2vw,9px);white-space:normal;text-align:center}
+ .programs-panel{margin-bottom:10px}
+}
+
+
 *{box-sizing:border-box}html,body{margin:0;width:100%;font-family:Arial,sans-serif}
 body{min-height:100vh;min-height:100dvh;padding:14px 10px;overflow:hidden}
 
@@ -199,7 +386,7 @@ body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
 body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
 body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
 
-#recordsPage.records-wrap{position:relative;z-index:1;width:min(100%,760px);margin:0 auto}
+#recordsPage#recordsPage.records-wrap{position:relative;z-index:1;width:min(100%,760px);margin:0 auto}
 .records-scroll{height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;padding:3px 3px 20px;scrollbar-width:thin;scrollbar-color:rgba(0,120,25,.4) transparent}
 .record-card{margin:0 0 12px;padding:12px;border-radius:18px;background:rgba(255,255,255,.53);border:2px solid #1685d8;box-shadow:0 10px 25px rgba(35,50,65,.12),0 0 0 1px rgba(22,133,216,.12),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .record-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:11px;align-items:start}
@@ -231,12 +418,12 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 @media(max-width:350px){.member-info{gap:6px 5px}.details-below{gap:5px 3px}.details-below .info{font-size:9px}.details-below .info strong{font-size:9px}.actions{gap:4px}.action{font-size:9px;padding:8px 2px}}
 
 #recordsPage.records-wrap{height:calc(100dvh - 28px);display:flex;flex-direction:column;gap:9px;padding:14px 10px}
-.foundation-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.9);border-radius:16px;background:linear-gradient(110deg,rgba(255,255,255,.92),rgba(231,246,250,.88));box-shadow:0 8px 22px rgba(35,50,65,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-.foundation-brand{font-size:clamp(15px,4vw,20px);font-weight:850;color:#164b2b;line-height:1.2}
-.foundation-subtitle{font-size:10px;color:#61756a;margin-top:3px;letter-spacing:.5px;text-transform:uppercase}
-.back-button{flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:10px;background:#176b35;color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 3px 9px rgba(23,107,53,.18)}
-.back-button:active{transform:scale(.97)}
-#recordsPage .records-scroll{height:auto;min-height:0;flex:1;overflow-y:auto}
+
+
+
+
+
+#recordsPage #recordsPage .records-scroll{height:auto;min-height:0;flex:1;overflow-y:auto}
 
 
 
@@ -273,6 +460,11 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 #recordsPage[hidden]{display:none!important}
 #recordsPage .records-scroll{overscroll-behavior:contain}
 @media(max-width:420px){#recordsPage.records-wrap{height:calc(100dvh - 16px);padding:8px}}
+
+#recordsPage[hidden]{display:none!important}
+#recordsPage .records-scroll{overscroll-behavior:contain}
+#recordsPage .records-back{align-self:flex-start;border:0;border-radius:9px;background:#176b35;color:#fff;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer}
+@media(max-width:420px){#recordsPage.records-wrap{padding:8px}}
 </style>
 </head>
 <body><main class="page" id="dashboardPage">
@@ -326,15 +518,8 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 
 <footer>Engineer Haruna Foundation · Founder Dashboard</footer>
 </main>
-
 <section id="recordsPage" class="records-wrap" hidden aria-label="Foundation member records">
-  <header class="foundation-header">
-    <div>
-      <div class="foundation-brand">Engineer Haruna Foundation</div>
-      <div class="foundation-subtitle">Registered Members Record</div>
-    </div>
-    <button class="back-button" type="button" id="backToDashboard">← Founder Dashboard</button>
-  </header>
+  <button class="records-back" type="button" id="backToDashboard">← Back to Dashboard</button>
   <section class="records-scroll">
     <div class="record-filter-panel" aria-label="Filter member records">
       <div class="record-filter-head"><strong id="activeRecordTitle">All Members</strong><span id="recordTotal">Loading records...</span></div>
@@ -346,115 +531,90 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
         <button type="button" class="record-filter-btn" data-record-category="Member">Members</button>
       </div>
     </div>
-    <div id="recordsList"><div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div></div>
+    <div id="recordsList"><div style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div></div>
   </section>
 </section>
 <div class="benefit-modal" id="benefitModal" role="dialog" aria-modal="true" aria-labelledby="benefitModalTitle">
   <div class="benefit-dialog">
-    <div class="benefit-dialog-head">
-      <h2 class="benefit-dialog-title" id="benefitModalTitle">Benefit Details</h2>
-      <button class="benefit-close" id="benefitModalClose" type="button" aria-label="Close">×</button>
-    </div>
+    <div class="benefit-dialog-head"><h2 class="benefit-dialog-title" id="benefitModalTitle">Benefit Details</h2><button class="benefit-close" id="benefitModalClose" type="button" aria-label="Close">×</button></div>
     <div id="benefitModalContent"></div>
   </div>
 </div>
 <noscript><div style="padding:12px;text-align:center;color:#b91c1c">JavaScript must be enabled to load the Founder Dashboard.</div></noscript>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-const recordsFirebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
-if(!firebase.apps.length) firebase.initializeApp(recordsFirebaseConfig);
-const recordsAuth=firebase.auth(),recordsDb=firebase.firestore();
+
 const recordsList=document.getElementById('recordsList');
-const recordsMembers=[];
-let activeRecordCategory='';
-let requestedState='',requestedLga='',requestedWard='';
+let activeRecordCategory='',requestedState='',requestedLga='',requestedWard='';
 const recordCategoryLabels={'':'All Members','Team Leader':'Team Leaders','Polling Unit Agent':'Polling Unit Agents','Mobilization Agent':'Mobilization Agents','Member':'Members'};
 function recordsEsc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function recordsPhone(phone){let digits=String(phone||'').replace(/\\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits;}
+function recordsSame(a,b){return String(a??'').trim().toLowerCase()===String(b??'').trim().toLowerCase();}
+function recordsMatchLocation(m){
+ if(!requestedState&&!requestedLga&&!requestedWard)return true;
+ const code=String(m.voterCardCode||'').replace(/\s/g,''),valid=/^\d{9}$/.test(code);
+ const s=m.stateCode||(valid?code.slice(0,2):''),l=m.lgaCode||(valid?code.slice(2,4):''),w=m.wardCode||(valid?code.slice(4,6):'');
+ return (!requestedState||recordsSame(s,requestedState)||recordsSame(m.stateName,requestedState))&&(!requestedLga||recordsSame(l,requestedLga)||recordsSame(m.lgaName,requestedLga))&&(!requestedWard||recordsSame(w,requestedWard)||recordsSame(m.wardName,requestedWard));
+}
 function recordsBenefits(m){return Array.isArray(m.benefits)?m.benefits:[];}
 function recordsBenefitDate(value){if(!value)return 'Not provided';let d=value;if(value&&typeof value.toDate==='function')d=value.toDate();else if(value&&typeof value.seconds==='number')d=new Date(value.seconds*1000);else d=new Date(value);return Number.isNaN(d.getTime())?'Not provided':d.toLocaleDateString();}
 function recordsOpenBenefit(memberId,index){
- const entry=recordsMembers.find(x=>x.id===memberId),b=entry?recordsBenefits(entry.data)[index]:null;if(!b)return;
- const title=b.programName||b.program||b.title||'Programme / Assistance',type=b.assistanceType||b.type||'Not provided';
+ const m=(window.foundationMemberRecords||[]).find(x=>x.id===memberId),b=m?recordsBenefits(m)[index]:null;if(!b)return;
  document.getElementById('benefitModalContent').innerHTML=
- '<div class="benefit-detail"><strong>Programme</strong><span>'+recordsEsc(title)+'</span></div>'+
- '<div class="benefit-detail"><strong>Assistance Type</strong><span>'+recordsEsc(type)+'</span></div>'+
+ '<div class="benefit-detail"><strong>Programme</strong><span>'+recordsEsc(b.programName||b.program||b.title||'Not provided')+'</span></div>'+
+ '<div class="benefit-detail"><strong>Assistance Type</strong><span>'+recordsEsc(b.assistanceType||b.type||'Not provided')+'</span></div>'+
  '<div class="benefit-detail"><strong>Date Received</strong><span>'+recordsEsc(recordsBenefitDate(b.dateReceived||b.receivedAt||b.date))+'</span></div>'+
  '<div class="benefit-detail"><strong>Details</strong><span>'+recordsEsc(b.description||b.details||'Not provided')+'</span></div>';
  document.getElementById('benefitModal').classList.add('open');
 }
-function recordsSame(a,b){return String(a??'').trim().toLowerCase()===String(b??'').trim().toLowerCase();}
-function recordsMatchLocation(m){
- if(!requestedState&&!requestedLga&&!requestedWard)return true;
- const code=String(m.voterCardCode||'').replace(/\\s/g,''),s=m.stateCode||(code.length===9?code.slice(0,2):''),l=m.lgaCode||(code.length===9?code.slice(2,4):''),w=m.wardCode||(code.length===9?code.slice(4,6):'');
- return (!requestedState||recordsSame(s,requestedState)||recordsSame(m.stateName,requestedState))&&(!requestedLga||recordsSame(l,requestedLga)||recordsSame(m.lgaName,requestedLga))&&(!requestedWard||recordsSame(w,requestedWard)||recordsSame(m.wardName,requestedWard));
-}
-function recordsRender(){
- const shown=recordsMembers.filter(x=>(!activeRecordCategory||recordsSame(x.data.category,activeRecordCategory))&&recordsMatchLocation(x.data));
- document.getElementById('activeRecordTitle').textContent=recordCategoryLabels[activeRecordCategory]||activeRecordCategory||'All Members';
- document.getElementById('recordTotal').textContent=shown.length+' of '+recordsMembers.length+' records';
- document.querySelectorAll('[data-record-category]').forEach(b=>{const on=b.dataset.recordCategory===activeRecordCategory;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');});
- recordsList.innerHTML=shown.length?shown.map(x=>recordsCard(x.data,x.id)).join(''):'<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No records found for this selection.</div>';
-}
-function recordsCard(m,id){
- const code=String(m.voterCardCode||'').replace(/\\s/g,''),valid=/^\\d{9}$/.test(code);
- const state=m.stateName||m.stateCode||(valid?code.slice(0,2):'Not provided'),lga=m.lgaName||m.lgaCode||(valid?code.slice(2,4):'Not provided'),ward=m.wardName||m.wardCode||(valid?code.slice(4,6):'Not provided'),pu=m.pollingUnitName||m.pollingUnitCode||(valid?code.slice(6,9):'Not provided'),bank=m.bankName||m.bank||'Not provided',benefits=recordsBenefits(m);
+function recordsCard(m){
+ const id=m.id,code=String(m.voterCardCode||'').replace(/\s/g,''),valid=/^\d{9}$/.test(code);
+ const state=m.stateName||m.stateCode||(valid?code.slice(0,2):'Not provided'),lga=m.lgaName||m.lgaCode||(valid?code.slice(2,4):'Not provided'),ward=m.wardName||m.wardCode||(valid?code.slice(4,6):'Not provided'),pu=m.pollingUnitName||m.pollingUnitCode||(valid?code.slice(6,9):'Not provided'),benefits=recordsBenefits(m);
  return `<article class="record-card" data-phone="${recordsEsc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info">
  <div class="member-name-row"><h2 class="member-name"><span class="member-name-label">Name:</span> ${recordsEsc(m.fullName)}</h2><span class="verify-badge ${m.verified===true?'is-verified':''}"><span class="verify-colors" aria-hidden="true"><i></i><i></i><i></i></span>${m.verified===true?'Verified':'Pending'}</span></div>
- <div class="info"><strong>Role</strong>${recordsEsc(m.category)}</div><div class="info"><strong>Gender</strong>${recordsEsc(m.gender)}</div><div class="info"><strong>Age</strong>${recordsEsc(m.age)}</div><div class="info"><strong>Account Name</strong>${recordsEsc(m.accountName)}</div><div class="info"><strong>ACC NO</strong>${recordsEsc(m.accountNumber)}</div><div class="info"><strong>Bank Name</strong>${recordsEsc(bank)}</div><div class="info"><strong>Business Type</strong>${recordsEsc(m.businessType)}</div></div></div>
+ <div class="info"><strong>Role</strong>${recordsEsc(m.category)}</div><div class="info"><strong>Gender</strong>${recordsEsc(m.gender)}</div><div class="info"><strong>Age</strong>${recordsEsc(m.age)}</div><div class="info"><strong>Account Name</strong>${recordsEsc(m.accountName)}</div><div class="info"><strong>ACC NO</strong>${recordsEsc(m.accountNumber)}</div><div class="info"><strong>Bank Name</strong>${recordsEsc(m.bankName||m.bank)}</div><div class="info"><strong>Business Type</strong>${recordsEsc(m.businessType)}</div></div></div>
  <div class="details-below"><div class="info"><strong>State</strong>${recordsEsc(state)}</div><div class="info"><strong>L.G.</strong>${recordsEsc(lga)}</div><div class="info"><strong>Ward</strong>${recordsEsc(ward)}</div><div class="info"><strong>Polling Unit</strong>${recordsEsc(pu)}</div></div>
  <div class="bottom-row"><div class="actions"><a class="action call" href="#" data-action="call">Call</a><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
  <div class="benefits-panel"><div class="benefits-head"><span class="benefits-title">Benefits Received</span><span class="benefits-count">${benefits.length} ${benefits.length===1?'Benefit':'Benefits'}</span></div><div class="benefit-ticks">${benefits.length?benefits.map((b,i)=>`<button type="button" class="benefit-tick" data-benefit-member="${recordsEsc(id)}" data-benefit-index="${i}" aria-label="View benefit ${i+1}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#e8f7ed" stroke="#159447" stroke-width="1.5"/><path d="m7 12.2 3.2 3.1L17.5 8" stroke="#159447" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`).join(''):'<span class="no-benefits">No benefits recorded yet</span>'}</div></div></div></article>`;
 }
-const recordLocationCache=new Map();
-function recordsCached(path,ref){if(!recordLocationCache.has(path))recordLocationCache.set(path,ref.get());return recordLocationCache.get(path);}
-async function recordsResolveLocation(m){
- const digits=String(m.voterCardCode||'').replace(/\\s+/g,'');if(!/^\\d{9}$/.test(digits))return m;
- const s=digits.slice(0,2),l=digits.slice(2,4),w=digits.slice(4,6),p=digits.slice(6,9),out={stateCode:s,lgaCode:l,wardCode:w,pollingUnitCode:p};
- try{const sr=recordsDb.collection('states').doc(s),ss=await recordsCached('s/'+s,sr);if(!ss.exists)return {...m,...out};out.stateName=ss.data().name;
- const lr=sr.collection('lgas').doc(l),ls=await recordsCached('l/'+s+'/'+l,lr);if(!ls.exists)return {...m,...out};out.lgaName=ls.data().name;
- const wr=lr.collection('wards').doc(w),ws=await recordsCached('w/'+s+'/'+l+'/'+w,wr);if(!ws.exists)return {...m,...out};out.wardName=ws.data().name;
- const pr=wr.collection('pollingUnits').doc(p),ps=await recordsCached('p/'+s+'/'+l+'/'+w+'/'+p,pr);if(ps.exists)out.pollingUnitName=ps.data().name;
- }catch(err){console.warn('Location lookup unavailable',err);}return {...m,...out};
+function renderFoundationRecords(){
+ const all=window.foundationMemberRecords||[];
+ const shown=all.filter(m=>(!activeRecordCategory||recordsSame(m.category,activeRecordCategory))&&recordsMatchLocation(m));
+ document.getElementById('activeRecordTitle').textContent=recordCategoryLabels[activeRecordCategory]||activeRecordCategory||'All Members';
+ document.getElementById('recordTotal').textContent=shown.length+' of '+all.length+' records';
+ document.querySelectorAll('[data-record-category]').forEach(b=>{const on=b.dataset.recordCategory===activeRecordCategory;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');});
+ recordsList.innerHTML=shown.length?shown.map(recordsCard).join(''):'<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No records found for this selection.</div>';
 }
-function recordsShowError(message){recordsList.innerHTML='<div style="padding:20px;color:#a00">'+recordsEsc(message)+'</div>';}
-function openRecordsView(category='',state='',lga='',ward=''){
+function openFoundationRecords(category='',state='',lga='',ward=''){
  activeRecordCategory=category||'';requestedState=state||'';requestedLga=lga||'';requestedWard=ward||'';
- document.getElementById('dashboardPage').hidden=true;document.getElementById('recordsPage').hidden=false;
- document.getElementById('recordsPage').scrollIntoView({block:'start'});
- recordsRender();
+ document.getElementById('dashboardPage').hidden=true;
+ document.getElementById('recordsPage').hidden=false;
+ renderFoundationRecords();
+ window.scrollTo(0,0);
 }
-function closeRecordsView(){document.getElementById('recordsPage').hidden=true;document.getElementById('dashboardPage').hidden=false;}
-document.querySelector('.mobilization-strip')?.addEventListener('click',e=>{const b=e.target.closest('[data-open-category]');if(!b)return;openRecordsView(b.dataset.openCategory);});
-document.getElementById('wardGrid')?.addEventListener('click',e=>{const b=e.target.closest('[data-open-ward]');if(!b)return;openRecordsView('',b.dataset.state,b.dataset.lga,b.dataset.ward);});
-document.getElementById('backToDashboard')?.addEventListener('click',closeRecordsView);
-document.querySelector('.record-filter-buttons')?.addEventListener('click',e=>{const b=e.target.closest('[data-record-category]');if(!b)return;activeRecordCategory=b.dataset.recordCategory||'';requestedState=requestedLga=requestedWard='';recordsRender();});
+function closeFoundationRecords(){
+ document.getElementById('recordsPage').hidden=true;
+ document.getElementById('dashboardPage').hidden=false;
+ window.scrollTo(0,0);
+}
+document.getElementById('backToDashboard').addEventListener('click',closeFoundationRecords);
+document.querySelector('.record-filter-buttons').addEventListener('click',e=>{
+ const b=e.target.closest('[data-record-category]');if(!b)return;
+ activeRecordCategory=b.dataset.recordCategory||'';requestedState=requestedLga=requestedWard='';
+ renderFoundationRecords();
+});
 document.addEventListener('click',e=>{
  const benefit=e.target.closest('[data-benefit-member]');if(benefit){recordsOpenBenefit(benefit.dataset.benefitMember,Number(benefit.dataset.benefitIndex));return;}
  if(e.target.id==='benefitModal'||e.target.id==='benefitModalClose')document.getElementById('benefitModal').classList.remove('open');
- const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}
- if(link.dataset.action==='call')location.href='tel:'+phone;else if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+recordsPhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else location.href='sms:'+phone;
+ const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();
+ const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}
+ let digits=phone.replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);
+ if(link.dataset.action==='call')location.href='tel:'+phone;
+ else if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+digits+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');
+ else location.href='sms:'+phone;
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('benefitModal').classList.remove('open');});
-recordsAuth.onAuthStateChanged(async user=>{
- if(!user){recordsShowError('Your login session is not available. Sign in with the Founder account, then reopen this dashboard.');return;}
- try{
-  const profileSnap=await recordsDb.collection('userAccounts').doc(user.uid).get();
-  if(!profileSnap.exists){recordsShowError('Your account profile was not found in Firestore. Contact the Super Admin.');return;}
-  const profile=profileSnap.data()||{},role=String(profile.role||'').toLowerCase(),permissions=Array.isArray(profile.permissions)?profile.permissions:[];
-  const allowed=profile.active!==false&&(profile.superAdmin===true||role==='founder'||role==='super_admin'||role==='admin'||permissions.includes('founder-dashboard')||permissions.includes('members-record'));
-  if(!allowed){recordsShowError('Access denied. Your account does not have permission to view member records.');return;}
-  let version=0;
-  recordsDb.collection('members').orderBy('createdAt','desc').onSnapshot(async snap=>{
-   const current=++version,resolved=await Promise.all(snap.docs.map(async d=>({id:d.id,data:await recordsResolveLocation(d.data())})));
-   if(current!==version)return;recordsMembers.splice(0,recordsMembers.length,...resolved);recordsRender();
-  },err=>{console.error('Members query failed:',err);recordsShowError('Unable to load members from Firestore: '+(err.message||'Check members collection permissions.'));});
- }catch(err){console.error(err);recordsShowError('Unable to verify member-record access: '+(err.message||'Firestore access denied.'));}
-});
+
 </script>
-\n<script type="module">
+<script type="module">
 import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore, doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -584,6 +744,7 @@ async function loadDashboardData(){
       loadWardHierarchy()
     ]);
     const members=ms.docs.map(d=>({id:d.id,...d.data()}));
+    window.foundationMemberRecords=members;
     renderStatistics(members,wards);
   }catch(e){
     console.error("Member/ward statistics query failed:",e);
@@ -602,8 +763,16 @@ async function loadDashboardData(){
   }
   try{await loadProgrammeGallery();}
   catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);}
-  if(errors.length)status("Some Firebase queries were blocked or failed. "+errors.join(" | "));
+  status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "");
 }
+document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
+  const button=e.target.closest("[data-open-category]");if(!button)return;
+  openFoundationRecords(button.dataset.openCategory);
+});
+$("wardGrid")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-open-ward]");if(!b)return;
+  openFoundationRecords("",b.dataset.state,b.dataset.lga,b.dataset.ward);
+});
 onAuthStateChanged(auth,async user=>{
   if(!user){showError("Your login session is not available. Sign in with the Founder account, then reopen this dashboard.");return;}
   try{
