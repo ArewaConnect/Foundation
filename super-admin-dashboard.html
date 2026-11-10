@@ -1,6 +1,23 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}textarea{min-height:110px;resize:vertical}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}textarea{min-height:110px;resize:vertical}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}.profile-photo{width:92px;height:92px;border-radius:50%;object-fit:cover;background:#e2e8f0;border:3px solid #16a34a}.carousel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.carousel-card{background:#fff;border:1px solid #dbe5df;border-radius:12px;padding:8px}.carousel-card img{width:100%;height:125px;object-fit:cover;border-radius:8px}.profile-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.state-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid #e2e8f0}.state-actions{display:flex;gap:6px}.state-actions button{padding:7px 10px;font-size:12px}.state-edit{background:#2563eb}.state-delete{background:#b91c1c}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
 <section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
-<div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section><section class="panel" id="locationManager">
+<div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section>
+<section class="panel" id="adminProfileManager">
+<h2>Admin Profile & Programme Gallery</h2>
+<p class="muted">Manage the administrator display name and profile photograph, and publish photographs of programmes conducted.</p>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>Administrator Profile</h3>
+<div class="profile-row"><img id="adminProfilePreview" class="profile-photo" alt="Admin profile photo" src=""/><div style="flex:1;min-width:220px"><label>Administrator name</label><input id="adminDisplayName" placeholder="Enter administrator's full name"><label>Profile photo</label><input id="adminProfileFile" type="file" accept="image/*"><p class="muted">Choose a clear profile photograph. Maximum file size: 5 MB.</p><button id="saveAdminProfileBtn">Save Profile</button><div class="status" id="adminProfileStatus"></div></div></div>
+</div>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>Programme Photo Carousel</h3>
+<label>Programme title / caption</label><input id="carouselCaption" placeholder="e.g. Community food distribution in Zamfara">
+<label>Select programme photographs</label><input id="carouselFiles" type="file" accept="image/*" multiple>
+<p class="muted">You can select multiple photographs. Each image will be uploaded to Cloudinary and displayed in the gallery carousel.</p>
+<button id="uploadCarouselBtn">Upload Programme Photos</button><div class="status" id="carouselStatus"></div>
+<div id="programmeCarouselList" class="carousel-grid" style="margin-top:14px"></div>
+</div>
+</section>
+<section class="panel" id="locationManager">
 <h2>BOTAS Photo — Location Management</h2>
 <p class="muted">Add locations in order. Serial codes are generated automatically and saved in Firestore. Existing codes are never renumbered. Enter one name per line when adding multiple locations.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
@@ -8,7 +25,7 @@
 <div class="grid"><div><label>State name</label><input id="stateNames" placeholder="e.g. Zamfara"></div><div><label>State code (2 digits) — editable</label><input id="stateCodeInput" inputmode="numeric" maxlength="2" placeholder="e.g. 36"></div></div>
 <p class="muted">The code is suggested using the alphabetical order of Nigeria's 36 states. You can edit it before saving. Enter one state at a time.</p>
 <button id="saveStatesBtn">Save / Update State</button><div class="status" id="stateStatus"></div>
-<div id="statesList" class="muted"></div>
+<div id="statesList" class="muted" style="margin-top:12px"></div>
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>2. Local Governments</h3>
@@ -83,9 +100,49 @@ import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTi
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
+
+// Admin profile and programme gallery (Cloudinary image storage + Firestore metadata)
+const CLOUDINARY_NAME="dgkjolqpt", CLOUDINARY_PRESET="EHFoundation";
+const adminProfileRef=()=>doc(db,"adminProfiles",auth.currentUser.uid);
+async function uploadCloudinaryImage(file){
+  if(!file || !file.type.startsWith("image/")) throw new Error("Please select an image file.");
+  if(file.size>5*1024*1024) throw new Error("Each image must be 5 MB or smaller.");
+  const form=new FormData();form.append("file",file);form.append("upload_preset",CLOUDINARY_PRESET);form.append("folder","ehfoundation");
+  const response=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/upload`,{method:"POST",body:form});
+  const result=await response.json();
+  if(!response.ok) throw new Error(result?.error?.message||"Cloudinary upload failed. Check that EHFoundation is an unsigned image upload preset.");
+  return {imageUrl:result.secure_url,publicId:result.public_id};
+}
+async function loadAdminProfile(){
+  try{const snap=await getDoc(adminProfileRef());if(snap.exists()){const d=snap.data();$("adminDisplayName").value=d.displayName||"";if(d.photoUrl)$("adminProfilePreview").src=d.photoUrl;}}
+  catch(e){$("adminProfileStatus").textContent="Could not load profile: "+e.message;}
+}
+$("adminProfileFile").onchange=()=>{const f=$("adminProfileFile").files[0];if(f){if(!f.type.startsWith("image/")||f.size>5*1024*1024){$("adminProfileStatus").textContent="Select an image no larger than 5 MB.";$("adminProfileFile").value="";return;}$("adminProfilePreview").src=URL.createObjectURL(f);}};
+$("saveAdminProfileBtn").onclick=async()=>{
+  const displayName=$("adminDisplayName").value.trim(),file=$("adminProfileFile").files[0];
+  if(!displayName){$("adminProfileStatus").textContent="Enter the administrator's name.";return;}
+  try{$("saveAdminProfileBtn").disabled=true;$("adminProfileStatus").textContent="Saving profile…";let photoUrl=$("adminProfilePreview").getAttribute("src")||"",publicId="";
+    if(file){const uploaded=await uploadCloudinaryImage(file);photoUrl=uploaded.imageUrl;publicId=uploaded.publicId;}
+    await setDoc(adminProfileRef(),{uid:auth.currentUser.uid,displayName,photoUrl,...(publicId?{photoPublicId:publicId}:{}),updatedAt:serverTimestamp()},{merge:true});
+    $("adminProfilePreview").src=photoUrl;$("adminProfileFile").value="";$("adminProfileStatus").textContent="Administrator profile saved successfully.";
+  }catch(e){$("adminProfileStatus").textContent="Profile save failed: "+e.message;}finally{$("saveAdminProfileBtn").disabled=false;}
+};
+async function loadProgrammeGallery(){
+  try{const snap=await getDocs(query(collection(db,"programmeGallery"),orderBy("createdAt","desc")));$("programmeCarouselList").innerHTML=snap.empty?'<p class="muted">No programme photographs uploaded yet.</p>':snap.docs.map(d=>{const x=d.data();return `<div class="carousel-card"><img src="${safeText(x.imageUrl)}" alt="${safeText(x.caption||'Programme photo')}"><b>${safeText(x.caption||'Programme photo')}</b><p class="muted">${x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString():''}</p><button type="button" data-delete-gallery="${d.id}" style="background:#b91c1c;padding:8px 10px">Remove from gallery</button></div>`;}).join('');}
+  catch(e){$("carouselStatus").textContent="Could not load gallery: "+e.message;}
+}
+$("uploadCarouselBtn").onclick=async()=>{
+  const files=[...$("carouselFiles").files],caption=$("carouselCaption").value.trim();
+  if(!files.length){$("carouselStatus").textContent="Select at least one programme photograph.";return;}
+  if(files.length>12){$("carouselStatus").textContent="Upload a maximum of 12 photographs at a time.";return;}
+  try{$("uploadCarouselBtn").disabled=true;let done=0;for(const file of files){$("carouselStatus").textContent=`Uploading photograph ${done+1} of ${files.length}…`;const uploaded=await uploadCloudinaryImage(file);await addDoc(collection(db,"programmeGallery"),{imageUrl:uploaded.imageUrl,publicId:uploaded.publicId,caption:caption||"Programme conducted",createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});done++;}
+    $("carouselFiles").value="";$("carouselCaption").value="";$("carouselStatus").textContent=`Successfully uploaded ${done} programme photograph(s).`;await loadProgrammeGallery();
+  }catch(e){$("carouselStatus").textContent="Upload stopped: "+e.message+" Any photographs already uploaded remain saved.";}finally{$("uploadCarouselBtn").disabled=false;}
+};
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-delete-gallery]");if(!b)return;if(!confirm("Remove this photograph from the programme gallery? The Cloudinary original will remain in your Cloudinary account."))return;try{b.disabled=true;await deleteDoc(doc(db,"programmeGallery",b.dataset.deleteGallery));await loadProgrammeGallery();$("carouselStatus").textContent="Photograph removed from the gallery.";}catch(err){b.disabled=false;$("carouselStatus").textContent="Could not remove photograph: "+err.message;}});
 
 // BOTAS Photo location manager: nested Firestore hierarchy
 const cleanNames = value => [...new Set(value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];
@@ -127,10 +184,19 @@ const readChildren=async path=>{
   const snap=await getDocs(collection(db,path));
   return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.code).localeCompare(String(b.code)));
 };
+let editingStateId=null;
+const escapeStateText=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function refreshStates(){
   const states=await readChildren("states");
   await Promise.all(["lgaState","wardState","puState"].map(id=>fillSelect(id,states,"Select state")));
-  $("statesList").textContent=states.map(x=>`${x.code} — ${x.name}`).join(" | ")||"No states saved yet.";
+  $("statesList").innerHTML=states.length?states.map(x=>`
+    <div class="state-row">
+      <span><b>${escapeStateText(x.code)}</b> — ${escapeStateText(x.name)}</span>
+      <span class="state-actions">
+        <button type="button" class="state-edit" data-edit-state="${escapeStateText(x.id)}">Edit</button>
+        <button type="button" class="state-delete" data-delete-state="${escapeStateText(x.id)}">Delete</button>
+      </span>
+    </div>`).join(""):"No states saved yet.";
   await refreshLgas("lgaState","lgaStatus");
 }
 async function refreshLgas(stateSelectId,statusId){
@@ -176,33 +242,85 @@ $("saveStatesBtn").onclick=async()=>{
   if(!/^\\d{2}$/.test(code)||Number(code)<1||Number(code)>36){status.textContent="Enter a valid state code from 01 to 36.";return;}
   try{
     $("saveStatesBtn").disabled=true;
-    status.textContent="Saving state…";
+    status.textContent=editingStateId?"Updating state…":"Saving state…";
     const statesRef=collection(db,"states");
     const snap=await getDocs(statesRef);
     const byName=snap.docs.find(d=>(d.data().name||"").trim().toLowerCase()===name.toLowerCase());
     const targetRef=doc(db,"states",code);
     const targetSnap=await getDoc(targetRef);
-    if(targetSnap.exists() && (!byName || targetSnap.id!==byName.id)){
+    if(targetSnap.exists() && targetSnap.id!==editingStateId){
       throw new Error("State code "+code+" is already assigned to "+(targetSnap.data().name||"another state")+".");
     }
-    if(byName && byName.id===code){
-      status.textContent=name+" already has code "+code+". No change was needed.";
-    }else if(byName){
-      // Safe for this user's current setup: only the state record exists; no LGAs/wards/PUs have been added.
-      const existingData=byName.data();
-      await setDoc(targetRef,{...existingData,name,code,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
-      await deleteDoc(doc(db,"states",byName.id));
-      status.textContent=name+" code updated from "+byName.id+" to "+code+".";
+    if(byName && byName.id!==editingStateId){
+      throw new Error("A state named "+name+" already exists with code "+byName.id+". Select that state using Edit.");
+    }
+    if(editingStateId){
+      const oldRef=doc(db,"states",editingStateId);
+      const oldSnap=await getDoc(oldRef);
+      if(!oldSnap.exists())throw new Error("The selected state no longer exists. Refresh and try again.");
+      const oldData=oldSnap.data();
+      if(editingStateId!==code){
+        const childSnap=await getDocs(collection(db,"states",editingStateId,"lgas"));
+        if(!childSnap.empty)throw new Error("This state already has local governments. Its code cannot be changed safely from this screen. Keep its current code or migrate its full location hierarchy first.");
+        await setDoc(targetRef,{...oldData,name,code,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
+        await deleteDoc(oldRef);
+      }else{
+        await updateDoc(oldRef,{name,code,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
+      }
+      status.textContent=name+" updated successfully.";
     }else{
+      if(targetSnap.exists())throw new Error("State code "+code+" is already in use.");
       await setDoc(targetRef,{name,code,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});
       status.textContent="Saved "+name+" with state code "+code+".";
     }
+    editingStateId=null;
+    $("saveStatesBtn").textContent="Save State";
     $("stateNames").value="";
     $("stateCodeInput").value="";
     await refreshStates();
   }catch(e){status.textContent="Save failed: "+e.message;}
   finally{$("saveStatesBtn").disabled=false;}
 };
+$("statesList").addEventListener("click",async e=>{
+  const edit=e.target.closest("[data-edit-state]");
+  const del=e.target.closest("[data-delete-state]");
+  if(edit){
+    const id=edit.dataset.editState;
+    try{
+      const snap=await getDoc(doc(db,"states",id));
+      if(!snap.exists())throw new Error("State not found. Refresh the list.");
+      const data=snap.data();
+      editingStateId=id;
+      $("stateNames").value=data.name||"";
+      $("stateCodeInput").value=data.code||id;
+      $("saveStatesBtn").textContent="Update State";
+      $("stateStatus").textContent="Editing "+(data.name||id)+". Change the name or code, then press Update State.";
+      $("stateNames").scrollIntoView({behavior:"smooth",block:"center"});
+    }catch(err){$("stateStatus").textContent="Could not load state: "+err.message;}
+    return;
+  }
+  if(del){
+    const id=del.dataset.deleteState;
+    try{
+      const stateSnap=await getDoc(doc(db,"states",id));
+      if(!stateSnap.exists())throw new Error("State not found. Refresh the list.");
+      const data=stateSnap.data();
+      if(!confirm("Delete "+(data.name||"this state")+" ("+id+")? This cannot be undone."))return;
+      del.disabled=true;
+      const childSnap=await getDocs(collection(db,"states",id,"lgas"));
+      if(!childSnap.empty)throw new Error("Cannot delete this state because it already contains local governments. Delete or safely migrate its dependent location records first.");
+      await deleteDoc(doc(db,"states",id));
+      if(editingStateId===id){
+        editingStateId=null;
+        $("stateNames").value="";
+        $("stateCodeInput").value="";
+        $("saveStatesBtn").textContent="Save State";
+      }
+      $("stateStatus").textContent=(data.name||"State")+" deleted successfully.";
+      await refreshStates();
+    }catch(err){$("stateStatus").textContent="Delete failed: "+err.message;del.disabled=false;}
+  }
+});
 $("saveLgasBtn").onclick=async()=>{
   const st=$("lgaState").value;if(!st){$("lgaStatus").textContent="Select a state first.";return;}
   const state=(await getDoc(doc(db,"states",st))).data();
