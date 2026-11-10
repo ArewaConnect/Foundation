@@ -91,11 +91,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 
 <div class="section-title" style="margin-top:16px">Voter’s Card Code</div>
 <div class="grid">
-<div class="field"><label for="stateCode">State Code *</label><input id="stateCode" name="stateCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="36"></div>
-<div class="field"><label for="lgaCode">Local Government Code *</label><input id="lgaCode" name="lgaCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="07"></div>
-<div class="field"><label for="wardCode">Ward Code *</label><input id="wardCode" name="wardCode" inputmode="numeric" maxlength="2" pattern="[0-9]{2}" required placeholder="01"></div>
-<div class="field"><label for="pollingUnitCode">Polling Unit Code *</label><input id="pollingUnitCode" name="pollingUnitCode" inputmode="numeric" maxlength="3" pattern="[0-9]{3}" required placeholder="001"></div>
-<div class="field full"><div class="helper">Enter the four code parts. Firebase will later use these codes to look up and display the state, local government, ward, and polling unit names on the member card. The code itself will not be displayed on the card.</div></div>
+<div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="070105002" autocomplete="off"></div>
 </div>
 <div class="submit-row"><button class="submit-btn" type="submit">Register Member</button></div>
 <div class="status" id="formStatus" aria-live="polite"></div>
@@ -129,7 +125,7 @@ function setNumericInput(id,maxLength){
  const el=document.getElementById(id);
  el.addEventListener('input',()=>{el.value=el.value.replace(/\\D/g,'').slice(0,maxLength);});
 }
-setNumericInput('stateCode',2);setNumericInput('lgaCode',2);setNumericInput('wardCode',2);setNumericInput('pollingUnitCode',3);
+setNumericInput('voterCardCode',9);
 document.getElementById('memberPhoto').addEventListener('change',event=>{
  const file=event.target.files?.[0];if(!file)return;
  if(!file.type.startsWith('image/')){alert('Please select an image file.');event.target.value='';return;}
@@ -242,8 +238,8 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
  try{
   const f=event.currentTarget;const data={category:category.value,teamLeaderId:teamLeader.value||null,teamLeaderName:teamLeader.selectedOptions[0]?.textContent||null,
    fullName:f.fullName.value.trim(),gender:f.gender.value,age:Number(f.age.value),phone:f.phone.value.trim(),businessType:f.businessType.value.trim(),
-   accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),stateCode:f.stateCode.value,lgaCode:f.lgaCode.value,wardCode:f.wardCode.value,pollingUnitCode:f.pollingUnitCode.value,
-   voterCardCode:f.stateCode.value+f.lgaCode.value+f.wardCode.value+f.pollingUnitCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
+   accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),
+   voterCardCode:f.voterCardCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
   const photo=document.getElementById('memberPhoto').files?.[0];
   if(photo){
    const compressedPhoto=await compressMemberPhoto(photo,500);
