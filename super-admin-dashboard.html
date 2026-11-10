@@ -19,11 +19,11 @@
 </section>
 <section class="panel" id="locationManager">
 <h2>BOTAS Photo — Location Management</h2>
-<p class="muted">Add locations in order. Serial codes are generated automatically and saved in Firestore. Existing codes are never renumbered. Enter one name per line when adding multiple locations.</p>
+<p class="muted">State codes follow Nigeria’s alphabetical state order and can be edited. LGA, ward and polling-unit codes are generated automatically within their parent locations.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>1. States</h3>
 <div class="grid"><div><label>State name</label><input id="stateNames" placeholder="e.g. Zamfara"></div><div><label>State code (2 digits) — editable</label><input id="stateCodeInput" inputmode="numeric" maxlength="2" placeholder="e.g. 36"></div></div>
-<p class="muted">The code is suggested using the alphabetical order of Nigeria's 36 states. You can edit it before saving. Enter one state at a time.</p>
+<p class="muted">The code is suggested using the alphabetical order of Nigeria's 36 states. You can edit it before saving. Enter one state at a time. Use the reference list below to verify the code.</p><div id="stateCodeGuide" class="muted" style="background:#fff;padding:10px;border-radius:10px;margin:10px 0"></div>
 <button id="saveStatesBtn">Save / Update State</button><div class="status" id="stateStatus"></div>
 <div id="statesList" class="muted" style="margin-top:12px"></div>
 </div>
@@ -229,6 +229,7 @@ const nigeriaStateCodes = {
   "Nasarawa":"25","Niger":"26","Ogun":"27","Ondo":"28","Osun":"29","Oyo":"30",
   "Plateau":"31","Rivers":"32","Sokoto":"33","Taraba":"34","Yobe":"35","Zamfara":"36"
 };
+$("stateCodeGuide").textContent=Object.entries(nigeriaStateCodes).map(([name,code])=>`${code} — ${name}`).join(" | ");
 $("stateNames").addEventListener("input",()=>{
   const name=$("stateNames").value.trim();
   const match=Object.keys(nigeriaStateCodes).find(x=>x.toLowerCase()===name.toLowerCase());
@@ -239,7 +240,7 @@ $("saveStatesBtn").onclick=async()=>{
   const code=$("stateCodeInput").value.trim();
   const status=$("stateStatus");
   if(!name){status.textContent="Enter a state name.";return;}
-  if(!/^\\d{2}$/.test(code)||Number(code)<1||Number(code)>36){status.textContent="Enter a valid state code from 01 to 36.";return;}
+  if(!/^\d{2}$/.test(code)||Number(code)<1||Number(code)>36){status.textContent="Enter a valid state code from 01 to 36.";return;}
   try{
     $("saveStatesBtn").disabled=true;
     status.textContent=editingStateId?"Updating state…":"Saving state…";
@@ -274,7 +275,7 @@ $("saveStatesBtn").onclick=async()=>{
       status.textContent="Saved "+name+" with state code "+code+".";
     }
     editingStateId=null;
-    $("saveStatesBtn").textContent="Save State";
+    $("saveStatesBtn").textContent="Save / Update State";
     $("stateNames").value="";
     $("stateCodeInput").value="";
     await refreshStates();
@@ -314,7 +315,7 @@ $("statesList").addEventListener("click",async e=>{
         editingStateId=null;
         $("stateNames").value="";
         $("stateCodeInput").value="";
-        $("saveStatesBtn").textContent="Save State";
+        $("saveStatesBtn").textContent="Save / Update State";
       }
       $("stateStatus").textContent=(data.name||"State")+" deleted successfully.";
       await refreshStates();
