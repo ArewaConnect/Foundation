@@ -243,6 +243,7 @@ body:before{
 
 <footer>Engineer Haruna Foundation · Founder Dashboard</footer>
 </main>
+<noscript><div style="padding:12px;text-align:center;color:#b91c1c">JavaScript must be enabled to load the Founder Dashboard.</div></noscript>
 <script type="module">
 import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -266,13 +267,16 @@ async function loadFounderProfile(){
   // Founder access is granted explicitly in Firestore rules; no collection-wide adminProfiles query is needed.
   const snap=await getDoc(doc(db,"foundationSettings","profile"));
   if(!snap.exists()){
-    $("founderName").textContent="Founder profile not configured";
+    $("founderName").textContent="Founder profile unavailable";
     $("founderPhoto").hidden=true;
     $("founderAvatarFallback").hidden=false;
-    throw new Error("Shared founder profile is not available. Sign in to Super Admin and save the Administrator Profile once to publish it.");
+    throw new Error("Shared founder profile was not found at foundationSettings/profile. Save the Administrator Profile in Super Admin and confirm its Firestore read rule.");
   }
   const data=snap.data()||{};
-  if(!data.displayName && !data.photoUrl) throw new Error("The shared founder profile has no displayName or photoUrl.");
+  if(!data.displayName && !data.photoUrl){
+    $("founderName").textContent="Founder profile incomplete";
+    throw new Error("The shared founder profile has no displayName or photoUrl.");
+  }
   $("founderName").textContent=data.displayName||"Founder";
   if(data.photoUrl){
     $("founderPhoto").onerror=()=>{ $("founderPhoto").hidden=true; $("founderAvatarFallback").hidden=false; };
@@ -296,11 +300,19 @@ function showProgram(index){if(!programSlides.length)return;currentProgramIndex=
 function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(programSlides.length>1)programTimer=setInterval(()=>showProgram(currentProgramIndex+1),5000);}
 $("carouselDots")?.addEventListener("click",e=>{const b=e.target.closest("[data-program-index]");if(b)showProgram(Number(b.dataset.programIndex));});
 async function loadProgrammeGallery(){
-  const snap=await getDocs(collection(db,"foundationPublicGallery"));
-  programSlides=snap.docs.map(d=>({id:d.id,...d.data()}))
-    .filter(p=>p.imageUrl)
-    .sort((a,b)=>timestampMillis(b.createdAt)-timestampMillis(a.createdAt));
-  currentProgramIndex=0;renderProgramCarousel();restartProgramTimer();
+  try{
+    const snap=await getDocs(collection(db,"foundationPublicGallery"));
+    programSlides=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(p=>p.imageUrl)
+      .sort((a,b)=>timestampMillis(b.createdAt)-timestampMillis(a.createdAt));
+    currentProgramIndex=0;renderProgramCarousel();restartProgramTimer();
+  }catch(error){
+    programSlides=[];
+    const carousel=$("programCarousel"),dots=$("carouselDots");
+    if(carousel)carousel.innerHTML=`<div class="program-slide active"><div class="program-image-placeholder"></div><div class="program-caption"><h3>Programme gallery unavailable</h3><p>${safe(error.message||"Check Firestore permissions for foundationPublicGallery.")}</p></div></div>`;
+    if(dots)dots.innerHTML="";
+    throw error;
+  }
 }
 
 function voterLocation(m){const code=String(m.voterCardCode||"").replace(/\s/g,"");return /^\d{9}$/.test(code)?{stateId:code.slice(0,2),lgaId:code.slice(2,4),wardId:code.slice(4,6)}:null;}
@@ -366,12 +378,20 @@ async function loadDashboardData(){
   }catch(e){
     console.error("Member/ward statistics query failed:",e);
     errors.push("Statistics: "+e.message);
+    // Keep the chart populated with an explicit error state instead of an empty white panel.
+    $("barChart").innerHTML='<div style="width:100%;display:grid;place-items:center;color:#64748b;text-align:center;padding:24px">Statistics could not be loaded. Check Firebase access to members and states.</div>';
+    $("chartTotals").innerHTML='<div class="chart-total" style="grid-column:1/-1"><small>Statistics status</small><strong style="font-size:13px">'+safe(e.message)+'</strong></div>';
     $("wardGrid").innerHTML=`<article class="glass ward"><p>Could not load member or ward statistics: ${safe(e.message)}</p></article>`;
   }
   try{await loadFounderProfile();}
-  catch(e){console.error("Founder profile query failed:",e);errors.push("Founder profile: "+e.message);}
+  catch(e){
+    console.error("Founder profile query failed:",e);
+    errors.push("Founder profile: "+e.message);
+    if($("founderName").textContent.includes("Loading"))$("founderName").textContent="Founder profile unavailable";
+    $("founderPhoto").hidden=true;$("founderAvatarFallback").hidden=false;
+  }
   try{await loadProgrammeGallery();}
-  catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);renderProgramCarousel();}
+  catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);}
   status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "Dashboard data successfully loaded from Firebase.");
 }
 document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
@@ -397,4 +417,4 @@ onAuthStateChanged(auth,async user=>{
   }catch(e){console.error(e);showError("Could not load dashboard data: "+(e.message||"Check Firebase access and Firestore rules."));}
 });
 </script>
-\n</body></html>
+</body></html>
