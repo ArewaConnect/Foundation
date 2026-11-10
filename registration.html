@@ -123,7 +123,7 @@ category.addEventListener('change',()=>{
 });
 function setNumericInput(id,maxLength){
  const el=document.getElementById(id);
- el.addEventListener('input',()=>{el.value=el.value.replace(/\\D/g,'').slice(0,maxLength);});
+ el.addEventListener('input',()=>{el.value=el.value.replace(/\D/g,'').slice(0,maxLength);});
 }
 setNumericInput('voterCardCode',9);
 document.getElementById('memberPhoto').addEventListener('change',event=>{
@@ -243,8 +243,8 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
   if(category.value!=='Team Leader'&&!teamLeader.value){
    throw new Error('Please select a registered Team Leader.');
   }
-  const voterCardCode=String(f.voterCardCode.value||'').replace(/\\D/g,'');
-  if(!/^\\d{9}$/.test(voterCardCode)){
+  const voterCardCode=String(f.voterCardCode.value||'').replace(/\D/g,'');
+  if(!/^\d{9}$/.test(voterCardCode)){
    throw new Error('Voter’s Card Code must contain exactly 9 digits.');
   }
 
