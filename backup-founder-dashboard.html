@@ -190,9 +190,92 @@ body:before{
  .programs-panel{margin-bottom:10px}
 }
 
+
+*{box-sizing:border-box}html,body{margin:0;width:100%;font-family:Arial,sans-serif}
+body{min-height:100vh;min-height:100dvh;padding:14px 10px;overflow:hidden}
+
+body{background:linear-gradient(135deg,#e8f5f8,#f7fbfd);position:relative}
+body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
+body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
+body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
+
+#recordsPage.records-wrap{position:relative;z-index:1;width:min(100%,760px);margin:0 auto}
+.records-scroll{height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;padding:3px 3px 20px;scrollbar-width:thin;scrollbar-color:rgba(0,120,25,.4) transparent}
+.record-card{margin:0 0 12px;padding:12px;border-radius:18px;background:rgba(255,255,255,.53);border:2px solid #1685d8;box-shadow:0 10px 25px rgba(35,50,65,.12),0 0 0 1px rgba(22,133,216,.12),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.record-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:11px;align-items:start}
+.member-photo{width:84px;height:100px;border-radius:11px;border:1px solid #b6d9c2;background:linear-gradient(145deg,#e8f4eb,#dcecf5);display:flex;align-items:center;justify-content:center;color:#438153;text-align:center;font-size:11px;overflow:hidden}
+.member-photo img{width:100%;height:100%;object-fit:cover}
+.member-info{min-width:0;display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:7px 10px}
+/* Keep Role, Gender and Age on one line; the other columns adjust to the role width. */
+.member-info .info:nth-child(2),.member-info .info:nth-child(3),.member-info .info:nth-child(4){white-space:nowrap;min-width:max-content}
+.member-name-row{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0 0 2px;min-width:0}
+.member-name{font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0;overflow-wrap:anywhere;min-width:0}
+.member-name-label{white-space:nowrap}
+.verify-badge{display:inline-flex;align-items:center;gap:5px;flex:none;border:1px solid #cbd5d1;border-radius:999px;padding:3px 7px;background:#f1f3f2;color:#647067;font-size:9px;font-weight:800;line-height:1;letter-spacing:.15px}
+.verify-badge.is-verified{background:#e8f7ed;border-color:#a8d9b7;color:#176b35}
+.verify-colors{display:inline-flex;gap:2px;align-items:center}
+.verify-colors i{display:block;width:5px;height:9px;border-radius:1px}
+.verify-colors i:nth-child(1){background:#858b91}.verify-colors i:nth-child(2){background:#e3343f}.verify-colors i:nth-child(3){background:#168b43}
+.info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
+.info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
+.details-below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 10px;margin-top:5px;padding:6px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
+.details-title{grid-column:1/-1;font-size:11px;font-weight:800;color:#197234}
+.bottom-row{display:flex;flex-direction:column;align-items:stretch;gap:5px;margin-top:5px;padding:0 2px}
+.polling-unit{min-width:0;flex:1}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;justify-content:center;gap:8px;width:100%;margin:0}
+.action{white-space:nowrap;padding:10px 6px;font-size:11px;min-height:38px;width:100%;}
+.action{display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;border:0;border-radius:9px;padding:9px 6px;font-size:12px;font-weight:750;cursor:pointer}
+.call{background:#176b35;color:#fff}.whatsapp{background:#16a34a;color:white}.sms{background:#e8f4eb;color:#17652c;border:1px solid #c9e5d0}
+@media(max-width:420px){body{padding:8px}.records-scroll{height:calc(100dvh - 16px)}.record-card{padding:9px;border-radius:15px;margin-bottom:9px}.record-top{grid-template-columns:76px minmax(0,1fr);gap:8px}.member-photo{width:76px;height:90px}.member-name{font-size:15px}.info{font-size:11px}.info strong{font-size:10px}.details-below{grid-template-columns:repeat(4,minmax(0,1fr));padding:7px;gap:6px 5px}.bottom-row{gap:8px}.actions{gap:6px}.action{font-size:10px;padding:9px 3px;min-height:36px}.info{overflow-wrap:anywhere}
+} 
+@media(max-width:350px){.member-info{gap:6px 5px}.details-below{gap:5px 3px}.details-below .info{font-size:9px}.details-below .info strong{font-size:9px}.actions{gap:4px}.action{font-size:9px;padding:8px 2px}}
+
+#recordsPage.records-wrap{height:calc(100dvh - 28px);display:flex;flex-direction:column;gap:9px;padding:14px 10px}
+.foundation-header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid rgba(255,255,255,.9);border-radius:16px;background:linear-gradient(110deg,rgba(255,255,255,.92),rgba(231,246,250,.88));box-shadow:0 8px 22px rgba(35,50,65,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.foundation-brand{font-size:clamp(15px,4vw,20px);font-weight:850;color:#164b2b;line-height:1.2}
+.foundation-subtitle{font-size:10px;color:#61756a;margin-top:3px;letter-spacing:.5px;text-transform:uppercase}
+.back-button{flex:none;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border-radius:10px;background:#176b35;color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 3px 9px rgba(23,107,53,.18)}
+.back-button:active{transform:scale(.97)}
+#recordsPage .records-scroll{height:auto;min-height:0;flex:1;overflow-y:auto}
+
+
+
+.details-below .info strong{white-space:nowrap}
+.member-info .info strong{white-space:nowrap}
+
+
+.benefits-panel{margin-top:7px;padding:8px 10px;border:1px solid rgba(22,139,67,.16);border-radius:11px;background:rgba(232,247,237,.58)}
+.benefits-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.benefits-title{font-size:11px;font-weight:800;color:#17652c}
+.benefits-count{font-size:10px;font-weight:800;color:#17652c;white-space:nowrap}
+.benefit-ticks{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:22px}
+.benefit-tick{width:22px;height:22px;padding:0;border:0;border-radius:50%;background:transparent;color:#159447;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.benefit-tick svg{width:21px;height:21px;display:block}
+.benefit-tick:focus-visible{outline:2px solid #176b35;outline-offset:2px}
+.no-benefits{font-size:10px;color:#718078}
+.benefit-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,35,24,.48)}
+.benefit-modal.open{display:flex}
+.benefit-dialog{width:min(100%,390px);max-height:min(80dvh,560px);overflow:auto;background:#fff;border-radius:17px;padding:17px;box-shadow:0 18px 50px rgba(0,0,0,.24)}
+.benefit-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.benefit-dialog-title{font-size:16px;font-weight:800;color:#164b2b;margin:0}
+.benefit-close{width:30px;height:30px;border:0;border-radius:50%;background:#eef5ef;color:#245337;font-size:20px;cursor:pointer}
+.benefit-detail{padding:10px 0;border-top:1px solid #e5eee7}
+.benefit-detail strong{display:block;font-size:11px;color:#52705c;margin-bottom:4px}
+.benefit-detail span{font-size:13px;color:#263b2d;overflow-wrap:anywhere}
+
+.record-filter-panel{margin:0 0 10px;padding:10px;border:1px solid rgba(22,139,67,.18);border-radius:13px;background:rgba(255,255,255,.78);box-shadow:0 4px 14px rgba(35,50,65,.07)}
+.record-filter-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#164b2b;font-size:12px}
+#recordTotal{color:#61756a;font-size:11px}
+.record-filter-buttons{display:flex;flex-wrap:wrap;gap:6px}
+.record-filter-btn{border:1px solid #c9e5d0;border-radius:20px;background:#f3faf5;color:#17652c;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer}
+.record-filter-btn.active{background:#176b35;border-color:#176b35;color:#fff}
+
+#recordsPage[hidden]{display:none!important}
+#recordsPage .records-scroll{overscroll-behavior:contain}
+@media(max-width:420px){#recordsPage.records-wrap{height:calc(100dvh - 16px);padding:8px}}
 </style>
 </head>
-<body><main class="page">
+<body><main class="page" id="dashboardPage">
 <header class="top">
   <div class="header-brand">Engineer Haruna Foundation</div>
   <button class="logout-btn" id="logoutBtn" type="button">Logout</button>
@@ -243,8 +326,135 @@ body:before{
 
 <footer>Engineer Haruna Foundation · Founder Dashboard</footer>
 </main>
+
+<section id="recordsPage" class="records-wrap" hidden aria-label="Foundation member records">
+  <header class="foundation-header">
+    <div>
+      <div class="foundation-brand">Engineer Haruna Foundation</div>
+      <div class="foundation-subtitle">Registered Members Record</div>
+    </div>
+    <button class="back-button" type="button" id="backToDashboard">← Founder Dashboard</button>
+  </header>
+  <section class="records-scroll">
+    <div class="record-filter-panel" aria-label="Filter member records">
+      <div class="record-filter-head"><strong id="activeRecordTitle">All Members</strong><span id="recordTotal">Loading records...</span></div>
+      <div class="record-filter-buttons">
+        <button type="button" class="record-filter-btn" data-record-category="">All</button>
+        <button type="button" class="record-filter-btn" data-record-category="Team Leader">Team Leaders</button>
+        <button type="button" class="record-filter-btn" data-record-category="Polling Unit Agent">Polling Unit Agents</button>
+        <button type="button" class="record-filter-btn" data-record-category="Mobilization Agent">Mobilization Agents</button>
+        <button type="button" class="record-filter-btn" data-record-category="Member">Members</button>
+      </div>
+    </div>
+    <div id="recordsList"><div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div></div>
+  </section>
+</section>
+<div class="benefit-modal" id="benefitModal" role="dialog" aria-modal="true" aria-labelledby="benefitModalTitle">
+  <div class="benefit-dialog">
+    <div class="benefit-dialog-head">
+      <h2 class="benefit-dialog-title" id="benefitModalTitle">Benefit Details</h2>
+      <button class="benefit-close" id="benefitModalClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="benefitModalContent"></div>
+  </div>
+</div>
 <noscript><div style="padding:12px;text-align:center;color:#b91c1c">JavaScript must be enabled to load the Founder Dashboard.</div></noscript>
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const recordsFirebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
+if(!firebase.apps.length) firebase.initializeApp(recordsFirebaseConfig);
+const recordsAuth=firebase.auth(),recordsDb=firebase.firestore();
+const recordsList=document.getElementById('recordsList');
+const recordsMembers=[];
+let activeRecordCategory='';
+let requestedState='',requestedLga='',requestedWard='';
+const recordCategoryLabels={'':'All Members','Team Leader':'Team Leaders','Polling Unit Agent':'Polling Unit Agents','Mobilization Agent':'Mobilization Agents','Member':'Members'};
+function recordsEsc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function recordsPhone(phone){let digits=String(phone||'').replace(/\\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits;}
+function recordsBenefits(m){return Array.isArray(m.benefits)?m.benefits:[];}
+function recordsBenefitDate(value){if(!value)return 'Not provided';let d=value;if(value&&typeof value.toDate==='function')d=value.toDate();else if(value&&typeof value.seconds==='number')d=new Date(value.seconds*1000);else d=new Date(value);return Number.isNaN(d.getTime())?'Not provided':d.toLocaleDateString();}
+function recordsOpenBenefit(memberId,index){
+ const entry=recordsMembers.find(x=>x.id===memberId),b=entry?recordsBenefits(entry.data)[index]:null;if(!b)return;
+ const title=b.programName||b.program||b.title||'Programme / Assistance',type=b.assistanceType||b.type||'Not provided';
+ document.getElementById('benefitModalContent').innerHTML=
+ '<div class="benefit-detail"><strong>Programme</strong><span>'+recordsEsc(title)+'</span></div>'+
+ '<div class="benefit-detail"><strong>Assistance Type</strong><span>'+recordsEsc(type)+'</span></div>'+
+ '<div class="benefit-detail"><strong>Date Received</strong><span>'+recordsEsc(recordsBenefitDate(b.dateReceived||b.receivedAt||b.date))+'</span></div>'+
+ '<div class="benefit-detail"><strong>Details</strong><span>'+recordsEsc(b.description||b.details||'Not provided')+'</span></div>';
+ document.getElementById('benefitModal').classList.add('open');
+}
+function recordsSame(a,b){return String(a??'').trim().toLowerCase()===String(b??'').trim().toLowerCase();}
+function recordsMatchLocation(m){
+ if(!requestedState&&!requestedLga&&!requestedWard)return true;
+ const code=String(m.voterCardCode||'').replace(/\\s/g,''),s=m.stateCode||(code.length===9?code.slice(0,2):''),l=m.lgaCode||(code.length===9?code.slice(2,4):''),w=m.wardCode||(code.length===9?code.slice(4,6):'');
+ return (!requestedState||recordsSame(s,requestedState)||recordsSame(m.stateName,requestedState))&&(!requestedLga||recordsSame(l,requestedLga)||recordsSame(m.lgaName,requestedLga))&&(!requestedWard||recordsSame(w,requestedWard)||recordsSame(m.wardName,requestedWard));
+}
+function recordsRender(){
+ const shown=recordsMembers.filter(x=>(!activeRecordCategory||recordsSame(x.data.category,activeRecordCategory))&&recordsMatchLocation(x.data));
+ document.getElementById('activeRecordTitle').textContent=recordCategoryLabels[activeRecordCategory]||activeRecordCategory||'All Members';
+ document.getElementById('recordTotal').textContent=shown.length+' of '+recordsMembers.length+' records';
+ document.querySelectorAll('[data-record-category]').forEach(b=>{const on=b.dataset.recordCategory===activeRecordCategory;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');});
+ recordsList.innerHTML=shown.length?shown.map(x=>recordsCard(x.data,x.id)).join(''):'<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No records found for this selection.</div>';
+}
+function recordsCard(m,id){
+ const code=String(m.voterCardCode||'').replace(/\\s/g,''),valid=/^\\d{9}$/.test(code);
+ const state=m.stateName||m.stateCode||(valid?code.slice(0,2):'Not provided'),lga=m.lgaName||m.lgaCode||(valid?code.slice(2,4):'Not provided'),ward=m.wardName||m.wardCode||(valid?code.slice(4,6):'Not provided'),pu=m.pollingUnitName||m.pollingUnitCode||(valid?code.slice(6,9):'Not provided'),bank=m.bankName||m.bank||'Not provided',benefits=recordsBenefits(m);
+ return `<article class="record-card" data-phone="${recordsEsc(m.phone||'')}"><div class="record-top"><div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div><div class="member-info">
+ <div class="member-name-row"><h2 class="member-name"><span class="member-name-label">Name:</span> ${recordsEsc(m.fullName)}</h2><span class="verify-badge ${m.verified===true?'is-verified':''}"><span class="verify-colors" aria-hidden="true"><i></i><i></i><i></i></span>${m.verified===true?'Verified':'Pending'}</span></div>
+ <div class="info"><strong>Role</strong>${recordsEsc(m.category)}</div><div class="info"><strong>Gender</strong>${recordsEsc(m.gender)}</div><div class="info"><strong>Age</strong>${recordsEsc(m.age)}</div><div class="info"><strong>Account Name</strong>${recordsEsc(m.accountName)}</div><div class="info"><strong>ACC NO</strong>${recordsEsc(m.accountNumber)}</div><div class="info"><strong>Bank Name</strong>${recordsEsc(bank)}</div><div class="info"><strong>Business Type</strong>${recordsEsc(m.businessType)}</div></div></div>
+ <div class="details-below"><div class="info"><strong>State</strong>${recordsEsc(state)}</div><div class="info"><strong>L.G.</strong>${recordsEsc(lga)}</div><div class="info"><strong>Ward</strong>${recordsEsc(ward)}</div><div class="info"><strong>Polling Unit</strong>${recordsEsc(pu)}</div></div>
+ <div class="bottom-row"><div class="actions"><a class="action call" href="#" data-action="call">Call</a><a class="action whatsapp" href="#" data-action="whatsapp">WhatsApp</a><a class="action sms" href="#" data-action="sms">Send Message</a></div>
+ <div class="benefits-panel"><div class="benefits-head"><span class="benefits-title">Benefits Received</span><span class="benefits-count">${benefits.length} ${benefits.length===1?'Benefit':'Benefits'}</span></div><div class="benefit-ticks">${benefits.length?benefits.map((b,i)=>`<button type="button" class="benefit-tick" data-benefit-member="${recordsEsc(id)}" data-benefit-index="${i}" aria-label="View benefit ${i+1}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#e8f7ed" stroke="#159447" stroke-width="1.5"/><path d="m7 12.2 3.2 3.1L17.5 8" stroke="#159447" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`).join(''):'<span class="no-benefits">No benefits recorded yet</span>'}</div></div></div></article>`;
+}
+const recordLocationCache=new Map();
+function recordsCached(path,ref){if(!recordLocationCache.has(path))recordLocationCache.set(path,ref.get());return recordLocationCache.get(path);}
+async function recordsResolveLocation(m){
+ const digits=String(m.voterCardCode||'').replace(/\\s+/g,'');if(!/^\\d{9}$/.test(digits))return m;
+ const s=digits.slice(0,2),l=digits.slice(2,4),w=digits.slice(4,6),p=digits.slice(6,9),out={stateCode:s,lgaCode:l,wardCode:w,pollingUnitCode:p};
+ try{const sr=recordsDb.collection('states').doc(s),ss=await recordsCached('s/'+s,sr);if(!ss.exists)return {...m,...out};out.stateName=ss.data().name;
+ const lr=sr.collection('lgas').doc(l),ls=await recordsCached('l/'+s+'/'+l,lr);if(!ls.exists)return {...m,...out};out.lgaName=ls.data().name;
+ const wr=lr.collection('wards').doc(w),ws=await recordsCached('w/'+s+'/'+l+'/'+w,wr);if(!ws.exists)return {...m,...out};out.wardName=ws.data().name;
+ const pr=wr.collection('pollingUnits').doc(p),ps=await recordsCached('p/'+s+'/'+l+'/'+w+'/'+p,pr);if(ps.exists)out.pollingUnitName=ps.data().name;
+ }catch(err){console.warn('Location lookup unavailable',err);}return {...m,...out};
+}
+function recordsShowError(message){recordsList.innerHTML='<div style="padding:20px;color:#a00">'+recordsEsc(message)+'</div>';}
+function openRecordsView(category='',state='',lga='',ward=''){
+ activeRecordCategory=category||'';requestedState=state||'';requestedLga=lga||'';requestedWard=ward||'';
+ document.getElementById('dashboardPage').hidden=true;document.getElementById('recordsPage').hidden=false;
+ document.getElementById('recordsPage').scrollIntoView({block:'start'});
+ recordsRender();
+}
+function closeRecordsView(){document.getElementById('recordsPage').hidden=true;document.getElementById('dashboardPage').hidden=false;}
+document.querySelector('.mobilization-strip')?.addEventListener('click',e=>{const b=e.target.closest('[data-open-category]');if(!b)return;openRecordsView(b.dataset.openCategory);});
+document.getElementById('wardGrid')?.addEventListener('click',e=>{const b=e.target.closest('[data-open-ward]');if(!b)return;openRecordsView('',b.dataset.state,b.dataset.lga,b.dataset.ward);});
+document.getElementById('backToDashboard')?.addEventListener('click',closeRecordsView);
+document.querySelector('.record-filter-buttons')?.addEventListener('click',e=>{const b=e.target.closest('[data-record-category]');if(!b)return;activeRecordCategory=b.dataset.recordCategory||'';requestedState=requestedLga=requestedWard='';recordsRender();});
+document.addEventListener('click',e=>{
+ const benefit=e.target.closest('[data-benefit-member]');if(benefit){recordsOpenBenefit(benefit.dataset.benefitMember,Number(benefit.dataset.benefitIndex));return;}
+ if(e.target.id==='benefitModal'||e.target.id==='benefitModalClose')document.getElementById('benefitModal').classList.remove('open');
+ const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}
+ if(link.dataset.action==='call')location.href='tel:'+phone;else if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+recordsPhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else location.href='sms:'+phone;
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('benefitModal').classList.remove('open');});
+recordsAuth.onAuthStateChanged(async user=>{
+ if(!user){recordsShowError('Your login session is not available. Sign in with the Founder account, then reopen this dashboard.');return;}
+ try{
+  const profileSnap=await recordsDb.collection('userAccounts').doc(user.uid).get();
+  if(!profileSnap.exists){recordsShowError('Your account profile was not found in Firestore. Contact the Super Admin.');return;}
+  const profile=profileSnap.data()||{},role=String(profile.role||'').toLowerCase(),permissions=Array.isArray(profile.permissions)?profile.permissions:[];
+  const allowed=profile.active!==false&&(profile.superAdmin===true||role==='founder'||role==='super_admin'||role==='admin'||permissions.includes('founder-dashboard')||permissions.includes('members-record'));
+  if(!allowed){recordsShowError('Access denied. Your account does not have permission to view member records.');return;}
+  let version=0;
+  recordsDb.collection('members').orderBy('createdAt','desc').onSnapshot(async snap=>{
+   const current=++version,resolved=await Promise.all(snap.docs.map(async d=>({id:d.id,data:await recordsResolveLocation(d.data())})));
+   if(current!==version)return;recordsMembers.splice(0,recordsMembers.length,...resolved);recordsRender();
+  },err=>{console.error('Members query failed:',err);recordsShowError('Unable to load members from Firestore: '+(err.message||'Check members collection permissions.'));});
+ }catch(err){console.error(err);recordsShowError('Unable to verify member-record access: '+(err.message||'Firestore access denied.'));}
+});
+</script>
+\n<script type="module">
 import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore, doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -394,17 +604,6 @@ async function loadDashboardData(){
   catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);}
   if(errors.length)status("Some Firebase queries were blocked or failed. "+errors.join(" | "));
 }
-document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
-  const button=e.target.closest("[data-open-category]");
-  if(!button)return;
-  const params=new URLSearchParams({category:button.dataset.openCategory});
-  location.href="members-record.html?"+params.toString();
-});
-$("wardGrid")?.addEventListener("click",e=>{
-  const b=e.target.closest("[data-open-ward]");if(!b)return;
-  const p=new URLSearchParams({state:b.dataset.state,lga:b.dataset.lga,ward:b.dataset.ward});
-  location.href="members-record.html?"+p.toString();
-});
 onAuthStateChanged(auth,async user=>{
   if(!user){showError("Your login session is not available. Sign in with the Founder account, then reopen this dashboard.");return;}
   try{
