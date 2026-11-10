@@ -79,9 +79,9 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <header class="foundation-header">
   <div>
     <div class="foundation-brand">Engineer Haruna Foundation</div>
-    <div class="foundation-subtitle" id="recordsSubtitle">Registered Members Record</div>
+    <div class="foundation-subtitle">Registered Members Record</div>
   </div>
-  <a class="back-button" href="backup-founder-dashboard.html" aria-label="Back to Founder Dashboard">Back</a>
+  <a class="back-button" href="founder-dashboard.html" id="backToDashboard" aria-label="Back to Founder Dashboard">← Back</a>
 </header>
 <section class="records-scroll">
   <div id="recordsList">
@@ -105,6 +105,26 @@ const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+
+// Return to the already-open Founder Dashboard page when possible.
+// This allows the browser to restore its existing page state from its
+// back-forward cache instead of starting all Firebase queries again.
+document.getElementById('backToDashboard')?.addEventListener('click', function(event) {
+  try {
+    const previous = document.referrer ? new URL(document.referrer) : null;
+    const cameFromDashboard = previous &&
+      previous.origin === location.origin &&
+      /\/founder-dashboard\.html$/.test(previous.pathname);
+
+    if (cameFromDashboard && history.length > 1) {
+      event.preventDefault();
+      history.back();
+    }
+  } catch (error) {
+    console.warn('Could not restore previous dashboard page:', error);
+  }
+});
+
 
 function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits}
@@ -133,20 +153,13 @@ function openBenefitDetails(memberId,index){
   document.getElementById('benefitModal').classList.add('open');
 }
 
-// A category query parameter makes this page a role-specific register when opened from Founder Dashboard.
+// Member list: all registered members are displayed without search or filters.
 const list=document.getElementById('recordsList');
 const members=[];
-const requestedCategory=new URLSearchParams(location.search).get('category')||'';
-const validCategories=['Team Leader','Polling Unit Agent','Mobilization Agent','Member'];
-const activeCategory=validCategories.includes(requestedCategory)?requestedCategory:'';
-const categoryTitle=activeCategory==='Polling Unit Agent'?'PU Agents':activeCategory==='Team Leader'?'Team Leaders':activeCategory==='Mobilization Agent'?'Mobilization Agents':activeCategory==='Member'?'Members':'Registered Members Record';
-document.getElementById('recordsSubtitle').textContent=categoryTitle;
-document.title=categoryTitle+' | Engineer Haruna Foundation';
 function renderRecords(){
-  const visible=activeCategory?members.filter(item=>String(item.data.category||'')===activeCategory):members;
-  list.innerHTML=visible.length
-    ? visible.map(item=>card(item.data,item.id)).join('')
-    : '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No '+(activeCategory?esc(categoryTitle.toLowerCase()):'registered members')+' found.</div>';
+  list.innerHTML=members.length
+    ? members.map(item=>card(item.data,item.id)).join('')
+    : '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No registered members found.</div>';
 }
 
 // Resolve the complete nine-digit voter card code against the location
