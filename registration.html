@@ -12,7 +12,7 @@ body{min-height:100vh;min-height:100dvh;padding:18px 12px;overflow-x:hidden;back
 body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
 body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
 body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
-.page{position:relative;z-index:1;width:min(100%,720px);margin:0 auto}
+.page{position:relative;z-index:1;width:min(100%,720px);margin:0 auto}\n.top-actions{display:flex;justify-content:flex-end;margin:0 0 6px}\n.logout-btn{border:0;border-radius:9px;background:#b91c1c;color:#fff;font-size:13px;font-weight:800;padding:9px 16px;cursor:pointer;box-shadow:0 3px 9px rgba(120,0,0,.14)}\n.logout-btn:disabled{opacity:.65;cursor:wait}
 .header{text-align:center;margin:0 0 15px}
 .header h1{font-size:clamp(22px,4vw,30px);margin:0 0 5px;color:#14552b;font-weight:800}
 .header p{margin:0;font-size:13px;color:#53705e}
@@ -47,6 +47,9 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </head>
 <body>
 <main class="page">
+<div class="top-actions">
+  <button type="button" id="logoutBtn" class="logout-btn">Logout</button>
+</div>
 <header class="header">
 <h1>Member Registration</h1>
 <p>Engineer Haruna Foundation</p>
@@ -105,6 +108,20 @@ const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+
+document.getElementById('logoutBtn').addEventListener('click',async()=>{
+  const button=document.getElementById('logoutBtn');
+  try{
+    button.disabled=true;
+    button.textContent='Logging out…';
+    await auth.signOut();
+    window.location.reload();
+  }catch(error){
+    button.disabled=false;
+    button.textContent='Logout';
+    document.getElementById('formStatus').textContent='Logout failed: '+(error.message||'Please try again.');
+  }
+});
 
 const category=document.getElementById('category');
 const leaderField=document.getElementById('leaderField');
