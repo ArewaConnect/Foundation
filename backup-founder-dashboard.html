@@ -366,7 +366,7 @@ function renderStatistics(members,wardList){
   }).join(""):'<article class="glass ward"><p>No wards have been created in Super Admin yet.</p></article>';
 }
 async function loadDashboardData(){
-  status("Connecting to Firebase…");
+  status("Loading your dashboard......");
   const errors=[];
   try{
     const [ms,wards]=await Promise.all([
@@ -392,7 +392,7 @@ async function loadDashboardData(){
   }
   try{await loadProgrammeGallery();}
   catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);}
-  status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "Dashboard data successfully loaded from Firebase.");
+  if(errors.length)status("Some Firebase queries were blocked or failed. "+errors.join(" | "));
 }
 document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
   const button=e.target.closest("[data-open-category]");

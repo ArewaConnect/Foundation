@@ -74,6 +74,13 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .benefit-detail{padding:10px 0;border-top:1px solid #e5eee7}
 .benefit-detail strong{display:block;font-size:11px;color:#52705c;margin-bottom:4px}
 .benefit-detail span{font-size:13px;color:#263b2d;overflow-wrap:anywhere}
+
+.record-filter-panel{margin:0 0 10px;padding:10px;border:1px solid rgba(22,139,67,.18);border-radius:13px;background:rgba(255,255,255,.78);box-shadow:0 4px 14px rgba(35,50,65,.07)}
+.record-filter-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#164b2b;font-size:12px}
+#recordTotal{color:#61756a;font-size:11px}
+.record-filter-buttons{display:flex;flex-wrap:wrap;gap:6px}
+.record-filter-btn{border:1px solid #c9e5d0;border-radius:20px;background:#f3faf5;color:#17652c;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer}
+.record-filter-btn.active{background:#176b35;border-color:#176b35;color:#fff}
 </style></head>
 <body><main class="records-wrap">
 <header class="foundation-header">
@@ -84,9 +91,17 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
   <a class="back-button" href="backup-founder-dashboard.html" id="backToDashboard" aria-label="Back to Founder Dashboard">← Back</a>
 </header>
 <section class="records-scroll">
-  <div id="recordsList">
-    <div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div>
+  <div class="record-filter-panel" aria-label="Filter member records">
+    <div class="record-filter-head"><strong id="activeRecordTitle">All Members</strong><span id="recordTotal">Loading records...</span></div>
+    <div class="record-filter-buttons">
+      <button type="button" class="record-filter-btn" data-record-category="">All</button>
+      <button type="button" class="record-filter-btn" data-record-category="Team Leader">Team Leaders</button>
+      <button type="button" class="record-filter-btn" data-record-category="Polling Unit Agent">Polling Unit Agents</button>
+      <button type="button" class="record-filter-btn" data-record-category="Mobilization Agent">Mobilization Agents</button>
+      <button type="button" class="record-filter-btn" data-record-category="Member">Members</button>
+    </div>
   </div>
+  <div id="recordsList"><div id="loadingRecords" style="text-align:center;padding:25px;color:#164b2b">Loading registered members...</div></div>
 </section></main>
 <div class="benefit-modal" id="benefitModal" role="dialog" aria-modal="true" aria-labelledby="benefitModalTitle">
   <div class="benefit-dialog">
@@ -105,26 +120,6 @@ const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
-
-// Return to the already-open Founder Dashboard page when possible.
-// This allows the browser to restore its existing page state from its
-// back-forward cache instead of starting all Firebase queries again.
-document.getElementById('backToDashboard')?.addEventListener('click', function(event) {
-  try {
-    const previous = document.referrer ? new URL(document.referrer) : null;
-    const cameFromDashboard = previous &&
-      previous.origin === location.origin &&
-      /\/founder-dashboard\.html$/.test(previous.pathname);
-
-    if (cameFromDashboard && history.length > 1) {
-      event.preventDefault();
-      history.back();
-    }
-  } catch (error) {
-    console.warn('Could not restore previous dashboard page:', error);
-  }
-});
-
 
 function esc(v){return String(v??'Not provided').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.startsWith('0'))digits='234'+digits.slice(1);return digits}
@@ -153,40 +148,80 @@ function openBenefitDetails(memberId,index){
   document.getElementById('benefitModal').classList.add('open');
 }
 
-// Member list: all registered members are displayed without search or filters.
+// One central live member dataset powers all four dashboard categories.
 const list=document.getElementById('recordsList');
 const members=[];
-function renderRecords(){
-  list.innerHTML=members.length
-    ? members.map(item=>card(item.data,item.id)).join('')
-    : '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No registered members found.</div>';
+const params=new URLSearchParams(location.search);
+let activeCategory=params.get('category')||'';
+const requestedState=params.get('state')||'';
+const requestedLga=params.get('lga')||'';
+const requestedWard=params.get('ward')||'';
+const categoryLabels={'':'All Members','Team Leader':'Team Leaders','Polling Unit Agent':'Polling Unit Agents','Mobilization Agent':'Mobilization Agents','Member':'Members'};
+function sameCode(a,b){return String(a??'').trim().toLowerCase()===String(b??'').trim().toLowerCase();}
+function matchesLocation(m){
+  if(!requestedState&&!requestedLga&&!requestedWard)return true;
+  const code=String(m.voterCardCode||'').replace(/\s/g,'');
+  const state=m.stateCode||(code.length===9?code.slice(0,2):'');
+  const lga=m.lgaCode||(code.length===9?code.slice(2,4):'');
+  const ward=m.wardCode||(code.length===9?code.slice(4,6):'');
+  return (!requestedState||sameCode(state,requestedState)||sameCode(m.stateName,requestedState)) &&
+         (!requestedLga||sameCode(lga,requestedLga)||sameCode(m.lgaName,requestedLga)) &&
+         (!requestedWard||sameCode(ward,requestedWard)||sameCode(m.wardName,requestedWard));
 }
+function filteredMembers(){
+  return members.filter(item=>(!activeCategory||sameCode(item.data.category,activeCategory))&&matchesLocation(item.data));
+}
+function renderRecords(){
+  const shown=filteredMembers();
+  document.getElementById('activeRecordTitle').textContent=categoryLabels[activeCategory]||activeCategory||'All Members';
+  document.getElementById('recordTotal').textContent=shown.length+' of '+members.length+' records';
+  document.querySelectorAll('[data-record-category]').forEach(btn=>{
+    const selected=btn.dataset.recordCategory===activeCategory;
+    btn.classList.toggle('active',selected);
+    btn.setAttribute('aria-pressed',selected?'true':'false');
+  });
+  list.innerHTML=shown.length?shown.map(item=>card(item.data,item.id)).join(''):
+    '<div style="text-align:center;padding:25px;color:#536b5c;background:rgba(255,255,255,.65);border-radius:14px">No records found for this selection.</div>';
+}
+document.querySelector('.record-filter-buttons')?.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-record-category]');
+  if(!btn)return;
+  activeCategory=btn.dataset.recordCategory||'';
+  const next=new URL(location.href);
+  if(activeCategory)next.searchParams.set('category',activeCategory);else next.searchParams.delete('category');
+  history.replaceState({},'',next);
+  renderRecords();
+});
 
-// Resolve the complete nine-digit voter card code against the location
-// hierarchy created in the Super Admin dashboard. Names are not guessed.
+// Cache hierarchy document reads as Promises so members sharing the same
+// State, LGA, Ward and Polling Unit do not repeat identical Firestore reads.
 const locationCache=new Map();
+function cachedDoc(path,ref){
+  if(!locationCache.has(path))locationCache.set(path,ref.get());
+  return locationCache.get(path);
+}
 async function resolveLocation(m){
   const digits=String(m.voterCardCode||'').replace(/\s+/g,'');
   if(!/^\d{9}$/.test(digits))return m;
   const stateCode=digits.slice(0,2),lgaCode=digits.slice(2,4),wardCode=digits.slice(4,6),puCode=digits.slice(6,9);
-  if(locationCache.has(digits))return {...m,...locationCache.get(digits)};
   const result={stateCode,lgaCode,wardCode,pollingUnitCode:puCode};
   try{
-    const state=await db.collection('states').doc(stateCode).get();
+    const stateRef=db.collection('states').doc(stateCode);
+    const state=await cachedDoc('states/'+stateCode,stateRef);
     if(!state.exists)return {...m,...result};
     result.stateName=state.data().name;
-    const lga=await state.ref.collection('lgas').doc(lgaCode).get();
+    const lgaRef=stateRef.collection('lgas').doc(lgaCode);
+    const lga=await cachedDoc('states/'+stateCode+'/lgas/'+lgaCode,lgaRef);
     if(!lga.exists)return {...m,...result};
     result.lgaName=lga.data().name;
-    const ward=await lga.ref.collection('wards').doc(wardCode).get();
+    const wardRef=lgaRef.collection('wards').doc(wardCode);
+    const ward=await cachedDoc('states/'+stateCode+'/lgas/'+lgaCode+'/wards/'+wardCode,wardRef);
     if(!ward.exists)return {...m,...result};
     result.wardName=ward.data().name;
-    const pu=await ward.ref.collection('pollingUnits').doc(puCode).get();
+    const puRef=wardRef.collection('pollingUnits').doc(puCode);
+    const pu=await cachedDoc('states/'+stateCode+'/lgas/'+lgaCode+'/wards/'+wardCode+'/pollingUnits/'+puCode,puRef);
     if(pu.exists)result.pollingUnitName=pu.data().name;
-    locationCache.set(digits,result);
-  }catch(error){
-    console.warn('Location name lookup unavailable:',error);
-  }
+  }catch(error){console.warn('Location name lookup unavailable:',error);}
   return {...m,...result};
 }
 
@@ -296,4 +331,12 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('benefitModal').classList.remove('open');});
 document.addEventListener('click',e=>{const link=e.target.closest('[data-action]');if(!link)return;e.preventDefault();const phone=link.closest('.record-card')?.dataset.phone||'';if(!phone){alert('Member phone number is not available.');return;}if(link.dataset.action==='call')window.location.href='tel:'+phone;else if(link.dataset.action==='whatsapp')window.open('https://wa.me/'+normalizePhone(phone)+'?text='+encodeURIComponent('Hello, '),'_blank','noopener');else window.location.href='sms:'+phone;});
+
+document.getElementById('backToDashboard')?.addEventListener('click',function(event){
+  try{
+    const previous=document.referrer?new URL(document.referrer):null;
+    const cameFromDashboard=previous&&previous.origin===location.origin&&/\/backup-founder-dashboard\.html$/.test(previous.pathname);
+    if(cameFromDashboard&&history.length>1){event.preventDefault();history.back();}
+  }catch(error){console.warn('Dashboard history restore unavailable:',error);}
+});
 </script></body></html>
