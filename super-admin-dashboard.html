@@ -201,19 +201,47 @@ async function refreshStates(){
 }
 async function refreshLgas(stateSelectId,statusId){
   const stateId=$(stateSelectId).value;
-  const lgas=stateId?await readChildren(`states/${stateId}/lgas`):[];
   const target=stateSelectId==="wardState"?"wardLga":stateSelectId==="puState"?"puLga":"";
-  if(target)await fillSelect(target,lgas,"Select LGA");
-  if(stateSelectId==="lgaState")$("lgasList").textContent=stateId?lgas.map(x=>`${x.code} — ${x.name}`).join(" | ")||"No LGAs saved under this state yet.":"";
-  if(stateSelectId==="wardState"){await fillSelect("puLga",[], "Select LGA");await fillSelect("puWard",[],"Select ward");}
-  if(stateSelectId==="puState")await fillSelect("puWard",[],"Select ward");
-  return lgas;
+  if(target){
+    $(target).disabled=true;
+    await fillSelect(target,[],"Select LGA");
+  }
+  try{
+    const lgas=stateId?await readChildren(`states/${stateId}/lgas`):[];
+    if(target){
+      await fillSelect(target,lgas,"Select LGA");
+      $(target).disabled=!stateId;
+    }
+    if(stateSelectId==="lgaState"){
+      $("lgasList").textContent=stateId?(lgas.map(x=>`${x.code} — ${x.name}`).join(" | ")||"No LGAs saved under this state yet."):"";
+    }
+    if(stateSelectId==="wardState"){
+      $("wardsList").textContent="";
+      await fillSelect("puLga",[],"Select LGA");
+      $("puLga").disabled=true;
+      await fillSelect("puWard",[],"Select ward");
+      $("puWard").disabled=true;
+    }
+    if(stateSelectId==="puState"){
+      await fillSelect("puWard",[],"Select ward");
+      $("puWard").disabled=true;
+      $("pusList").textContent="";
+    }
+    if(target && stateId && !lgas.length && statusId) $(statusId).textContent="No local governments are saved under this state yet.";
+    return lgas;
+  }catch(err){
+    if(target)$(target).disabled=true;
+    if(statusId)$(statusId).textContent="Could not load local governments: "+err.message;
+    throw err;
+  }
 }
 async function refreshWards(){
   const st=$("wardState").value,lg=$("wardLga").value;
+  $("wardsList").textContent="";
+  await fillSelect("puWard",[],"Select ward");
+  $("puWard").disabled=true;
   const wards=st&&lg?await readChildren(`states/${st}/lgas/${lg}/wards`):[];
   $("wardsList").textContent=wards.map(x=>`${x.code} — ${x.name}`).join(" | ")||"";
-  await fillSelect("puWard",[], "Select ward");
 }
 async function refreshPus(){
   const st=$("puState").value,lg=$("puLga").value,ward=$("puWard").value;
@@ -347,7 +375,19 @@ $("lgaState").onchange=()=>refreshLgas("lgaState");
 $("wardState").onchange=()=>refreshLgas("wardState");
 $("wardLga").onchange=()=>refreshWards();
 $("puState").onchange=()=>refreshLgas("puState");
-$("puLga").onchange=async()=>{await fillSelect("puWard",[], "Select ward");const st=$("puState").value,lg=$("puLga").value;if(st&&lg){const wards=await readChildren(`states/${st}/lgas/${lg}/wards`);await fillSelect("puWard",wards,"Select ward");}};
+$("puLga").onchange=async()=>{
+  await fillSelect("puWard",[],"Select ward");
+  $("puWard").disabled=true;
+  $("pusList").textContent="";
+  const st=$("puState").value,lg=$("puLga").value;
+  if(st&&lg){
+    try{
+      const wards=await readChildren(`states/${st}/lgas/${lg}/wards`);
+      await fillSelect("puWard",wards,"Select ward");
+      $("puWard").disabled=false;
+    }catch(err){$("puStatus").textContent="Could not load wards: "+err.message;}
+  }
+};
 $("puWard").onchange=refreshPus;
 
 
