@@ -17,7 +17,9 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .record-top{display:grid;grid-template-columns:84px minmax(0,1fr);gap:11px;align-items:start}
 .member-photo{width:84px;height:100px;border-radius:11px;border:1px solid #b6d9c2;background:linear-gradient(145deg,#e8f4eb,#dcecf5);display:flex;align-items:center;justify-content:center;color:#438153;text-align:center;font-size:11px;overflow:hidden}
 .member-photo img{width:100%;height:100%;object-fit:cover}
-.member-info{min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 10px}
+.member-info{min-width:0;display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:7px 10px}
+/* Keep Role, Gender and Age on one line; the other columns adjust to the role width. */
+.member-info .info:nth-child(2),.member-info .info:nth-child(3),.member-info .info:nth-child(4){white-space:nowrap;min-width:max-content}
 .member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
 .info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 .info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
@@ -65,7 +67,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
     <div class="foundation-brand">Engineer Haruna Foundation</div>
     <div class="foundation-subtitle">Registered Members Record</div>
   </div>
-  <a class="back-button" href="backup-founder-dashboard.html" aria-label="Back to Founder Dashboard">← Back</a>
+  <a class="back-button" href="founder-dashboard.html" aria-label="Back to Founder Dashboard">← Back</a>
 </header>
 <section class="records-scroll">
   <div class="filters-panel" aria-label="Member record filters">
