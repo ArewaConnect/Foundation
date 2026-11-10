@@ -20,7 +20,14 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .member-info{min-width:0;display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:7px 10px}
 /* Keep Role, Gender and Age on one line; the other columns adjust to the role width. */
 .member-info .info:nth-child(2),.member-info .info:nth-child(3),.member-info .info:nth-child(4){white-space:nowrap;min-width:max-content}
-.member-name{grid-column:1/-1;font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0 0 2px;overflow-wrap:anywhere}
+.member-name-row{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0 0 2px;min-width:0}
+.member-name{font-size:17px;font-weight:800;color:#164b2b;line-height:1.2;margin:0;overflow-wrap:anywhere;min-width:0}
+.member-name-label{white-space:nowrap}
+.verify-badge{display:inline-flex;align-items:center;gap:5px;flex:none;border:1px solid #cbd5d1;border-radius:999px;padding:3px 7px;background:#f1f3f2;color:#647067;font-size:9px;font-weight:800;line-height:1;letter-spacing:.15px}
+.verify-badge.is-verified{background:#e8f7ed;border-color:#a8d9b7;color:#176b35}
+.verify-colors{display:inline-flex;gap:2px;align-items:center}
+.verify-colors i{display:block;width:5px;height:9px;border-radius:1px}
+.verify-colors i:nth-child(1){background:#858b91}.verify-colors i:nth-child(2){background:#e3343f}.verify-colors i:nth-child(3){background:#168b43}
 .info{font-size:12px;color:#5a675f;line-height:1.25;min-width:0;overflow-wrap:anywhere}
 .info strong{display:block;font-size:11px;color:#244332;font-weight:750;margin-bottom:2px}
 .details-below{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 10px;margin-top:5px;padding:6px 10px;border-radius:11px;background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
@@ -240,7 +247,7 @@ function card(m,id){
     <div class="record-top">
       <div class="member-photo">${m.photoDataUrl?`<img src="${m.photoDataUrl}" alt="Member photo">`:'Member<br>Photo'}</div>
       <div class="member-info">
-        <h2 class="member-name">${esc(m.fullName)}</h2>
+        <div class="member-name-row"><h2 class="member-name"><span class="member-name-label">Name:</span> ${esc(m.fullName)}</h2><span class="verify-badge ${m.verified===true?'is-verified':''}" title="${m.verified===true?'Verified by an administrator':'Awaiting administrator verification'}"><span class="verify-colors" aria-hidden="true"><i></i><i></i><i></i></span>${m.verified===true?'Verified':'Pending'}</span></div>
         <div class="info"><strong>Role</strong>${esc(m.category)}</div>
         <div class="info"><strong>Gender</strong>${esc(m.gender)}</div>
         <div class="info"><strong>Age</strong>${esc(m.age)}</div>
