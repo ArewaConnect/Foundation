@@ -199,10 +199,42 @@ document.getElementById('clearFilters').addEventListener('click',()=>{
   buildFilterOptions();
 });
 
+// Resolve the complete nine-digit voter card code against the location
+// hierarchy created in the Super Admin dashboard. Names are not guessed.
+const locationCache=new Map();
+async function resolveLocation(m){
+  const digits=String(m.voterCardCode||'').replace(/\s+/g,'');
+  if(!/^\d{9}$/.test(digits))return m;
+  const stateCode=digits.slice(0,2),lgaCode=digits.slice(2,4),wardCode=digits.slice(4,6),puCode=digits.slice(6,9);
+  if(locationCache.has(digits))return {...m,...locationCache.get(digits)};
+  const result={stateCode,lgaCode,wardCode,pollingUnitCode:puCode};
+  try{
+    const state=await db.collection('states').doc(stateCode).get();
+    if(!state.exists)return {...m,...result};
+    result.stateName=state.data().name;
+    const lga=await state.ref.collection('lgas').doc(lgaCode).get();
+    if(!lga.exists)return {...m,...result};
+    result.lgaName=lga.data().name;
+    const ward=await lga.ref.collection('wards').doc(wardCode).get();
+    if(!ward.exists)return {...m,...result};
+    result.wardName=ward.data().name;
+    const pu=await ward.ref.collection('pollingUnits').doc(puCode).get();
+    if(pu.exists)result.pollingUnitName=pu.data().name;
+    locationCache.set(digits,result);
+  }catch(error){
+    console.warn('Location name lookup unavailable:',error);
+  }
+  return {...m,...result};
+}
+
 function card(m,id){
-  const ward=m.wardName||m.wardCode||'Not provided';
-  const lga=m.lgaName||m.lgaCode||'Not provided';
-  const pu=m.pollingUnitName||m.pollingUnitCode||'Not provided';
+  // The combined voter code contains State(2), LGA(2), Ward(2), PU(3).
+  const voterCode=String(m.voterCardCode||'').replace(/\s/g,'');
+  const validVoterCode=/^\d{9}$/.test(voterCode);
+  const state=m.stateName||m.stateCode||(validVoterCode?voterCode.slice(0,2):'Not provided');
+  const lga=m.lgaName||m.lgaCode||(validVoterCode?voterCode.slice(2,4):'Not provided');
+  const ward=m.wardName||m.wardCode||(validVoterCode?voterCode.slice(4,6):'Not provided');
+  const pu=m.pollingUnitName||m.pollingUnitCode||(validVoterCode?voterCode.slice(6,9):'Not provided');
   const bank=m.bankName||m.bank||'Not provided';
   return `<article class="record-card" data-phone="${esc(m.phone||'')}">
     <div class="record-top">
@@ -219,7 +251,7 @@ function card(m,id){
       </div>
     </div>
     <div class="details-below">
-      <div class="info"><strong>Phone Number</strong>${esc(m.phone)}</div>
+      <div class="info"><strong>State</strong>${esc(state)}</div>
       <div class="info"><strong>L.G.</strong>${esc(lga)}</div>
       <div class="info"><strong>Ward</strong>${esc(ward)}</div>
       <div class="info"><strong>Polling Unit</strong>${esc(pu)}</div>
@@ -269,8 +301,12 @@ auth.onAuthStateChanged(async user=>{
       return;
     }
 
-    db.collection('members').orderBy('createdAt','desc').onSnapshot(snap=>{
-      members.splice(0,members.length,...snap.docs.map(d=>({id:d.id,data:d.data()})));
+    let snapshotVersion=0;
+    db.collection('members').orderBy('createdAt','desc').onSnapshot(async snap=>{
+      const version=++snapshotVersion;
+      const resolved=await Promise.all(snap.docs.map(async d=>({id:d.id,data:await resolveLocation(d.data())})));
+      if(version!==snapshotVersion)return;
+      members.splice(0,members.length,...resolved);
       updateFilterOptions();
       renderRecords();
     },err=>{
