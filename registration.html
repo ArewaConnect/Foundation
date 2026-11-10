@@ -12,21 +12,40 @@ body{min-height:100vh;min-height:100dvh;padding:18px 12px;overflow-x:hidden;back
 body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
 body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
 body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
-.page{position:relative;z-index:1;width:min(100%,720px);margin:0 auto}\n.portal-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;margin:0 0 19px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.95);border-radius:18px;box-shadow:0 8px 24px rgba(30,48,70,.10);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.brand{display:flex;align-items:center;gap:11px;min-width:0}
-.brand-mark{width:45px;height:45px;flex:0 0 45px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#0b9b37,#075b25);color:#fff;font-weight:900;font-size:15px;letter-spacing:-1px;box-shadow:0 5px 12px rgba(7,125,36,.22)}
-.brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
-.brand-copy strong{font-size:clamp(13px,2.3vw,17px);color:#14552b;line-height:1.2}
-.brand-copy span{font-size:10px;color:#718477;letter-spacing:.25px}
-.header-right{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
-.portal-label{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:999px;background:#edf8ef;color:#17652c;font-size:10px;font-weight:900;letter-spacing:.8px;white-space:nowrap}
-.portal-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #d4f0dc}
-.logout-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:1px solid #b91c1c;border-radius:11px;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;font-size:13px;font-weight:800;padding:10px 16px;cursor:pointer;box-shadow:0 5px 13px rgba(153,27,27,.20);transition:transform .18s ease,box-shadow .18s ease}
-.logout-btn:hover{transform:translateY(-1px);box-shadow:0 8px 17px rgba(153,27,27,.25)}
-.logout-icon{font-size:18px;line-height:12px}
+.page{position:relative;z-index:1;width:100%;max-width:1200px;margin:0 auto}
+.portal-header{
+ display:flex;align-items:center;justify-content:space-between;gap:22px;
+ padding:clamp(25px,4.5vw,58px) clamp(24px,4.2vw,64px);
+ margin:0 0 30px;background:rgba(255,255,255,.88);
+ border:2px solid rgba(255,255,255,.96);border-radius:clamp(24px,4vw,48px);
+ box-shadow:0 12px 30px rgba(30,48,70,.10);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+ min-height:clamp(145px,18vw,265px)
+}
+.brand{display:flex;align-items:flex-start;min-width:0;flex:1}
+.brand-copy{display:flex;flex-direction:column;gap:clamp(7px,1.3vw,14px);min-width:0}
+.brand-copy strong{font-size:clamp(25px,4.2vw,58px);color:#14552b;line-height:1.12;font-weight:800}
+.brand-copy span{font-size:clamp(18px,2.8vw,42px);color:#65756d;letter-spacing:.5px;line-height:1.15}
+.header-right{display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto}
+.logout-btn{
+ display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+ border:0;border-radius:clamp(22px,3vw,42px);background:#087b35;color:#fff;
+ font-size:clamp(20px,3.2vw,42px);font-weight:800;
+ padding:clamp(20px,3.6vw,46px) clamp(28px,4vw,60px);
+ min-width:clamp(145px,18vw,280px);min-height:clamp(76px,9.5vw,145px);
+ cursor:pointer;box-shadow:0 8px 18px rgba(7,100,45,.16);transition:background .18s ease
+}
+.logout-btn:hover{background:#06672d}
 .portal-footer{margin:15px 0 2px;padding:13px 8px;text-align:center;color:#6b7e70;font-size:11px;line-height:1.6}
 .portal-footer strong{color:#27643a}
-@media(max-width:520px){.portal-header{padding:11px 10px;gap:8px;align-items:flex-start}.brand{gap:8px}.brand-mark{width:38px;height:38px;flex-basis:38px;border-radius:11px}.brand-copy span{font-size:9px}.header-right{gap:7px;flex-direction:column;align-items:flex-end}.portal-label{font-size:8px;padding:7px 8px}.logout-btn{font-size:11px;padding:8px 11px}.header{margin-top:4px}}
+@media(max-width:520px){
+ .portal-header{padding:22px 17px;gap:12px;min-height:112px;border-radius:25px;margin-bottom:22px}
+ .brand-copy{gap:7px}
+ .brand-copy strong{font-size:clamp(19px,5.2vw,27px)}
+ .brand-copy span{font-size:clamp(13px,3.6vw,18px)}
+ .logout-btn{font-size:clamp(15px,4vw,20px);padding:16px 18px;min-width:100px;min-height:58px;border-radius:22px}
+ .header{margin-top:4px}
+}
 .header{text-align:center;margin:0 0 15px}
 .header h1{font-size:clamp(22px,4vw,30px);margin:0 0 5px;color:#14552b;font-weight:800}
 .header p{margin:0;font-size:13px;color:#53705e}
@@ -63,17 +82,13 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <main class="page">
 <header class="portal-header">
   <div class="brand">
-    <div class="brand-mark" aria-hidden="true">EH</div>
     <div class="brand-copy">
       <strong>Engineer Haruna Foundation</strong>
-      <span>Membership & Community Network</span>
+      <span>REGISTRATION PORTAL</span>
     </div>
   </div>
   <div class="header-right">
-    <div class="portal-label"><span class="portal-dot"></span> REGISTRATION PORTAL</div>
-    <a class="logout-btn" id="logoutBtn" href="https://arewaconnect.github.io/Foundation/index.html" aria-label="Logout and return to the foundation login page">
-      <span class="logout-icon" aria-hidden="true">↪</span> Logout
-    </a>
+    <a class="logout-btn" id="logoutBtn" href="https://arewaconnect.github.io/Foundation/index.html" aria-label="Log out and return to the foundation login page">Log Out</a>
   </div>
 </header>
 <header class="header">
