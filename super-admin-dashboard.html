@@ -5,8 +5,9 @@
 <p class="muted">Add locations in order. Serial codes are generated automatically and saved in Firestore. Existing codes are never renumbered. Enter one name per line when adding multiple locations.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>1. States</h3>
-<label>State name(s)</label><textarea id="stateNames" placeholder="Zamfara&#10;Kano&#10;Katsina"></textarea>
-<button id="saveStatesBtn">Save State(s)</button><div class="status" id="stateStatus"></div>
+<div class="grid"><div><label>State name</label><input id="stateNames" placeholder="e.g. Zamfara"></div><div><label>State code (2 digits) — editable</label><input id="stateCodeInput" inputmode="numeric" maxlength="2" placeholder="e.g. 36"></div></div>
+<p class="muted">The code is suggested using the alphabetical order of Nigeria's 36 states. You can edit it before saving. Enter one state at a time.</p>
+<button id="saveStatesBtn">Save / Update State</button><div class="status" id="stateStatus"></div>
 <div id="statesList" class="muted"></div>
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
@@ -78,7 +79,7 @@
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTimestamp,addDoc,updateDoc,runTransaction,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTimestamp,addDoc,updateDoc,runTransaction,arrayUnion,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
@@ -153,9 +154,54 @@ async function refreshPus(){
   const pus=st&&lg&&ward?await readChildren(`states/${st}/lgas/${lg}/wards/${ward}/pollingUnits`):[];
   $("pusList").textContent=pus.map(x=>`${x.code} — ${x.name}`).join(" | ")||"";
 }
+// Nigeria's 36 state codes in alphabetical order (FCT is not a state).
+const nigeriaStateCodes = {
+  "Abia":"01","Adamawa":"02","Akwa Ibom":"03","Anambra":"04","Bauchi":"05","Bayelsa":"06",
+  "Benue":"07","Borno":"08","Cross River":"09","Delta":"10","Ebonyi":"11","Edo":"12",
+  "Ekiti":"13","Enugu":"14","Gombe":"15","Imo":"16","Jigawa":"17","Kaduna":"18",
+  "Kano":"19","Katsina":"20","Kebbi":"21","Kogi":"22","Kwara":"23","Lagos":"24",
+  "Nasarawa":"25","Niger":"26","Ogun":"27","Ondo":"28","Osun":"29","Oyo":"30",
+  "Plateau":"31","Rivers":"32","Sokoto":"33","Taraba":"34","Yobe":"35","Zamfara":"36"
+};
+$("stateNames").addEventListener("input",()=>{
+  const name=$("stateNames").value.trim();
+  const match=Object.keys(nigeriaStateCodes).find(x=>x.toLowerCase()===name.toLowerCase());
+  if(match)$("stateCodeInput").value=nigeriaStateCodes[match];
+});
 $("saveStatesBtn").onclick=async()=>{
-  const ok=await saveNames({names:cleanNames($("stateNames").value),colRef:collection(db,"states"),width:2,parentData:{},statusEl:$("stateStatus"),inputEl:$("stateNames"),label:"state(s)"});
-  if(ok!==false)await refreshStates();
+  const name=$("stateNames").value.trim();
+  const code=$("stateCodeInput").value.trim();
+  const status=$("stateStatus");
+  if(!name){status.textContent="Enter a state name.";return;}
+  if(!/^\\d{2}$/.test(code)||Number(code)<1||Number(code)>36){status.textContent="Enter a valid state code from 01 to 36.";return;}
+  try{
+    $("saveStatesBtn").disabled=true;
+    status.textContent="Saving state…";
+    const statesRef=collection(db,"states");
+    const snap=await getDocs(statesRef);
+    const byName=snap.docs.find(d=>(d.data().name||"").trim().toLowerCase()===name.toLowerCase());
+    const targetRef=doc(db,"states",code);
+    const targetSnap=await getDoc(targetRef);
+    if(targetSnap.exists() && (!byName || targetSnap.id!==byName.id)){
+      throw new Error("State code "+code+" is already assigned to "+(targetSnap.data().name||"another state")+".");
+    }
+    if(byName && byName.id===code){
+      status.textContent=name+" already has code "+code+". No change was needed.";
+    }else if(byName){
+      // Safe for this user's current setup: only the state record exists; no LGAs/wards/PUs have been added.
+      const existingData=byName.data();
+      await setDoc(targetRef,{...existingData,name,code,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
+      await deleteDoc(doc(db,"states",byName.id));
+      status.textContent=name+" code updated from "+byName.id+" to "+code+".";
+    }else{
+      await setDoc(targetRef,{name,code,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});
+      status.textContent="Saved "+name+" with state code "+code+".";
+    }
+    $("stateNames").value="";
+    $("stateCodeInput").value="";
+    await refreshStates();
+  }catch(e){status.textContent="Save failed: "+e.message;}
+  finally{$("saveStatesBtn").disabled=false;}
 };
 $("saveLgasBtn").onclick=async()=>{
   const st=$("lgaState").value;if(!st){$("lgaStatus").textContent="Select a state first.";return;}
