@@ -7,7 +7,7 @@
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#173b2b;background:radial-gradient(circle at 10% 5%,rgba(255,255,255,.98),transparent 28%),linear-gradient(135deg,#f8fafc 0%,#eaf4ff 38%,#fff0f1 72%,#eef6ff 100%)}
 .page{max-width:1150px;margin:auto;padding:20px 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;color:#166534;font-weight:bold}
 .glass{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,255,255,.42));border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border-radius:24px;box-shadow:0 16px 38px rgba(30,64,175,.10),inset 0 1px 0 rgba(255,255,255,.9)}
-.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 20px;margin-bottom:24px}.avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#dbeafe);border:4px solid white;display:grid;place-items:center;color:#166534;font-weight:bold;flex-shrink:0}
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:24px 20px;margin-bottom:24px}.avatar{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#dcfce7,#dbeafe);border:4px solid white;display:grid;place-items:center;color:#166534;font-weight:bold;flex-shrink:0;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}
 .role{font-size:13px;color:#1d4ed8;font-weight:bold;letter-spacing:1px;text-transform:uppercase}.profile h1{font-size:clamp(22px,4vw,32px);margin:7px 0}.profile p{margin:0;color:#64748b}
 .heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 2px 14px}.heading h2{margin:0}.pill{background:#ffffffa8;border-radius:30px;padding:8px 12px;font-size:12px}
 .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.summary-card{padding:17px;border-top:4px solid #2563eb}.summary-card:nth-child(2){border-top-color:#dc2626}.summary-card:nth-child(3){border-top-color:#1d4ed8}.label{color:#64748b;font-size:13px}.big{font-size:32px;font-weight:800;margin-top:7px}
@@ -192,9 +192,10 @@ body:before{
 <body><main class="page">
 <header class="top">
   <div class="header-brand">Engineer Haruna Foundation</div>
-  <button class="logout-btn" type="button" onclick="logout()">Logout</button>
+  <button class="logout-btn" id="logoutBtn" type="button">Logout</button>
 </header>
-<section class="glass profile"><div class="avatar">FOUNDER</div><div><div class="role">Founder</div><h1>Engineer Aruna Dahiru Musawo</h1><p>Foundation leadership dashboard</p></div></section>
+<section class="glass profile"><div class="avatar" id="founderAvatar"><img id="founderPhoto" alt="Founder profile photograph" hidden><span id="founderAvatarFallback">FOUNDER</span></div><div><div class="role">Founder</div><h1 id="founderName">Loading founder profile…</h1><p>Foundation leadership dashboard</p></div></section>
+<div id="dashboardStatus" class="note" role="status" style="text-align:center;margin:-12px 0 14px"></div>
 
 <section class="glass mobilization-strip" aria-label="Team and mobilization summary">
   <button class="mini-stat" type="button"><strong id="teamLeaderCount">0</strong><span>Team Leaders</span></button>
@@ -239,82 +240,157 @@ body:before{
 
 <footer>Engineer Haruna Foundation · Founder Dashboard</footer>
 </main>
-<script>
-const wardNames=["Ward 1","Ward 2","Ward 3","Ward 4","Ward 5","Ward 6","Ward 7","Ward 8","Ward 9","Ward 10","Ward 11"];
-const wards=wardNames.map((name,i)=>({id:i+1,name,registered:0,captured:0,verified:0}));
-const fmt=n=>Number(n||0).toLocaleString(), pct=(n,d)=>d?Math.round(n/d*100):0;
-function render(){
- let totals=wards.reduce((a,w)=>(a.rg+=w.registered,a.mc+=w.captured,a.vr+=w.verified,a),{rg:0,mc:0,vr:0});
- const beneficiaryShare = 0; // Placeholder until beneficiary data is connected.
- const chartItems=[
-  {label:"Registered<br>voters (RG)",value:totals.rg,color:"blue"},
-  {label:"Members<br>captured (MC)",value:totals.mc,color:"red"},
-  {label:"Verified<br>members (VR)",value:totals.vr,color:"blue2"},
-  {label:"Beneficiary<br>share",value:beneficiaryShare,color:"gray"}
- ];
- const maxValue=Math.max(1,...chartItems.map(x=>x.value));
- barChart.innerHTML=chartItems.map(x=>`<div class="bar-group"><div class="bar-value">${fmt(x.value)}</div><div class="bar ${x.color}" style="height:${Math.max(2,(x.value/maxValue)*78)}%"></div></div>`).join("");
- chartTotals.innerHTML=chartItems.map(x=>`<div class="chart-total"><small>${x.label.replace(/<br>/g," ")}</small><strong>${fmt(x.value)}</strong></div>`).join("");
- wardGrid.innerHTML=wards.map(w=>{let left=Math.max(w.registered-w.captured,0);return `<article class="glass ward"><div class="ward-head"><h3>${w.name}</h3></div><div class="ward-actions"><button class="ward-action-btn" type="button" onclick="openWard(${w.id})">See more details</button></div><div class="metrics">
- <div class="metric rg"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.registered)}</div><div class="caption">RG · Registered voters</div></div>
- <div class="metric mc"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.captured)}</div><div class="caption">MC · Members captured</div></div>
- <div class="metric vr"><div class="pct">${pct(w.verified,w.captured)}%</div><div class="number">${fmt(w.verified)}</div><div class="caption">VR · Verified members</div></div>
- <div class="metric remaining"><div class="pct">${pct(left,w.registered)}%</div><div class="number">${fmt(left)}</div><div class="caption">Remaining · Not captured</div></div></div></article>`}).join("");
-}
-function logout(){ window.location.href='index.html'; }
-function openWard(id){alert("Ward Statistics page for "+wards.find(w=>w.id===id).name+" will be connected here.");}
-function editWard(id){alert("Edit options for "+wards.find(w=>w.id===id).name+" will be connected here.");}
-render();
-</script>
-<script>
-/* Program photos will be loaded from the Admin section / Firebase data after admin uploads to Cloudinary. */
-let programSlides = window.foundationProgramPhotos || [];
-let currentProgramIndex = 0;
-let programTimer = null;
-function escapeProgramText(value){return String(value||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function renderProgramCarousel(){
- const carousel=document.getElementById("programCarousel"),dots=document.getElementById("carouselDots");
- if(!carousel||!dots)return;
- if(!programSlides.length){carousel.innerHTML='<div class="program-slide active"><div class="program-image-placeholder"></div></div>';dots.innerHTML="";return;}
- carousel.innerHTML=programSlides.map((p,i)=>`<div class="program-slide ${i===currentProgramIndex?'active':''}"><img src="${p.url}" alt="${escapeProgramText(p.title||'Foundation program')}"></div>`).join("");
- dots.innerHTML=programSlides.map((p,i)=>`<button class="carousel-dot ${i===currentProgramIndex?'active':''}" aria-label="Show photo ${i+1}" onclick="showProgram(${i})"></button>`).join("");
-}
-function showProgram(index){if(!programSlides.length)return;currentProgramIndex=(index+programSlides.length)%programSlides.length;renderProgramCarousel();restartProgramTimer();}
-function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(programSlides.length>1)programTimer=setInterval(()=>showProgram(currentProgramIndex+1),5000);}
-document.addEventListener("DOMContentLoaded",()=>{renderProgramCarousel();restartProgramTimer();});
-</script>
-
-
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {initializeApp, getApps, getApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore, doc, getDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id),fmt=n=>Number(n||0).toLocaleString(),pct=(n,d)=>d?Math.round(n/d*100):0;
+const safe=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function status(message){if($("dashboardStatus"))$("dashboardStatus").textContent=message||"";}
+$("logoutBtn")?.addEventListener("click",async()=>{try{await signOut(auth);location.href="index.html";}catch(e){status("Logout failed: "+e.message);}});
+function showError(message){status(message);$("founderName").textContent="Founder Dashboard";$("wardGrid").innerHTML=`<article class="glass ward"><p>${safe(message)}</p></article>`;}
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",
-  authDomain: "ehfoundation-48f1d.firebaseapp.com",
-  projectId: "ehfoundation-48f1d",
-  storageBucket: "ehfoundation-48f1d.firebasestorage.app",
-  messagingSenderId: "126063666222",
-  appId: "1:126063666222:web:8793cae852361441fb6bbf"
-};
-
-const foundationApp = initializeApp(firebaseConfig, "FounderMembersCount");
-const foundationDb = getFirestore(foundationApp);
-
-async function updateRegisteredMembersCount() {
-  const countElement = document.getElementById("memberCount");
-  if (!countElement) return;
-
-  try {
-    const result = await getCountFromServer(collection(foundationDb, "members"));
-    countElement.textContent = Number(result.data().count || 0).toLocaleString();
-  } catch (error) {
-    console.error("Could not load member count:", error);
-    countElement.textContent = "—";
-    countElement.title = "Could not load count. Check Firebase login and Firestore rules.";
+function timestampMillis(value){
+  if(value && typeof value.toMillis==="function") return value.toMillis();
+  if(value && typeof value.seconds==="number") return value.seconds*1000;
+  const n=Date.parse(value||"");
+  return Number.isFinite(n)?n:0;
+}
+async function loadFounderProfile(){
+  // Super Admin saves the profile at adminProfiles/{SuperAdminUID}.
+  // Read the collection and select the most recently updated profile because
+  // the Founder account UID is not necessarily the Super Admin UID.
+  const snap=await getDocs(collection(db,"adminProfiles"));
+  if(snap.empty){
+    $("founderName").textContent="Founder profile not configured";
+    $("founderPhoto").hidden=true;
+    $("founderAvatarFallback").hidden=false;
+    throw new Error("No adminProfiles record found. Save the administrator name and photograph in Super Admin → Admin Profile & Programme Gallery.");
+  }
+  const records=snap.docs.map(d=>({id:d.id,...d.data()}));
+  records.sort((a,b)=>timestampMillis(b.updatedAt)-timestampMillis(a.updatedAt));
+  const data=records[0];
+  if(!data.displayName && !data.photoUrl){
+    throw new Error("The latest adminProfiles record has no displayName or photoUrl.");
+  }
+  $("founderName").textContent=data.displayName||"Founder";
+  if(data.photoUrl){
+    $("founderPhoto").onerror=()=>{ $("founderPhoto").hidden=true; $("founderAvatarFallback").hidden=false; };
+    $("founderPhoto").onload=()=>{ $("founderPhoto").hidden=false; $("founderAvatarFallback").hidden=true; };
+    $("founderPhoto").src=data.photoUrl;
+  }else{
+    $("founderPhoto").hidden=true;
+    $("founderAvatarFallback").hidden=false;
   }
 }
 
-updateRegisteredMembersCount();
+let programSlides=[],currentProgramIndex=0,programTimer=null;
+function renderProgramCarousel(){
+  const carousel=$("programCarousel"),dots=$("carouselDots");if(!carousel||!dots)return;
+  if(!programSlides.length){carousel.innerHTML='<div class="program-slide active"><div class="program-image-placeholder"></div><div class="program-caption"><h3>No programme photographs yet</h3><p>Photos uploaded in Super Admin will appear here.</p></div></div>';dots.innerHTML="";return;}
+  currentProgramIndex=Math.min(currentProgramIndex,programSlides.length-1);
+  carousel.innerHTML=programSlides.map((p,i)=>`<div class="program-slide ${i===currentProgramIndex?"active":""}"><img src="${safe(p.imageUrl)}" alt="${safe(p.caption||"Foundation programme")}"><div class="program-caption"><h3>${safe(p.caption||"Foundation programme")}</h3></div></div>`).join("");
+  dots.innerHTML=programSlides.map((p,i)=>`<button class="carousel-dot ${i===currentProgramIndex?"active":""}" aria-label="Show photo ${i+1}" data-program-index="${i}"></button>`).join("");
+}
+function showProgram(index){if(!programSlides.length)return;currentProgramIndex=(index+programSlides.length)%programSlides.length;renderProgramCarousel();restartProgramTimer();}
+function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(programSlides.length>1)programTimer=setInterval(()=>showProgram(currentProgramIndex+1),5000);}
+$("carouselDots")?.addEventListener("click",e=>{const b=e.target.closest("[data-program-index]");if(b)showProgram(Number(b.dataset.programIndex));});
+async function loadProgrammeGallery(){
+  const snap=await getDocs(collection(db,"programmeGallery"));
+  programSlides=snap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(p=>p.imageUrl)
+    .sort((a,b)=>timestampMillis(b.createdAt)-timestampMillis(a.createdAt));
+  currentProgramIndex=0;renderProgramCarousel();restartProgramTimer();
+}
+
+function voterLocation(m){const code=String(m.voterCardCode||"").replace(/\s/g,"");return /^\d{9}$/.test(code)?{stateId:code.slice(0,2),lgaId:code.slice(2,4),wardId:code.slice(4,6)}:null;}
+async function loadWardHierarchy(){
+  const wards=[],states=await getDocs(collection(db,"states"));
+  for(const s of states.docs){
+    const sd=s.data()||{},lgas=await getDocs(collection(db,"states",s.id,"lgas"));
+    for(const l of lgas.docs){
+      const ld=l.data()||{},ws=await getDocs(collection(db,"states",s.id,"lgas",l.id,"wards"));
+      for(const w of ws.docs){const wd=w.data()||{};wards.push({id:`${s.id}_${l.id}_${w.id}`,stateId:s.id,lgaId:l.id,wardId:w.id,stateName:sd.name||s.id,lgaName:ld.name||l.id,name:wd.name||w.id});}
+    }
+  }
+  return wards;
+}
+function renderStatistics(members,wardList){
+  const map=new Map(wardList.map(w=>[w.id,{...w,codes:new Set(),captured:0,verified:0,beneficiaries:0}]));
+  const allCodes=new Set(),roleCounts={"Team Leader":0,"Polling Unit Agent":0,"Mobilization Agent":0};
+  let verifiedTotal=0,beneficiaryTotal=0;
+  for(const m of members){
+    if(roleCounts[m.category]!==undefined)roleCounts[m.category]++;
+    const loc=voterLocation(m);
+    if(loc){
+      const code=String(m.voterCardCode).replace(/\s/g,"");allCodes.add(code);
+      const w=map.get(`${loc.stateId}_${loc.lgaId}_${loc.wardId}`);
+      if(w){w.codes.add(code);w.captured++;if(m.verified===true)w.verified++;if(Array.isArray(m.benefits)&&m.benefits.length)w.beneficiaries++;}
+    }
+    if(m.verified===true)verifiedTotal++;
+    if(Array.isArray(m.benefits)&&m.benefits.length)beneficiaryTotal++;
+  }
+  $("teamLeaderCount").textContent=fmt(roleCounts["Team Leader"]);
+  $("puAgentCount").textContent=fmt(roleCounts["Polling Unit Agent"]);
+  $("mobilizationAgentCount").textContent=fmt(roleCounts["Mobilization Agent"]);
+  $("memberCount").textContent=fmt(members.length);
+  const rows=[...map.values()].map(w=>({...w,registered:w.codes.size}));
+  const totals={rg:allCodes.size,mc:members.length,vr:verifiedTotal,beneficiary:beneficiaryTotal};
+  const items=[{label:"Registered voters (RG)",value:totals.rg,color:"blue"},{label:"Members captured (MC)",value:totals.mc,color:"red"},{label:"Verified members (VR)",value:totals.vr,color:"blue2"},{label:"Beneficiary share",value:totals.beneficiary,color:"gray"}];
+  const max=Math.max(1,...items.map(x=>x.value));
+  $("barChart").innerHTML=items.map(x=>`<div class="bar-group"><div class="bar-value">${fmt(x.value)}</div><div class="bar ${x.color}" style="height:${Math.max(2,x.value/max*78)}%"></div></div>`).join("");
+  $("chartTotals").innerHTML=items.map(x=>`<div class="chart-total"><small>${safe(x.label)}</small><strong>${fmt(x.value)}</strong></div>`).join("");
+  $("wardGrid").innerHTML=rows.length?rows.map(w=>{
+    const remaining=Math.max(w.registered-w.captured,0);
+    return `<article class="glass ward"><div class="ward-head"><h3>${safe(w.name)}</h3><span>${safe(w.lgaName)}, ${safe(w.stateName)}</span></div>
+    <div class="ward-actions"><button class="ward-action-btn" type="button" data-open-ward data-state="${safe(w.stateId)}" data-lga="${safe(w.lgaId)}" data-ward="${safe(w.wardId)}">See more details</button></div>
+    <div class="metrics">
+      <div class="metric rg"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.registered)}</div><div class="caption">RG · Registered voters</div></div>
+      <div class="metric mc"><div class="pct">${pct(w.captured,w.registered)}%</div><div class="number">${fmt(w.captured)}</div><div class="caption">MC · Members captured</div></div>
+      <div class="metric vr"><div class="pct">${pct(w.verified,w.captured)}%</div><div class="number">${fmt(w.verified)}</div><div class="caption">VR · Verified members</div></div>
+      <div class="metric remaining"><div class="pct">${pct(remaining,w.registered)}%</div><div class="number">${fmt(remaining)}</div><div class="caption">Remaining · Not captured</div></div>
+      <div class="metric"><div class="pct">${pct(w.beneficiaries,w.captured)}%</div><div class="number">${fmt(w.beneficiaries)}</div><div class="caption">Beneficiaries · Received assistance</div></div>
+    </div></article>`;
+  }).join(""):'<article class="glass ward"><p>No wards have been created in Super Admin yet.</p></article>';
+}
+async function loadDashboardData(){
+  status("Connecting to Firebase…");
+  const errors=[];
+  try{
+    const [ms,wards]=await Promise.all([
+      getDocs(collection(db,"members")),
+      loadWardHierarchy()
+    ]);
+    const members=ms.docs.map(d=>({id:d.id,...d.data()}));
+    renderStatistics(members,wards);
+  }catch(e){
+    console.error("Member/ward statistics query failed:",e);
+    errors.push("Statistics: "+e.message);
+    $("wardGrid").innerHTML=`<article class="glass ward"><p>Could not load member or ward statistics: ${safe(e.message)}</p></article>`;
+  }
+  try{await loadFounderProfile();}
+  catch(e){console.error("Founder profile query failed:",e);errors.push("Founder profile: "+e.message);}
+  try{await loadProgrammeGallery();}
+  catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);renderProgramCarousel();}
+  status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "Dashboard data successfully loaded from Firebase.");
+}
+$("wardGrid")?.addEventListener("click",e=>{
+  const b=e.target.closest("[data-open-ward]");if(!b)return;
+  const p=new URLSearchParams({state:b.dataset.state,lga:b.dataset.lga,ward:b.dataset.ward});
+  location.href="members-record.html?"+p.toString();
+});
+onAuthStateChanged(auth,async user=>{
+  if(!user){showError("Your login session is not available. Sign in with the Founder account, then reopen this dashboard.");return;}
+  try{
+    const snap=await getDoc(doc(db,"userAccounts",user.uid));
+    if(!snap.exists()){showError("Your account profile was not found. Ask Super Admin to create a Founder account.");return;}
+    const a=snap.data()||{},role=String(a.role||"").toLowerCase(),perms=Array.isArray(a.permissions)?a.permissions:[];
+    const allowed=a.active!==false&&(a.superAdmin===true||role==="founder"||role==="super_admin"||role==="admin"||perms.includes("founder-dashboard"));
+    if(!allowed){showError("Access denied. Your account must be active and have Founder Dashboard permission.");return;}
+    await loadDashboardData();
+  }catch(e){console.error(e);showError("Could not load dashboard data: "+(e.message||"Check Firebase access and Firestore rules."));}
+});
 </script>
 \n</body></html>
