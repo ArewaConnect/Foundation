@@ -177,6 +177,9 @@ body:before{
 }
 .mini-stat strong{color:#fff;font-size:clamp(14px,3.4vw,20px);line-height:1.05}
 .mini-stat span{color:#fff;font-size:clamp(8px,2.2vw,11px);font-weight:700;line-height:1.15;margin-top:3px;overflow-wrap:normal;word-break:normal}
+.mobilization-strip .mini-stat{cursor:pointer}
+.mobilization-strip .mini-stat:focus-visible{outline:3px solid #166534;outline-offset:3px}
+.mobilization-strip .mini-stat:active{transform:scale(.98)}
 .programs-panel{margin-bottom:10px}
 .chart-panel{margin-top:0;margin-bottom:10px}
 @media(max-width:640px){
@@ -198,10 +201,10 @@ body:before{
 <div id="dashboardStatus" class="note" role="status" style="text-align:center;margin:-12px 0 14px"></div>
 
 <section class="glass mobilization-strip" aria-label="Team and mobilization summary">
-  <button class="mini-stat" type="button"><strong id="teamLeaderCount">0</strong><span>Team Leaders</span></button>
-  <button class="mini-stat" type="button"><strong id="puAgentCount">0</strong><span>PU Agents</span></button>
-  <button class="mini-stat" type="button"><strong id="mobilizationAgentCount">0</strong><span>Mobilization Agents</span></button>
-  <button class="mini-stat" type="button" onclick="window.location.href='members-record.html'"><strong id="memberCount">0</strong><span>Members</span></button>
+  <button class="mini-stat" type="button" data-open-category="Team Leader"><strong id="teamLeaderCount">0</strong><span>Team Leaders</span></button>
+  <button class="mini-stat" type="button" data-open-category="Polling Unit Agent"><strong id="puAgentCount">0</strong><span>PU Agents</span></button>
+  <button class="mini-stat" type="button" data-open-category="Mobilization Agent"><strong id="mobilizationAgentCount">0</strong><span>Mobilization Agents</span></button>
+  <button class="mini-stat" type="button" data-open-category="Member"><strong id="memberCount">0</strong><span>Members</span></button>
 </section>
 
 <section class="glass programs-panel" id="programsPanel">
@@ -259,22 +262,17 @@ function timestampMillis(value){
   return Number.isFinite(n)?n:0;
 }
 async function loadFounderProfile(){
-  // Super Admin saves the profile at adminProfiles/{SuperAdminUID}.
-  // Read the collection and select the most recently updated profile because
-  // the Founder account UID is not necessarily the Super Admin UID.
-  const snap=await getDocs(collection(db,"adminProfiles"));
-  if(snap.empty){
+  // Super Admin publishes the latest profile to this shared document.
+  // Founder access is granted explicitly in Firestore rules; no collection-wide adminProfiles query is needed.
+  const snap=await getDoc(doc(db,"foundationSettings","profile"));
+  if(!snap.exists()){
     $("founderName").textContent="Founder profile not configured";
     $("founderPhoto").hidden=true;
     $("founderAvatarFallback").hidden=false;
-    throw new Error("No adminProfiles record found. Save the administrator name and photograph in Super Admin → Admin Profile & Programme Gallery.");
+    throw new Error("Shared founder profile is not available. Sign in to Super Admin and save the Administrator Profile once to publish it.");
   }
-  const records=snap.docs.map(d=>({id:d.id,...d.data()}));
-  records.sort((a,b)=>timestampMillis(b.updatedAt)-timestampMillis(a.updatedAt));
-  const data=records[0];
-  if(!data.displayName && !data.photoUrl){
-    throw new Error("The latest adminProfiles record has no displayName or photoUrl.");
-  }
+  const data=snap.data()||{};
+  if(!data.displayName && !data.photoUrl) throw new Error("The shared founder profile has no displayName or photoUrl.");
   $("founderName").textContent=data.displayName||"Founder";
   if(data.photoUrl){
     $("founderPhoto").onerror=()=>{ $("founderPhoto").hidden=true; $("founderAvatarFallback").hidden=false; };
@@ -298,7 +296,7 @@ function showProgram(index){if(!programSlides.length)return;currentProgramIndex=
 function restartProgramTimer(){if(programTimer)clearInterval(programTimer);if(programSlides.length>1)programTimer=setInterval(()=>showProgram(currentProgramIndex+1),5000);}
 $("carouselDots")?.addEventListener("click",e=>{const b=e.target.closest("[data-program-index]");if(b)showProgram(Number(b.dataset.programIndex));});
 async function loadProgrammeGallery(){
-  const snap=await getDocs(collection(db,"programmeGallery"));
+  const snap=await getDocs(collection(db,"foundationPublicGallery"));
   programSlides=snap.docs.map(d=>({id:d.id,...d.data()}))
     .filter(p=>p.imageUrl)
     .sort((a,b)=>timestampMillis(b.createdAt)-timestampMillis(a.createdAt));
@@ -335,7 +333,7 @@ function renderStatistics(members,wardList){
   $("teamLeaderCount").textContent=fmt(roleCounts["Team Leader"]);
   $("puAgentCount").textContent=fmt(roleCounts["Polling Unit Agent"]);
   $("mobilizationAgentCount").textContent=fmt(roleCounts["Mobilization Agent"]);
-  $("memberCount").textContent=fmt(members.length);
+  $("memberCount").textContent=fmt(members.filter(m=>m.category==="Member").length);
   const rows=[...map.values()].map(w=>({...w,registered:w.codes.size}));
   const totals={rg:allCodes.size,mc:members.length,vr:verifiedTotal,beneficiary:beneficiaryTotal};
   const items=[{label:"Registered voters (RG)",value:totals.rg,color:"blue"},{label:"Members captured (MC)",value:totals.mc,color:"red"},{label:"Verified members (VR)",value:totals.vr,color:"blue2"},{label:"Beneficiary share",value:totals.beneficiary,color:"gray"}];
@@ -376,6 +374,12 @@ async function loadDashboardData(){
   catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);renderProgramCarousel();}
   status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "Dashboard data successfully loaded from Firebase.");
 }
+document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
+  const button=e.target.closest("[data-open-category]");
+  if(!button)return;
+  const params=new URLSearchParams({category:button.dataset.openCategory});
+  location.href="members-record.html?"+params.toString();
+});
 $("wardGrid")?.addEventListener("click",e=>{
   const b=e.target.closest("[data-open-ward]");if(!b)return;
   const p=new URLSearchParams({state:b.dataset.state,lga:b.dataset.lga,ward:b.dataset.ward});

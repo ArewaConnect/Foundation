@@ -3,10 +3,10 @@
 <div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section>
 <section class="panel" id="adminProfileManager">
 <h2>Admin Profile & Programme Gallery</h2>
-<p class="muted">Manage the founder's display name and profile photograph, and publish photographs of foundation programmes.</p>
+<p class="muted">Manage the administrator display name and profile photograph, and publish photographs of programmes conducted.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>Administrator Profile</h3>
-<div class="profile-row"><img id="adminProfilePreview" class="profile-photo" alt="Admin profile photo" src=""/><div style="flex:1;min-width:220px"><label>Founder display name</label><input id="adminDisplayName" placeholder="Enter administrator's full name"><label>Founder profile photograph</label><input id="adminProfileFile" type="file" accept="image/*"><p class="muted">Choose a clear profile photograph. Maximum file size: 5 MB.</p><button id="saveAdminProfileBtn">Save Profile</button><div class="status" id="adminProfileStatus"></div></div></div>
+<div class="profile-row"><img id="adminProfilePreview" class="profile-photo" alt="Admin profile photo" src=""/><div style="flex:1;min-width:220px"><label>Administrator name</label><input id="adminDisplayName" placeholder="Enter administrator's full name"><label>Profile photo</label><input id="adminProfileFile" type="file" accept="image/*"><p class="muted">Choose a clear profile photograph. Maximum file size: 5 MB.</p><button id="saveAdminProfileBtn">Save Profile</button><div class="status" id="adminProfileStatus"></div></div></div>
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>Programme Photo Carousel</h3>
@@ -100,14 +100,13 @@ import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTi
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();publishFounderDashboardData().catch(e=>console.warn("Founder dashboard publishing failed:",e));loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
 
 // Admin profile and programme gallery (Cloudinary image storage + Firestore metadata)
 const CLOUDINARY_NAME="dgkjolqpt", CLOUDINARY_PRESET="EHFoundation";
 const adminProfileRef=()=>doc(db,"adminProfiles",auth.currentUser.uid);
-const foundationProfileRef=()=>doc(db,"foundationSettings","profile");
 async function uploadCloudinaryImage(file){
   if(!file || !file.type.startsWith("image/")) throw new Error("Please select an image file.");
   if(file.size>5*1024*1024) throw new Error("Each image must be 5 MB or smaller.");
@@ -118,14 +117,8 @@ async function uploadCloudinaryImage(file){
   return {imageUrl:result.secure_url,publicId:result.public_id};
 }
 async function loadAdminProfile(){
-  try{
-    let snap=await getDoc(foundationProfileRef());
-    if(!snap.exists()){
-      snap=await getDoc(adminProfileRef());
-      if(snap.exists())await setDoc(foundationProfileRef(),{...snap.data(),migratedFrom:"adminProfiles",updatedAt:serverTimestamp()},{merge:true});
-    }
-    if(snap.exists()){const d=snap.data();$("adminDisplayName").value=d.displayName||"";if(d.photoUrl)$("adminProfilePreview").src=d.photoUrl;}
-  }catch(e){$("adminProfileStatus").textContent="Could not load profile: "+e.message;}
+  try{const snap=await getDoc(adminProfileRef());if(snap.exists()){const d=snap.data();$("adminDisplayName").value=d.displayName||"";if(d.photoUrl)$("adminProfilePreview").src=d.photoUrl;}}
+  catch(e){$("adminProfileStatus").textContent="Could not load profile: "+e.message;}
 }
 $("adminProfileFile").onchange=()=>{const f=$("adminProfileFile").files[0];if(f){if(!f.type.startsWith("image/")||f.size>5*1024*1024){$("adminProfileStatus").textContent="Select an image no larger than 5 MB.";$("adminProfileFile").value="";return;}$("adminProfilePreview").src=URL.createObjectURL(f);}};
 $("saveAdminProfileBtn").onclick=async()=>{
@@ -133,10 +126,21 @@ $("saveAdminProfileBtn").onclick=async()=>{
   if(!displayName){$("adminProfileStatus").textContent="Enter the administrator's name.";return;}
   try{$("saveAdminProfileBtn").disabled=true;$("adminProfileStatus").textContent="Saving profile…";let photoUrl=$("adminProfilePreview").getAttribute("src")||"",publicId="";
     if(file){const uploaded=await uploadCloudinaryImage(file);photoUrl=uploaded.imageUrl;publicId=uploaded.publicId;}
-    const profileData={uid:auth.currentUser.uid,displayName,photoUrl,...(publicId?{photoPublicId:publicId}:{}),updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid};await Promise.all([setDoc(foundationProfileRef(),profileData,{merge:true}),setDoc(adminProfileRef(),profileData,{merge:true})]);
+    const profileData={uid:auth.currentUser.uid,displayName,photoUrl,...(publicId?{photoPublicId:publicId}:{}),updatedAt:serverTimestamp()};
+    await setDoc(adminProfileRef(),profileData,{merge:true});
+    // Publish a single shared copy for the Founder Dashboard. This avoids requiring
+    // the Founder account to list/read every document in the private adminProfiles collection.
+    await setDoc(doc(db,"foundationSettings","profile"),profileData,{merge:true});
     $("adminProfilePreview").src=photoUrl;$("adminProfileFile").value="";$("adminProfileStatus").textContent="Administrator profile saved successfully.";
   }catch(e){$("adminProfileStatus").textContent="Profile save failed: "+e.message;}finally{$("saveAdminProfileBtn").disabled=false;}
 };
+async function publishFounderDashboardData(){
+  // Keep the Founder Dashboard's read-only mirror in sync with existing Super Admin data.
+  const profileSnap=await getDoc(adminProfileRef());
+  if(profileSnap.exists())await setDoc(doc(db,"foundationSettings","profile"),profileSnap.data(),{merge:true});
+  const gallerySnap=await getDocs(collection(db,"programmeGallery"));
+  for(const item of gallerySnap.docs)await setDoc(doc(db,"foundationPublicGallery",item.id),item.data(),{merge:true});
+}
 async function loadProgrammeGallery(){
   try{const snap=await getDocs(query(collection(db,"programmeGallery"),orderBy("createdAt","desc")));$("programmeCarouselList").innerHTML=snap.empty?'<p class="muted">No programme photographs uploaded yet.</p>':snap.docs.map(d=>{const x=d.data();return `<div class="carousel-card"><img src="${safeText(x.imageUrl)}" alt="${safeText(x.caption||'Programme photo')}"><b>${safeText(x.caption||'Programme photo')}</b><p class="muted">${x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString():''}</p><button type="button" data-delete-gallery="${d.id}" style="background:#b91c1c;padding:8px 10px">Remove from gallery</button></div>`;}).join('');}
   catch(e){$("carouselStatus").textContent="Could not load gallery: "+e.message;}
@@ -145,11 +149,11 @@ $("uploadCarouselBtn").onclick=async()=>{
   const files=[...$("carouselFiles").files],caption=$("carouselCaption").value.trim();
   if(!files.length){$("carouselStatus").textContent="Select at least one programme photograph.";return;}
   if(files.length>12){$("carouselStatus").textContent="Upload a maximum of 12 photographs at a time.";return;}
-  try{$("uploadCarouselBtn").disabled=true;let done=0;for(const file of files){$("carouselStatus").textContent=`Uploading photograph ${done+1} of ${files.length}…`;const uploaded=await uploadCloudinaryImage(file);await addDoc(collection(db,"programmeGallery"),{imageUrl:uploaded.imageUrl,publicId:uploaded.publicId,caption:caption||"Programme conducted",createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});done++;}
+  try{$("uploadCarouselBtn").disabled=true;let done=0;for(const file of files){$("carouselStatus").textContent=`Uploading photograph ${done+1} of ${files.length}…`;const uploaded=await uploadCloudinaryImage(file);const galleryData={imageUrl:uploaded.imageUrl,publicId:uploaded.publicId,caption:caption||"Programme conducted",createdAt:serverTimestamp(),createdBy:auth.currentUser.uid};const privateRef=doc(collection(db,"programmeGallery"));await setDoc(privateRef,galleryData);await setDoc(doc(db,"foundationPublicGallery",privateRef.id),galleryData);done++;}
     $("carouselFiles").value="";$("carouselCaption").value="";$("carouselStatus").textContent=`Successfully uploaded ${done} programme photograph(s).`;await loadProgrammeGallery();
   }catch(e){$("carouselStatus").textContent="Upload stopped: "+e.message+" Any photographs already uploaded remain saved.";}finally{$("uploadCarouselBtn").disabled=false;}
 };
-document.addEventListener("click",async e=>{const b=e.target.closest("[data-delete-gallery]");if(!b)return;if(!confirm("Remove this photograph from the programme gallery? The Cloudinary original will remain in your Cloudinary account."))return;try{b.disabled=true;await deleteDoc(doc(db,"programmeGallery",b.dataset.deleteGallery));await loadProgrammeGallery();$("carouselStatus").textContent="Photograph removed from the gallery.";}catch(err){b.disabled=false;$("carouselStatus").textContent="Could not remove photograph: "+err.message;}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-delete-gallery]");if(!b)return;if(!confirm("Remove this photograph from the programme gallery? The Cloudinary original will remain in your Cloudinary account."))return;try{b.disabled=true;await deleteDoc(doc(db,"programmeGallery",b.dataset.deleteGallery));await deleteDoc(doc(db,"foundationPublicGallery",b.dataset.deleteGallery));await loadProgrammeGallery();$("carouselStatus").textContent="Photograph removed from the gallery.";}catch(err){b.disabled=false;$("carouselStatus").textContent="Could not remove photograph: "+err.message;}});
 
 // BOTAS Photo location manager: nested Firestore hierarchy
 const cleanNames = value => [...new Set(value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];
