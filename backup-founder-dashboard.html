@@ -270,7 +270,7 @@ async function loadFounderProfile(){
     $("founderName").textContent="Founder profile unavailable";
     $("founderPhoto").hidden=true;
     $("founderAvatarFallback").hidden=false;
-    throw new Error("No shared profile document exists at foundationSettings/profile. Open Super Admin → Administrator Profile, then click Save Profile. The Super Admin page must successfully publish this profile before the Founder Dashboard can display it.");
+    throw new Error("Shared founder profile was not found at foundationSettings/profile. Save the Administrator Profile in Super Admin and confirm its Firestore read rule.");
   }
   const data=snap.data()||{};
   if(!data.displayName && !data.photoUrl){
@@ -309,7 +309,7 @@ async function loadProgrammeGallery(){
   }catch(error){
     programSlides=[];
     const carousel=$("programCarousel"),dots=$("carouselDots");
-    if(carousel)carousel.innerHTML=`<div class="program-slide active"><div class="program-image-placeholder"></div><div class="program-caption"><h3>Programme gallery unavailable</h3><p>${safe(error.message||"The Founder account needs read access to foundationPublicGallery. Super Admin needs write access to publish programme photos.")}</p></div></div>`;
+    if(carousel)carousel.innerHTML=`<div class="program-slide active"><div class="program-image-placeholder"></div><div class="program-caption"><h3>Programme gallery unavailable</h3><p>${safe(error.message||"Check Firestore permissions for foundationPublicGallery.")}</p></div></div>`;
     if(dots)dots.innerHTML="";
     throw error;
   }
@@ -366,7 +366,7 @@ function renderStatistics(members,wardList){
   }).join(""):'<article class="glass ward"><p>No wards have been created in Super Admin yet.</p></article>';
 }
 async function loadDashboardData(){
-  status("Connecting to Firebase…");
+  status("Loading your dashboard......");
   const errors=[];
   try{
     const [ms,wards]=await Promise.all([
@@ -392,7 +392,7 @@ async function loadDashboardData(){
   }
   try{await loadProgrammeGallery();}
   catch(e){console.error("Programme gallery query failed:",e);errors.push("Programme gallery: "+e.message);}
-  status(errors.length ? "Some Firebase queries were blocked or failed. "+errors.join(" | ") : "Dashboard data successfully loaded from Firebase.");
+  if(errors.length) status("Some Firebase queries were blocked or failed. "+errors.join(" | "));
 }
 document.querySelector(".mobilization-strip")?.addEventListener("click",e=>{
   const button=e.target.closest("[data-open-category]");
