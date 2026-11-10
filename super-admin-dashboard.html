@@ -1,6 +1,39 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}textarea{min-height:110px;resize:vertical}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
 <section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
-<div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section><section class="panel"><h2>Created Accounts</h2><p class="muted">Profiles are stored in Firestore. Firebase Authentication users must be created separately in Firebase Console.</p><div style="overflow-x:auto"><table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Permissions</th><th>Status</th></tr></thead><tbody id="accounts"><tr><td colspan="5">No accounts yet.</td></tr></tbody></table></div><div id="listStatus" class="status"></div></section></div></main>
+<div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section><section class="panel" id="locationManager">
+<h2>BOTAS Photo — Location Management</h2>
+<p class="muted">Add locations in order. Serial codes are generated automatically and saved in Firestore. Existing codes are never renumbered. Enter one name per line when adding multiple locations.</p>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>1. States</h3>
+<label>State name(s)</label><textarea id="stateNames" placeholder="Zamfara&#10;Kano&#10;Katsina"></textarea>
+<button id="saveStatesBtn">Save State(s)</button><div class="status" id="stateStatus"></div>
+<div id="statesList" class="muted"></div>
+</div>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>2. Local Governments</h3>
+<label>Select State</label><select id="lgaState"><option value="">Select state</option></select>
+<label>Local Government name(s)</label><textarea id="lgaNames" placeholder="Anka&#10;Bakura&#10;Bungudu"></textarea>
+<button id="saveLgasBtn">Save Local Government(s)</button><div class="status" id="lgaStatus"></div>
+<div id="lgasList" class="muted"></div>
+</div>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>3. Wards</h3>
+<div class="grid"><div><label>Select State</label><select id="wardState"><option value="">Select state</option></select></div><div><label>Select Local Government</label><select id="wardLga" disabled><option value="">Select LGA</option></select></div></div>
+<label>Ward name(s)</label><textarea id="wardNames" placeholder="Galadima&#10;Ward 2&#10;Ward 3"></textarea>
+<button id="saveWardsBtn">Save Ward(s)</button><div class="status" id="wardStatus"></div>
+<div id="wardsList" class="muted"></div>
+</div>
+<div class="panel" style="background:#f8fafc;box-shadow:none">
+<h3>4. Polling Units (P.U.)</h3>
+<div class="grid"><div><label>Select State</label><select id="puState"><option value="">Select state</option></select></div><div><label>Select Local Government</label><select id="puLga" disabled><option value="">Select LGA</option></select></div></div>
+<label>Select Ward</label><select id="puWard" disabled><option value="">Select ward</option></select>
+<label>Polling Unit name(s)</label><textarea id="puNames" placeholder="Damba Kingera&#10;Polling Unit 2&#10;Polling Unit 3"></textarea>
+<button id="savePusBtn">Save Polling Unit(s)</button><div class="status" id="puStatus"></div>
+<div id="pusList" class="muted"></div>
+</div>
+<p class="muted"><b>Code format:</b> State (2 digits) + LGA (2 digits) + Ward (2 digits) + Polling Unit (3 digits). Example: 06 04 01 001. The serial codes are scoped to their parent location.</p>
+</section>
+<section class="panel"><h2>Created Accounts</h2><p class="muted">Profiles are stored in Firestore. Firebase Authentication users must be created separately in Firebase Console.</p><div style="overflow-x:auto"><table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Permissions</th><th>Status</th></tr></thead><tbody id="accounts"><tr><td colspan="5">No accounts yet.</td></tr></tbody></table></div><div id="listStatus" class="status"></div></section></div></main>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -8,8 +41,108 @@ import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTi
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts()}catch(e){$("loginStatus").textContent=e.message}});
-$("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts()}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+$("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
+
+// BOTAS Photo location manager: nested Firestore hierarchy
+const cleanNames = value => [...new Set(value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean))];
+const padCode = (n, width=2) => String(n).padStart(width,"0");
+const childCol = (parentPath, name) => collection(db, parentPath, name);
+async function nextSerial(colRef, width=2){
+  const snap=await getDocs(colRef); let max=0;
+  snap.forEach(d=>{const n=parseInt(d.data().code,10);if(Number.isFinite(n)&&n>max)max=n;});
+  const next=max+1;
+  if(next>=(10**width)) throw new Error("The maximum number of serial codes for this level has been reached.");
+  return padCode(next,width);
+}
+async function saveNames({names, colRef, width, parentData, statusEl, inputEl, label}){
+  if(!names.length){statusEl.textContent="Enter at least one name.";return;}
+  try{
+    statusEl.textContent="Saving "+label+"…";
+    let saved=0, skipped=[];
+    for(const name of names){
+      const existing=await getDocs(colRef);
+      const duplicate=existing.docs.some(d=>(d.data().name||"").trim().toLowerCase()===name.toLowerCase());
+      if(duplicate){skipped.push(name);continue;}
+      const code=await nextSerial(colRef,width);
+      await setDoc(doc(colRef,code),{name,code,...parentData,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});
+      saved++;
+    }
+    inputEl.value="";
+    statusEl.textContent=`Saved ${saved} ${label}.`+(skipped.length?` Already existed: ${skipped.join(", ")}.`:"");
+    return true;
+  }catch(e){statusEl.textContent="Save failed: "+e.message;return false;}
+}
+async function fillSelect(selectId, items, placeholder){
+  const el=$(selectId),old=el.value;
+  el.innerHTML="";
+  const first=document.createElement("option");first.value="";first.textContent=placeholder;el.appendChild(first);
+  items.forEach(d=>{const o=document.createElement("option");o.value=d.id;o.textContent=`${d.name} (${d.code})`;o.dataset.name=d.name;o.dataset.code=d.code;el.appendChild(o);});
+  el.value=items.some(x=>x.id===old)?old:"";
+}
+const readChildren=async path=>{
+  const snap=await getDocs(collection(db,path));
+  return snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.code).localeCompare(String(b.code)));
+};
+async function refreshStates(){
+  const states=await readChildren("states");
+  await Promise.all(["lgaState","wardState","puState"].map(id=>fillSelect(id,states,"Select state")));
+  $("statesList").textContent=states.map(x=>`${x.code} — ${x.name}`).join(" | ")||"No states saved yet.";
+  await refreshLgas("lgaState","lgaStatus");
+}
+async function refreshLgas(stateSelectId,statusId){
+  const stateId=$(stateSelectId).value;
+  const lgas=stateId?await readChildren(`states/${stateId}/lgas`):[];
+  const target=stateSelectId==="wardState"?"wardLga":stateSelectId==="puState"?"puLga":"";
+  if(target)await fillSelect(target,lgas,"Select LGA");
+  if(stateSelectId==="lgaState")$("lgasList").textContent=stateId?lgas.map(x=>`${x.code} — ${x.name}`).join(" | ")||"No LGAs saved under this state yet.":"";
+  if(stateSelectId==="wardState"){await fillSelect("puLga",[], "Select LGA");await fillSelect("puWard",[],"Select ward");}
+  if(stateSelectId==="puState")await fillSelect("puWard",[],"Select ward");
+  return lgas;
+}
+async function refreshWards(){
+  const st=$("wardState").value,lg=$("wardLga").value;
+  const wards=st&&lg?await readChildren(`states/${st}/lgas/${lg}/wards`):[];
+  $("wardsList").textContent=wards.map(x=>`${x.code} — ${x.name}`).join(" | ")||"";
+  await fillSelect("puWard",[], "Select ward");
+}
+async function refreshPus(){
+  const st=$("puState").value,lg=$("puLga").value,ward=$("puWard").value;
+  const pus=st&&lg&&ward?await readChildren(`states/${st}/lgas/${lg}/wards/${ward}/pollingUnits`):[];
+  $("pusList").textContent=pus.map(x=>`${x.code} — ${x.name}`).join(" | ")||"";
+}
+$("saveStatesBtn").onclick=async()=>{
+  const ok=await saveNames({names:cleanNames($("stateNames").value),colRef:collection(db,"states"),width:2,parentData:{},statusEl:$("stateStatus"),inputEl:$("stateNames"),label:"state(s)"});
+  if(ok!==false)await refreshStates();
+};
+$("saveLgasBtn").onclick=async()=>{
+  const st=$("lgaState").value;if(!st){$("lgaStatus").textContent="Select a state first.";return;}
+  const state=(await getDoc(doc(db,"states",st))).data();
+  const path=`states/${st}/lgas`;
+  const ok=await saveNames({names:cleanNames($("lgaNames").value),colRef:collection(db,path),width:2,parentData:{stateId:st,stateName:state.name,stateCode:state.code},statusEl:$("lgaStatus"),inputEl:$("lgaNames"),label:"local government(s)"});
+  if(ok!==false)await refreshLgas("lgaState");
+};
+$("saveWardsBtn").onclick=async()=>{
+  const st=$("wardState").value,lg=$("wardLga").value;if(!st||!lg){$("wardStatus").textContent="Select a state and local government first.";return;}
+  const state=(await getDoc(doc(db,"states",st))).data(),lga=(await getDoc(doc(db,`states/${st}/lgas`,lg))).data();
+  const path=`states/${st}/lgas/${lg}/wards`;
+  const ok=await saveNames({names:cleanNames($("wardNames").value),colRef:collection(db,path),width:2,parentData:{stateId:st,stateName:state.name,stateCode:state.code,lgaId:lg,lgaName:lga.name,lgaCode:lga.code},statusEl:$("wardStatus"),inputEl:$("wardNames"),label:"ward(s)"});
+  if(ok!==false)await refreshWards();
+};
+$("savePusBtn").onclick=async()=>{
+  const st=$("puState").value,lg=$("puLga").value,w=$("puWard").value;if(!st||!lg||!w){$("puStatus").textContent="Select a state, local government and ward first.";return;}
+  const state=(await getDoc(doc(db,"states",st))).data(),lga=(await getDoc(doc(db,`states/${st}/lgas`,lg))).data(),ward=(await getDoc(doc(db,`states/${st}/lgas/${lg}/wards`,w))).data();
+  const path=`states/${st}/lgas/${lg}/wards/${w}/pollingUnits`;
+  const ok=await saveNames({names:cleanNames($("puNames").value),colRef:collection(db,path),width:3,parentData:{stateId:st,stateName:state.name,stateCode:state.code,lgaId:lg,lgaName:lga.name,lgaCode:lga.code,wardId:w,wardName:ward.name,wardCode:ward.code},statusEl:$("puStatus"),inputEl:$("puNames"),label:"polling unit(s)"});
+  if(ok!==false)await refreshPus();
+};
+$("lgaState").onchange=()=>refreshLgas("lgaState");
+$("wardState").onchange=()=>refreshLgas("wardState");
+$("wardLga").onchange=()=>refreshWards();
+$("puState").onchange=()=>refreshLgas("puState");
+$("puLga").onchange=async()=>{await fillSelect("puWard",[], "Select ward");const st=$("puState").value,lg=$("puLga").value;if(st&&lg){const wards=await readChildren(`states/${st}/lgas/${lg}/wards`);await fillSelect("puWard",wards,"Select ward");}};
+$("puWard").onchange=refreshPus;
+
 async function loadAccounts(){try{let s=await getDocs(query(collection(db,"userAccounts"),orderBy("createdAt","desc")));$("accounts").innerHTML="";if(s.empty){$("accounts").innerHTML='<tr><td colspan="5">No accounts yet.</td></tr>';return}s.forEach(d=>{let x=d.data(),tr=document.createElement("tr");[x.username,x.email,x.role,(x.permissions||[]).join(", "),x.active===false?"Disabled":"Active"].forEach(v=>{let td=document.createElement("td");td.textContent=v||"";tr.appendChild(td)});$("accounts").appendChild(tr)})}catch(e){$("listStatus").textContent="Account list unavailable until backend/rules are configured: "+e.message}}
 </script></body></html>
