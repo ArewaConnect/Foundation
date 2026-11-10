@@ -100,7 +100,7 @@ import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTi
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();publishFounderDashboardData().catch(e=>console.warn("Founder dashboard publishing failed:",e));loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
 
@@ -135,11 +135,37 @@ $("saveAdminProfileBtn").onclick=async()=>{
   }catch(e){$("adminProfileStatus").textContent="Profile save failed: "+e.message;}finally{$("saveAdminProfileBtn").disabled=false;}
 };
 async function publishFounderDashboardData(){
-  // Keep the Founder Dashboard's read-only mirror in sync with existing Super Admin data.
+  // Publish the exact profile fields consumed by backup-founder-dashboard.html.
+  // The Founder account reads only the shared document, not the private adminProfiles collection.
   const profileSnap=await getDoc(adminProfileRef());
-  if(profileSnap.exists())await setDoc(doc(db,"foundationSettings","profile"),profileSnap.data(),{merge:true});
+  if(profileSnap.exists()){
+    const p=profileSnap.data()||{};
+    const sharedProfile={
+      uid:auth.currentUser.uid,
+      displayName:p.displayName||"",
+      photoUrl:p.photoUrl||"",
+      ...(p.photoPublicId?{photoPublicId:p.photoPublicId}:{}),
+      updatedAt:p.updatedAt||serverTimestamp()
+    };
+    await setDoc(doc(db,"foundationSettings","profile"),sharedProfile,{merge:true});
+    $("adminProfileStatus").textContent="Founder Dashboard profile is published. Name: "+(sharedProfile.displayName||"not set")+"; photograph: "+(sharedProfile.photoUrl?"available":"not uploaded");
+  }else{
+    $("adminProfileStatus").textContent="No Administrator Profile is saved yet. Enter the founder's name, select the photo, and click Save Profile.";
+  }
+
+  // Mirror all existing programme images to the collection read by the Founder Dashboard.
   const gallerySnap=await getDocs(collection(db,"programmeGallery"));
-  for(const item of gallerySnap.docs)await setDoc(doc(db,"foundationPublicGallery",item.id),item.data(),{merge:true});
+  let published=0;
+  for(const item of gallerySnap.docs){
+    const data=item.data()||{};
+    if(!data.imageUrl)continue;
+    await setDoc(doc(db,"foundationPublicGallery",item.id),data,{merge:true});
+    published++;
+  }
+  $("carouselStatus").textContent=published
+    ? `Published ${published} programme photograph(s) to the Founder Dashboard.`
+    : "No programme photographs are saved in programmeGallery yet. Upload photographs above to publish them.";
+  return {profilePublished:profileSnap.exists(),galleryPublished:published};
 }
 async function loadProgrammeGallery(){
   try{const snap=await getDocs(query(collection(db,"programmeGallery"),orderBy("createdAt","desc")));$("programmeCarouselList").innerHTML=snap.empty?'<p class="muted">No programme photographs uploaded yet.</p>':snap.docs.map(d=>{const x=d.data();return `<div class="carousel-card"><img src="${safeText(x.imageUrl)}" alt="${safeText(x.caption||'Programme photo')}"><b>${safeText(x.caption||'Programme photo')}</b><p class="muted">${x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString():''}</p><button type="button" data-delete-gallery="${d.id}" style="background:#b91c1c;padding:8px 10px">Remove from gallery</button></div>`;}).join('');}
@@ -150,7 +176,7 @@ $("uploadCarouselBtn").onclick=async()=>{
   if(!files.length){$("carouselStatus").textContent="Select at least one programme photograph.";return;}
   if(files.length>12){$("carouselStatus").textContent="Upload a maximum of 12 photographs at a time.";return;}
   try{$("uploadCarouselBtn").disabled=true;let done=0;for(const file of files){$("carouselStatus").textContent=`Uploading photograph ${done+1} of ${files.length}…`;const uploaded=await uploadCloudinaryImage(file);const galleryData={imageUrl:uploaded.imageUrl,publicId:uploaded.publicId,caption:caption||"Programme conducted",createdAt:serverTimestamp(),createdBy:auth.currentUser.uid};const privateRef=doc(collection(db,"programmeGallery"));await setDoc(privateRef,galleryData);await setDoc(doc(db,"foundationPublicGallery",privateRef.id),galleryData);done++;}
-    $("carouselFiles").value="";$("carouselCaption").value="";$("carouselStatus").textContent=`Successfully uploaded ${done} programme photograph(s).`;await loadProgrammeGallery();
+    $("carouselFiles").value="";$("carouselCaption").value="";$("carouselStatus").textContent=`Successfully uploaded and published ${done} programme photograph(s) to the Founder Dashboard.`;await loadProgrammeGallery();
   }catch(e){$("carouselStatus").textContent="Upload stopped: "+e.message+" Any photographs already uploaded remain saved.";}finally{$("uploadCarouselBtn").disabled=false;}
 };
 document.addEventListener("click",async e=>{const b=e.target.closest("[data-delete-gallery]");if(!b)return;if(!confirm("Remove this photograph from the programme gallery? The Cloudinary original will remain in your Cloudinary account."))return;try{b.disabled=true;await deleteDoc(doc(db,"programmeGallery",b.dataset.deleteGallery));await deleteDoc(doc(db,"foundationPublicGallery",b.dataset.deleteGallery));await loadProgrammeGallery();$("carouselStatus").textContent="Photograph removed from the gallery.";}catch(err){b.disabled=false;$("carouselStatus").textContent="Could not remove photograph: "+err.message;}});
