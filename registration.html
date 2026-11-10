@@ -12,7 +12,21 @@ body{min-height:100vh;min-height:100dvh;padding:18px 12px;overflow-x:hidden;back
 body:before,body:after{content:"";position:fixed;pointer-events:none;z-index:0}
 body:before{top:-100px;left:-120px;width:430px;height:230px;background:linear-gradient(145deg,#10a9e5 0 42%,white 42% 52%,#ed1c24 52% 70%,transparent 70%);border-radius:0 0 100% 0}
 body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear-gradient(165deg,transparent 0 24%,#079b16 24% 42%,white 42% 52%,#10a9e5 52% 68%,#ed1c24 68% 80%,transparent 80%);border-radius:100% 0 0 0}
-.page{position:relative;z-index:1;width:min(100%,720px);margin:0 auto}\n.top-actions{display:flex;justify-content:flex-end;margin:0 0 6px}\n.logout-btn{border:0;border-radius:9px;background:#b91c1c;color:#fff;font-size:13px;font-weight:800;padding:9px 16px;cursor:pointer;box-shadow:0 3px 9px rgba(120,0,0,.14)}\n.logout-btn:disabled{opacity:.65;cursor:wait}
+.page{position:relative;z-index:1;width:min(100%,720px);margin:0 auto}\n.portal-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;margin:0 0 19px;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.95);border-radius:18px;box-shadow:0 8px 24px rgba(30,48,70,.10);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-mark{width:45px;height:45px;flex:0 0 45px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#0b9b37,#075b25);color:#fff;font-weight:900;font-size:15px;letter-spacing:-1px;box-shadow:0 5px 12px rgba(7,125,36,.22)}
+.brand-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.brand-copy strong{font-size:clamp(13px,2.3vw,17px);color:#14552b;line-height:1.2}
+.brand-copy span{font-size:10px;color:#718477;letter-spacing:.25px}
+.header-right{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.portal-label{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:999px;background:#edf8ef;color:#17652c;font-size:10px;font-weight:900;letter-spacing:.8px;white-space:nowrap}
+.portal-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #d4f0dc}
+.logout-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;border:1px solid #b91c1c;border-radius:11px;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;font-size:13px;font-weight:800;padding:10px 16px;cursor:pointer;box-shadow:0 5px 13px rgba(153,27,27,.20);transition:transform .18s ease,box-shadow .18s ease}
+.logout-btn:hover{transform:translateY(-1px);box-shadow:0 8px 17px rgba(153,27,27,.25)}
+.logout-icon{font-size:18px;line-height:12px}
+.portal-footer{margin:15px 0 2px;padding:13px 8px;text-align:center;color:#6b7e70;font-size:11px;line-height:1.6}
+.portal-footer strong{color:#27643a}
+@media(max-width:520px){.portal-header{padding:11px 10px;gap:8px;align-items:flex-start}.brand{gap:8px}.brand-mark{width:38px;height:38px;flex-basis:38px;border-radius:11px}.brand-copy span{font-size:9px}.header-right{gap:7px;flex-direction:column;align-items:flex-end}.portal-label{font-size:8px;padding:7px 8px}.logout-btn{font-size:11px;padding:8px 11px}.header{margin-top:4px}}
 .header{text-align:center;margin:0 0 15px}
 .header h1{font-size:clamp(22px,4vw,30px);margin:0 0 5px;color:#14552b;font-weight:800}
 .header p{margin:0;font-size:13px;color:#53705e}
@@ -47,12 +61,24 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </head>
 <body>
 <main class="page">
-<div class="top-actions">
-  <button type="button" id="logoutBtn" class="logout-btn">Logout</button>
-</div>
+<header class="portal-header">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">EH</div>
+    <div class="brand-copy">
+      <strong>Engineer Haruna Foundation</strong>
+      <span>Membership & Community Network</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="portal-label"><span class="portal-dot"></span> REGISTRATION PORTAL</div>
+    <a class="logout-btn" id="logoutBtn" href="https://arewaconnect.github.io/Foundation/index.html" aria-label="Logout and return to the foundation login page">
+      <span class="logout-icon" aria-hidden="true">↪</span> Logout
+    </a>
+  </div>
+</header>
 <header class="header">
 <h1>Member Registration</h1>
-<p>Engineer Haruna Foundation</p>
+<p>Complete the form below to register a foundation member</p>
 </header>
 <section class="form-shell">
 <div class="form-scroll">
@@ -101,6 +127,10 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 </form>
 </div>
 </section>
+<footer class="portal-footer">
+  <strong>Engineer Haruna Foundation</strong><br>
+  Official Member Registration Portal · Secure member information
+</footer>
 </main>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
@@ -109,18 +139,15 @@ firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-document.getElementById('logoutBtn').addEventListener('click',async()=>{
-  const button=document.getElementById('logoutBtn');
+document.getElementById('logoutBtn').addEventListener('click',async(event)=>{
+  event.preventDefault();
+  const destination='https://arewaconnect.github.io/Foundation/index.html';
   try{
-    button.disabled=true;
-    button.textContent='Logging out…';
     await auth.signOut();
-    window.location.reload();
   }catch(error){
-    button.disabled=false;
-    button.textContent='Logout';
-    document.getElementById('formStatus').textContent='Logout failed: '+(error.message||'Please try again.');
+    console.warn('Firebase sign-out could not be completed:',error);
   }
+  window.location.href=destination;
 });
 
 const category=document.getElementById('category');
