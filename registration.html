@@ -236,10 +236,50 @@ auth.onAuthStateChanged(user=>{
 document.getElementById('memberForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=event.submitter;button.disabled=true;button.textContent='Saving...';statusEl.textContent='';
  try{
-  const f=event.currentTarget;const data={category:category.value,teamLeaderId:teamLeader.value||null,teamLeaderName:teamLeader.selectedOptions[0]?.textContent||null,
-   fullName:f.fullName.value.trim(),gender:f.gender.value,age:Number(f.age.value),phone:f.phone.value.trim(),businessType:f.businessType.value.trim(),
-   accountName:f.accountName.value.trim(),accountNumber:f.accountNumber.value.trim(),
-   voterCardCode:f.voterCardCode.value,photoDataUrl:null,createdAt:firebase.firestore.FieldValue.serverTimestamp(),verified:false};
+  const f=event.currentTarget;
+  if(!['Team Leader','Polling Unit Agent','Mobilization Agent','Member'].includes(category.value)){
+   throw new Error('Please select a valid membership category.');
+  }
+  if(category.value!=='Team Leader'&&!teamLeader.value){
+   throw new Error('Please select a registered Team Leader.');
+  }
+  const voterCardCode=String(f.voterCardCode.value||'').replace(/\\D/g,'');
+  if(!/^\\d{9}$/.test(voterCardCode)){
+   throw new Error('Voter’s Card Code must contain exactly 9 digits.');
+  }
+
+  // Matches the 9-digit code structure already used by the Founder Dashboard:
+  // State (2) + LGA (2) + Ward (2) + Polling Unit (3).
+  const stateCode=voterCardCode.slice(0,2);
+  const lgaCode=voterCardCode.slice(2,4);
+  const wardCode=voterCardCode.slice(4,6);
+  const pollingUnitCode=voterCardCode.slice(6,9);
+
+  const selectedLeader=category.value==='Team Leader'?null:teamLeader.value||null;
+  const selectedLeaderName=selectedLeader
+   ? (teamLeader.selectedOptions[0]?.textContent||null)
+   : null;
+
+  const data={
+   category:category.value,
+   teamLeaderId:selectedLeader,
+   teamLeaderName:selectedLeaderName,
+   fullName:f.fullName.value.trim(),
+   gender:f.gender.value,
+   age:Number(f.age.value),
+   phone:f.phone.value.trim(),
+   businessType:f.businessType.value.trim(),
+   accountName:f.accountName.value.trim(),
+   accountNumber:f.accountNumber.value.trim(),
+   voterCardCode,
+   stateCode,
+   lgaCode,
+   wardCode,
+   pollingUnitCode,
+   photoDataUrl:null,
+   createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+   verified:false
+  };
   const photo=document.getElementById('memberPhoto').files?.[0];
   if(photo){
    const compressedPhoto=await compressMemberPhoto(photo,500);
