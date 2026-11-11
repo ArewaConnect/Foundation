@@ -710,7 +710,65 @@ async function loadProgrammeGallery(){
   }
 }
 
-function voterLocation(m){const code=String(m.voterCardCode||"").replace(/\s/g,"");return /^\d{9}$/.test(code)?{stateId:code.slice(0,2),lgaId:code.slice(2,4),wardId:code.slice(4,6)}:null;}
+function voterLocation(m){
+  const code=String(m.voterCardCode||"").replace(/\s/g,"");
+  const valid=/^\d{9}$/.test(code);
+  const stateId=String(m.stateCode||m.stateId||(valid?code.slice(0,2):"")).trim();
+  const lgaId=String(m.lgaCode||m.lgaId||(valid?code.slice(2,4):"")).trim();
+  const wardId=String(m.wardCode||m.wardId||(valid?code.slice(4,6):"")).trim();
+  const pollingUnitId=String(m.pollingUnitCode||m.pollingUnitId||(valid?code.slice(6,9):"")).trim();
+  return stateId&&lgaId&&wardId&&pollingUnitId?{stateId,lgaId,wardId,pollingUnitId}:null;
+}
+
+// Resolve names for every saved member from the same hierarchy managed by Super Admin.
+// This also repairs the display of older records that contain only numeric location codes.
+async function resolveMemberLocations(members){
+  const cache=new Map();
+  const jobs=members.map(async member=>{
+    const loc=voterLocation(member);
+    if(!loc){
+      member.stateName=member.stateName||"Not provided";
+      member.lgaName=member.lgaName||"Not provided";
+      member.wardName=member.wardName||"Not provided";
+      member.pollingUnitName=member.pollingUnitName||"Not provided";
+      return;
+    }
+    const key=[loc.stateId,loc.lgaId,loc.wardId,loc.pollingUnitId].join("_");
+    if(!cache.has(key)){
+      cache.set(key,(async()=>{
+        const [stateSnap,lgaSnap,wardSnap,unitSnap]=await Promise.all([
+          getDoc(doc(db,"states",loc.stateId)),
+          getDoc(doc(db,"states",loc.stateId,"lgas",loc.lgaId)),
+          getDoc(doc(db,"states",loc.stateId,"lgas",loc.lgaId,"wards",loc.wardId)),
+          getDoc(doc(db,"states",loc.stateId,"lgas",loc.lgaId,"wards",loc.wardId,"pollingUnits",loc.pollingUnitId))
+        ]);
+        const readName=(snap)=>snap.exists()?((snap.data()||{}).name||""):"";
+        return {
+          stateName:readName(stateSnap),
+          lgaName:readName(lgaSnap),
+          wardName:readName(wardSnap),
+          pollingUnitName:readName(unitSnap)
+        };
+      })());
+    }
+    try{
+      const names=await cache.get(key);
+      member.stateName=names.stateName||member.stateName||"Location unavailable";
+      member.lgaName=names.lgaName||member.lgaName||"Location unavailable";
+      member.wardName=names.wardName||member.wardName||"Location unavailable";
+      member.pollingUnitName=names.pollingUnitName||member.pollingUnitName||"Location unavailable";
+    }catch(error){
+      console.warn("Could not resolve member location:",key,error);
+      member.stateName=member.stateName||"Location unavailable";
+      member.lgaName=member.lgaName||"Location unavailable";
+      member.wardName=member.wardName||"Location unavailable";
+      member.pollingUnitName=member.pollingUnitName||"Location unavailable";
+    }
+  });
+  await Promise.all(jobs);
+  return members;
+}
+
 async function loadWardHierarchy(){
   const wards=[],states=await getDocs(collection(db,"states"));
   for(const s of states.docs){
@@ -767,6 +825,7 @@ async function loadDashboardData(){
   try{
     const ms=await getDocs(collection(db,"members"));
     members=ms.docs.map(d=>({id:d.id,...d.data()}));
+    await resolveMemberLocations(members);
     window.foundationMemberRecords=members;
     if(!document.getElementById('recordsPage').hidden)renderFoundationRecords();
   }catch(e){
