@@ -36,6 +36,8 @@
 .admin-nav .admin-logout-btn{background:#b91c1c;color:#fff;border:1px solid #b91c1c;margin-left:8px}
 .admin-nav .admin-logout-btn:hover{background:#991b1b}
 .admin-topbar{padding:8px 10px}
+
+.admin-section[hidden]{display:none!important}
 </style></head><body><main class="wrap"><section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
 <div id="adminApp" hidden>
 <div class="admin-topbar" id="adminTopbar">
@@ -460,16 +462,29 @@ $("membersTableBody").addEventListener("click",async e=>{
   }
 });
 
-// Horizontal section navigation: the buttons scroll across on small screens and open one workspace at a time.
+// Single-page workspace navigation: show only the selected section.
+function showAdminSection(sectionId){
+  const sectionIds=["membersManager","programmeManager","locationManager","accountsManager","createdAccountsSection","profileGalleryManager"];
+  sectionIds.forEach(id=>{
+    const section=$(id);
+    if(section)section.hidden=(id!==sectionId);
+  });
+  document.querySelectorAll("[data-admin-section]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.adminSection===sectionId);
+  });
+  if(sectionId==="membersManager")loadAdminMembers();
+  if(sectionId==="programmeManager")loadProgrammes();
+  if(sectionId==="locationManager")refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message;});
+  if(sectionId==="createdAccountsSection")loadAccounts();
+}
 document.querySelectorAll("[data-admin-section]").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    const target=$(btn.dataset.adminSection);
-    if(!target)return;
-    document.querySelectorAll("[data-admin-section]").forEach(x=>x.classList.toggle("active",x===btn));
-    target.scrollIntoView({behavior:"smooth",block:"start"});
-    if(btn.dataset.adminSection==="membersManager")loadAdminMembers();
+    const sectionId=btn.dataset.adminSection;
+    if($(sectionId))showAdminSection(sectionId);
   });
 });
+// Always open on Members after successful Super Admin sign-in.
+showAdminSection("membersManager");
 
 // Admin profile and programme gallery (Cloudinary image storage + Firestore metadata)
 const CLOUDINARY_NAME="dgkjolqpt", CLOUDINARY_PRESET="EHFoundation";
