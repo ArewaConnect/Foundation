@@ -1,7 +1,103 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}textarea{min-height:110px;resize:vertical}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}.profile-photo{width:92px;height:92px;border-radius:50%;object-fit:cover;background:#e2e8f0;border:3px solid #16a34a}.carousel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.carousel-card{background:#fff;border:1px solid #dbe5df;border-radius:12px;padding:8px}.carousel-card img{width:100%;height:125px;object-fit:cover;border-radius:8px}.profile-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.state-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid #e2e8f0}.state-actions{display:flex;gap:6px}.state-actions button{padding:7px 10px;font-size:12px}.state-edit{background:#2563eb}.state-delete{background:#b91c1c}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EH Foundation Super Admin</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial;background:linear-gradient(135deg,#f8fafc,#eaf4ff,#fff0f1);color:#173b2b}.wrap{max-width:1000px;margin:auto;padding:16px}.panel{background:#ffffffc9;border:1px solid white;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #1e407015}h1,h2{margin:0 0 12px}h2{color:#166534;font-size:20px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:12px;font-weight:bold;margin:8px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}textarea{min-height:110px;resize:vertical}button{background:#078b25;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:bold;cursor:pointer}.muted{font-size:13px;color:#64748b;line-height:1.5}.status{margin-top:10px;font-size:13px}.permissions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.permissions label{font-weight:normal;display:flex;align-items:center;gap:8px}.permissions input{width:auto}.profile-photo{width:92px;height:92px;border-radius:50%;object-fit:cover;background:#e2e8f0;border:3px solid #16a34a}.carousel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.carousel-card{background:#fff;border:1px solid #dbe5df;border-radius:12px;padding:8px}.carousel-card img{width:100%;height:125px;object-fit:cover;border-radius:8px}.profile-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.state-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid #e2e8f0}.state-actions{display:flex;gap:6px}.state-actions button{padding:7px 10px;font-size:12px}.state-edit{background:#2563eb}.state-delete{background:#b91c1c}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:9px;border-bottom:1px solid #e2e8f0}@media(max-width:600px){.grid,.permissions{grid-template-columns:1fr}}
+/* Super Admin section navigation */
+.admin-topbar{position:sticky;top:0;z-index:50;background:rgba(248,250,252,.96);backdrop-filter:blur(12px);border:1px solid #dbe8df;border-radius:16px;padding:10px;margin:12px 0;box-shadow:0 8px 24px #173b2b12}
+.admin-nav{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}
+.admin-nav button{white-space:nowrap;flex:0 0 auto;background:#edf6ef;color:#17613a;border:1px solid #cfe3d4;padding:11px 16px;border-radius:999px}
+.admin-nav button.active{background:#087b36;color:#fff;border-color:#087b36}
+.admin-section{scroll-margin-top:145px}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.member-toolbar{display:grid;grid-template-columns:minmax(180px,2fr) repeat(2,minmax(130px,1fr));gap:9px;margin:12px 0}
+.member-table-wrap{overflow:auto;border:1px solid #dbe5df;border-radius:12px;background:#fff}
+.member-table{min-width:850px}
+.member-photo-small{width:42px;height:42px;border-radius:9px;object-fit:cover;background:#e2e8f0;vertical-align:middle}
+.member-action{padding:7px 10px;margin:2px;font-size:12px}
+.member-edit{background:#2563eb}.member-verify{background:#168b43}.member-delete{background:#b91c1c}
+.member-modal{position:fixed;inset:0;z-index:1000;background:#0f172a99;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow:auto}
+.member-modal.open{display:flex}
+.member-modal-card{width:min(900px,100%);background:#fff;border-radius:18px;padding:18px;margin:auto;box-shadow:0 24px 70px #0004}
+.member-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:#fff;padding-bottom:10px;z-index:1}
+.member-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.member-modal-grid .wide{grid-column:1/-1}
+.member-status{display:inline-block;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:bold;background:#fff3cd;color:#856404}
+.member-status.verified{background:#dcfce7;color:#166534}
+.member-status.rejected{background:#fee2e2;color:#991b1b}
+@media(max-width:650px){.member-toolbar,.member-modal-grid{grid-template-columns:1fr}.member-modal-grid .wide{grid-column:auto}.admin-topbar{margin-left:-4px;margin-right:-4px}.admin-section{scroll-margin-top:155px}}
+</style></head><body><main class="wrap"><header style="display:flex;justify-content:space-between;align-items:center"><strong>Engineer Haruna Foundation<br><small>Super Admin Control Center</small></strong><button id="logoutBtn">Logout</button></header>
 <section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
-<div id="adminApp" hidden><section class="panel"><h1>Super Admin Dashboard</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section>
-<section class="panel" id="adminProfileManager">
+<div id="adminApp" hidden>
+<div class="admin-topbar" id="adminTopbar">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:2px 4px 8px">
+    <strong style="color:#166534">EH Foundation · Super Admin</strong>
+    <span class="muted">Choose a section below</span>
+  </div>
+  <nav class="admin-nav" id="adminSectionNav" aria-label="Super Admin sections">
+    <button type="button" class="active" data-admin-section="membersManager">Members</button>
+    <button type="button" data-admin-section="programmeManager">Programmes</button>
+    <button type="button" data-admin-section="locationManager">Manage Locations</button>
+    <button type="button" data-admin-section="accountsManager">Create Accounts</button>
+    <button type="button" data-admin-section="createdAccountsSection">Accounts List</button>
+    <button type="button" data-admin-section="profileGalleryManager">Profile & Gallery</button>
+  </nav>
+</div>
+
+<section class="panel admin-section" id="membersManager">
+  <div class="section-heading">
+    <div><h2>Members Management</h2><p class="muted">View every registered member, search records, edit member information and verify or delete a member.</p></div>
+    <button type="button" id="refreshMembersBtn">Refresh Members</button>
+  </div>
+  <div class="member-toolbar">
+    <input id="memberSearchInput" placeholder="Search name, phone, voter code, account name…">
+    <select id="memberStatusFilter"><option value="all">All verification statuses</option><option value="pending">Pending</option><option value="verified">Verified</option><option value="rejected">Rejected</option></select>
+    <select id="memberRoleFilter"><option value="">All member categories</option><option>Team Leader</option><option>Polling Unit Agent</option><option>Mobilization Agent</option><option>Member</option></select>
+  </div>
+  <div class="muted" id="membersSummary">Loading members…</div>
+  <div class="member-table-wrap" style="margin-top:10px">
+    <table class="member-table">
+      <thead><tr><th>Photo</th><th>Member</th><th>Phone</th><th>Role</th><th>Location</th><th>Verification</th><th>Actions</th></tr></thead>
+      <tbody id="membersTableBody"><tr><td colspan="7">Loading members…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="status" id="membersStatus"></div>
+</section>
+
+<div class="member-modal" id="memberEditModal" role="dialog" aria-modal="true" aria-labelledby="memberEditTitle">
+  <div class="member-modal-card">
+    <div class="member-modal-head">
+      <div><h2 id="memberEditTitle">Edit Member</h2><p class="muted">Update the saved member record. Location names are resolved from the Super Admin location database.</p></div>
+      <button type="button" id="closeMemberModalBtn" style="background:#64748b">Close</button>
+    </div>
+    <form id="memberEditForm">
+      <input type="hidden" id="editMemberId">
+      <div class="member-modal-grid">
+        <div><label>Full name</label><input id="editFullName" required></div>
+        <div><label>Phone number</label><input id="editPhone"></div>
+        <div><label>Member category / role</label><select id="editCategory"><option>Team Leader</option><option>Polling Unit Agent</option><option>Mobilization Agent</option><option>Member</option></select></div>
+        <div><label>Gender</label><select id="editGender"><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div><label>Age</label><input id="editAge" type="number" min="1" max="120"></div>
+        <div><label>Business type</label><input id="editBusinessType"></div>
+        <div><label>Account name</label><input id="editAccountName"></div>
+        <div><label>Account number</label><input id="editAccountNumber"></div>
+        <div><label>Bank name</label><input id="editBankName"></div>
+        <div><label>Voter’s Card Code (9 digits)</label><input id="editVoterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}"></div>
+        <div><label>State name</label><input id="editStateName" readonly></div>
+        <div><label>L.G.A. name</label><input id="editLgaName" readonly></div>
+        <div><label>Ward name</label><input id="editWardName" readonly></div>
+        <div><label>Polling Unit name</label><input id="editPollingUnitName" readonly></div>
+        <div><label>Verification status</label><select id="editVerification"><option value="pending">Pending</option><option value="verified">Verified</option><option value="rejected">Rejected</option></select></div>
+        <div><label>Replace member photograph (optional)</label><input id="editMemberPhoto" type="file" accept="image/*"></div>
+        <div class="wide"><label>Team Leader</label><input id="editTeamLeaderName" placeholder="Team Leader name (if applicable)"></div>
+      </div>
+      <p class="muted" id="editLocationStatus">Enter or change the 9-digit location code to resolve the official State, L.G.A., Ward and Polling Unit names.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button type="submit" id="saveMemberChangesBtn">Save Member Changes</button>
+        <button type="button" id="cancelMemberEditBtn" style="background:#64748b">Cancel</button>
+      </div>
+      <div class="status" id="memberEditStatus"></div>
+    </form>
+  </div>
+</div>
+<section class="panel admin-section" id="accountsManager"><h1>Accounts & Access</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section>
+<section class="panel admin-section" id="profileGalleryManager">
 <h2>Admin Profile & Programme Gallery</h2>
 <p class="muted">Manage the administrator display name and profile photograph, and publish photographs of programmes conducted.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
@@ -17,7 +113,7 @@
 <div id="programmeCarouselList" class="carousel-grid" style="margin-top:14px"></div>
 </div>
 </section>
-<section class="panel" id="locationManager">
+<section class="panel admin-section" id="locationManager">
 <h2>BOTAS Photo — Location Management</h2>
 <p class="muted">State codes follow Nigeria’s alphabetical state order and can be edited. LGA, ward and polling-unit codes are generated automatically within their parent locations.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
@@ -51,7 +147,7 @@
 </div>
 <p class="muted"><b>Code format:</b> State (2 digits) + LGA (2 digits) + Ward (2 digits) + Polling Unit (3 digits). Example: 06 04 01 001. The serial codes are scoped to their parent location.</p>
 </section>
-<section class="panel" id="programmeManager">
+<section class="panel admin-section" id="programmeManager">
 <h2>Programme & Beneficiary Management</h2>
 <p class="muted">Create assistance programmes, select beneficiaries using their member cards, assign equal or individual quantities, and record confirmed receipt. Distribution records are retained for audit.</p>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
@@ -92,7 +188,7 @@
 <h3 id="distributionTitle">Distribution Register</h3><div id="distributionList"></div>
 </div>
 </section>
-<section class="panel"><h2>Created Accounts</h2><p class="muted">Profiles are stored in Firestore. Firebase Authentication users must be created separately in Firebase Console.</p><div style="overflow-x:auto"><table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Permissions</th><th>Status</th></tr></thead><tbody id="accounts"><tr><td colspan="5">No accounts yet.</td></tr></tbody></table></div><div id="listStatus" class="status"></div></section></div></main>
+<section class="panel admin-section" id="createdAccountsSection"><h2>Created Accounts</h2><p class="muted">Profiles are stored in Firestore. Firebase Authentication users must be created separately in Firebase Console.</p><div style="overflow-x:auto"><table><thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Permissions</th><th>Status</th></tr></thead><tbody id="accounts"><tr><td colspan="5">No accounts yet.</td></tr></tbody></table></div><div id="listStatus" class="status"></div></section></div></main>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -100,9 +196,216 @@ import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTi
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();loadAdminMembers();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
+
+
+// =====================================
+// MEMBER MANAGEMENT (Super Admin only)
+// =====================================
+let allAdminMembers=[];
+let editingMemberOriginalCode="";
+const memberStatusLabel=m=>{
+  const status=String(m.verificationStatus||"").toLowerCase();
+  if(status==="rejected")return "rejected";
+  if(status==="verified"||m.verified===true)return "verified";
+  return "pending";
+};
+function memberLocationText(m){
+  const vals=[m.stateName||m.stateCode,m.lgaName||m.lgaCode,m.wardName||m.wardCode,m.pollingUnitName||m.pollingUnitCode].filter(Boolean);
+  return vals.length?vals.join(" · "):"Location not provided";
+}
+function renderAdminMembers(){
+  const q=$("memberSearchInput").value.trim().toLowerCase();
+  const status=$("memberStatusFilter").value;
+  const role=$("memberRoleFilter").value;
+  const rows=allAdminMembers.filter(m=>{
+    const hay=[m.fullName,m.phone,m.voterCardCode,m.accountName,m.accountNumber,m.stateName,m.lgaName,m.wardName,m.pollingUnitName].join(" ").toLowerCase();
+    return (!q||hay.includes(q))&&(!role||m.category===role)&&(status==="all"||memberStatusLabel(m)===status);
+  });
+  $("membersSummary").textContent=`Showing ${rows.length} of ${allAdminMembers.length} member record(s).`;
+  $("membersTableBody").innerHTML=rows.length?rows.map(m=>{
+    const st=memberStatusLabel(m);
+    const photo=m.photoDataUrl?`<img class="member-photo-small" src="${safeText(m.photoDataUrl)}" alt="">`:'<span class="member-photo-small" style="display:inline-grid;place-items:center">—</span>';
+    return `<tr>
+      <td>${photo}</td>
+      <td><b>${safeText(m.fullName||"Unnamed member")}</b><div class="muted">${safeText(m.accountName||"")}</div></td>
+      <td>${safeText(m.phone||"Not provided")}</td>
+      <td>${safeText(m.category||"Member")}</td>
+      <td>${safeText(memberLocationText(m))}</td>
+      <td><span class="member-status ${st}">${st[0].toUpperCase()+st.slice(1)}</span></td>
+      <td style="white-space:nowrap">
+        <button type="button" class="member-action member-edit" data-edit-member="${safeText(m.id)}">Edit</button>
+        ${st==="verified"?'<button type="button" class="member-action" style="background:#64748b" disabled>Verified ✓</button>':`<button type="button" class="member-action member-verify" data-verify-member="${safeText(m.id)}">Verify</button>`}
+        <button type="button" class="member-action member-delete" data-delete-member="${safeText(m.id)}">Delete</button>
+      </td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="7" class="muted">No members match this search or filter.</td></tr>';
+}
+async function loadAdminMembers(){
+  $("membersStatus").textContent="Loading member records…";
+  try{
+    const snap=await getDocs(collection(db,"members"));
+    allAdminMembers=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const av=a.createdAt?.toMillis?a.createdAt.toMillis():0,bv=b.createdAt?.toMillis?b.createdAt.toMillis():0;
+      return bv-av;
+    });
+    renderAdminMembers();
+    $("membersStatus").textContent="Member records loaded successfully.";
+  }catch(e){
+    $("membersTableBody").innerHTML='<tr><td colspan="7">Members could not be loaded.</td></tr>';
+    $("membersStatus").textContent="Could not load members: "+e.message+". Check that Super Admin has read permission for the members collection.";
+  }
+}
+function openMemberEditor(m){
+  $("memberEditForm").reset();
+  $("editMemberId").value=m.id;
+  $("editFullName").value=m.fullName||"";
+  $("editPhone").value=m.phone||"";
+  $("editCategory").value=["Team Leader","Polling Unit Agent","Mobilization Agent","Member"].includes(m.category)?m.category:"Member";
+  $("editGender").value=m.gender||"";
+  $("editAge").value=m.age??"";
+  $("editBusinessType").value=m.businessType||"";
+  $("editAccountName").value=m.accountName||"";
+  $("editAccountNumber").value=m.accountNumber||"";
+  $("editBankName").value=m.bankName||"";
+  $("editVoterCardCode").value=String(m.voterCardCode||[m.stateCode,m.lgaCode,m.wardCode,m.pollingUnitCode].filter(Boolean).join("")).replace(/\D/g,"");
+  $("editStateName").value=m.stateName||"";
+  $("editLgaName").value=m.lgaName||"";
+  $("editWardName").value=m.wardName||"";
+  $("editPollingUnitName").value=m.pollingUnitName||"";
+  $("editVerification").value=memberStatusLabel(m);
+  $("editTeamLeaderName").value=m.teamLeaderName||"";
+  $("memberEditStatus").textContent="";
+  $("editLocationStatus").textContent="Saved location: "+memberLocationText(m);
+  editingMemberOriginalCode=$("editVoterCardCode").value;
+  $("memberEditModal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeMemberEditor(){
+  $("memberEditModal").classList.remove("open");
+  document.body.style.overflow="";
+}
+async function resolveAdminMemberLocation(rawCode){
+  const code=String(rawCode||"").replace(/\D/g,"");
+  if(!/^\d{9}$/.test(code))throw new Error("Voter’s Card Code must contain exactly 9 digits.");
+  const stateId=code.slice(0,2),lgaId=code.slice(2,4),wardId=code.slice(4,6),pollingUnitId=code.slice(6,9);
+  const refs=[
+    doc(db,"states",stateId),
+    doc(db,"states",stateId,"lgas",lgaId),
+    doc(db,"states",stateId,"lgas",lgaId,"wards",wardId),
+    doc(db,"states",stateId,"lgas",lgaId,"wards",wardId,"pollingUnits",pollingUnitId)
+  ];
+  const snaps=await Promise.all(refs.map(getDoc));
+  const labels=["State","Local Government","Ward","Polling Unit"];
+  const missing=snaps.findIndex(s=>!s.exists());
+  if(missing>=0)throw new Error(labels[missing]+" code "+[stateId,lgaId,wardId,pollingUnitId][missing]+" was not found in Super Admin Location Management.");
+  return {
+    voterCardCode:code,
+    stateCode:stateId,stateId,stateName:snaps[0].data().name||"",
+    lgaCode:lgaId,lgaId,lgaName:snaps[1].data().name||"",
+    wardCode:wardId,wardId,wardName:snaps[2].data().name||"",
+    pollingUnitCode:pollingUnitId,pollingUnitId,pollingUnitName:snaps[3].data().name||""
+  };
+}
+$("editVoterCardCode").addEventListener("change",async()=>{
+  const code=$("editVoterCardCode").value.trim();
+  if(!code||code===editingMemberOriginalCode)return;
+  try{
+    $("editLocationStatus").textContent="Looking up location names…";
+    const loc=await resolveAdminMemberLocation(code);
+    $("editStateName").value=loc.stateName;$("editLgaName").value=loc.lgaName;$("editWardName").value=loc.wardName;$("editPollingUnitName").value=loc.pollingUnitName;
+    $("editLocationStatus").textContent=`Resolved: ${loc.stateName} · ${loc.lgaName} · ${loc.wardName} · ${loc.pollingUnitName}`;
+  }catch(e){$("editLocationStatus").textContent="Location lookup failed: "+e.message;}
+});
+$("memberEditForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const id=$("editMemberId").value,button=$("saveMemberChangesBtn");
+  const original=allAdminMembers.find(x=>x.id===id);
+  if(!original){$("memberEditStatus").textContent="Member record not found. Refresh the list.";return;}
+  try{
+    button.disabled=true;$("memberEditStatus").textContent="Saving member changes…";
+    const code=$("editVoterCardCode").value.replace(/\D/g,"");
+    const loc=await resolveAdminMemberLocation(code);
+    const verification=$("editVerification").value;
+    const updates={
+      fullName:$("editFullName").value.trim(),
+      phone:$("editPhone").value.trim(),
+      category:$("editCategory").value,
+      gender:$("editGender").value,
+      age:$("editAge").value?Number($("editAge").value):null,
+      businessType:$("editBusinessType").value.trim(),
+      accountName:$("editAccountName").value.trim(),
+      accountNumber:$("editAccountNumber").value.trim(),
+      bankName:$("editBankName").value.trim(),
+      teamLeaderName:$("editTeamLeaderName").value.trim()||null,
+      ...loc,
+      verified:verification==="verified",
+      verificationStatus:verification,
+      ...(verification==="verified"?{verifiedAt:serverTimestamp(),verifiedBy:auth.currentUser.uid}:{}),
+      updatedAt:serverTimestamp(),
+      updatedBy:auth.currentUser.uid
+    };
+    const photo=$("editMemberPhoto").files?.[0];
+    if(photo){
+      if(!photo.type.startsWith("image/"))throw new Error("Choose a valid image file.");
+      if(photo.size>5*1024*1024)throw new Error("Member photograph must be 5 MB or smaller.");
+      updates.photoDataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(photo);});
+    }
+    if(verification==="rejected"){updates.rejectedAt=serverTimestamp();updates.rejectedBy=auth.currentUser.uid;}
+    await updateDoc(doc(db,"members",id),updates);
+    $("memberEditStatus").textContent="Member updated successfully.";
+    closeMemberEditor();await loadAdminMembers();
+  }catch(err){$("memberEditStatus").textContent="Could not save changes: "+err.message;}
+  finally{button.disabled=false;}
+});
+$("closeMemberModalBtn").onclick=closeMemberEditor;
+$("cancelMemberEditBtn").onclick=closeMemberEditor;
+$("memberEditModal").addEventListener("click",e=>{if(e.target===$("memberEditModal"))closeMemberEditor();});
+$("memberSearchInput").oninput=renderAdminMembers;
+$("memberStatusFilter").onchange=renderAdminMembers;
+$("memberRoleFilter").onchange=renderAdminMembers;
+$("refreshMembersBtn").onclick=loadAdminMembers;
+$("membersTableBody").addEventListener("click",async e=>{
+  const edit=e.target.closest("[data-edit-member]");
+  const verify=e.target.closest("[data-verify-member]");
+  const del=e.target.closest("[data-delete-member]");
+  if(edit){const m=allAdminMembers.find(x=>x.id===edit.dataset.editMember);if(m)openMemberEditor(m);return;}
+  if(verify){
+    const id=verify.dataset.verifyMember,m=allAdminMembers.find(x=>x.id===id);
+    if(!m||!confirm("Mark "+(m.fullName||"this member")+" as VERIFIED?"))return;
+    try{
+      verify.disabled=true;
+      await updateDoc(doc(db,"members",id),{verified:true,verificationStatus:"verified",verifiedAt:serverTimestamp(),verifiedBy:auth.currentUser.uid,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid});
+      await addDoc(collection(db,"memberAudit"),{memberId:id,memberName:m.fullName||"",action:"verified",performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});
+      await loadAdminMembers();
+    }catch(err){$("membersStatus").textContent="Verification failed: "+err.message;verify.disabled=false;}
+    return;
+  }
+  if(del){
+    const id=del.dataset.deleteMember,m=allAdminMembers.find(x=>x.id===id);
+    if(!m||!confirm("Permanently delete "+(m.fullName||"this member")+"? This cannot be undone."))return;
+    try{
+      del.disabled=true;
+      await addDoc(collection(db,"memberAudit"),{memberId:id,memberName:m.fullName||"",action:"deleted",performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});
+      await deleteDoc(doc(db,"members",id));
+      await loadAdminMembers();
+      $("membersStatus").textContent="Member record deleted.";
+    }catch(err){$("membersStatus").textContent="Delete failed: "+err.message;del.disabled=false;}
+  }
+});
+
+// Horizontal section navigation: the buttons scroll across on small screens and open one workspace at a time.
+document.querySelectorAll("[data-admin-section]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const target=$(btn.dataset.adminSection);
+    if(!target)return;
+    document.querySelectorAll("[data-admin-section]").forEach(x=>x.classList.toggle("active",x===btn));
+    target.scrollIntoView({behavior:"smooth",block:"start"});
+    if(btn.dataset.adminSection==="membersManager")loadAdminMembers();
+  });
+});
 
 // Admin profile and programme gallery (Cloudinary image storage + Firestore metadata)
 const CLOUDINARY_NAME="dgkjolqpt", CLOUDINARY_PRESET="EHFoundation";
