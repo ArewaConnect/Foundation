@@ -71,6 +71,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 .field input:focus,.field select:focus{border-color:#16983a;box-shadow:0 0 0 3px rgba(22,163,74,.10)}
 .full{grid-column:1/-1}
 .helper{font-size:11px;color:#63766a;margin-top:5px;line-height:1.4}
+.location-lookup{margin-top:8px;padding:10px 12px;border:1px solid #d8e8dc;border-radius:10px;background:rgba(240,249,242,.9);font-size:12px;line-height:1.65;color:#31543a;min-height:38px}.location-lookup strong{color:#14552b}.location-lookup.error{background:#fff5f5;border-color:#fecaca;color:#991b1b}.location-lookup.loading{color:#526b59}
 .hidden{display:none!important}
 .submit-row{display:flex;justify-content:flex-end;margin-top:15px}
 .submit-btn{border:0;border-radius:11px;background:#079b24;color:#fff;font-size:15px;font-weight:800;padding:12px 25px;cursor:pointer;box-shadow:0 5px 12px rgba(0,120,25,.16)}
@@ -141,7 +142,7 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 
 <div class="section-title" style="margin-top:16px">Voter’s Card Code</div>
 <div class="grid">
-<div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="070105002" autocomplete="off"></div>
+<div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit location code" autocomplete="off"><div class="helper">Enter the 9-digit location code: State (2) + LGA (2) + Ward (2) + Polling Unit (3). The names below are retrieved directly from Super Admin location records.</div><div id="locationLookup" class="location-lookup" aria-live="polite">Location details will appear here when you enter the code.</div></div>
 </div>
 <div class="submit-row"><button class="submit-btn" type="submit">Register Member</button></div>
 <div class="status" id="formStatus" aria-live="polite"></div>
@@ -235,6 +236,79 @@ async function compressMemberPhoto(file,targetKB=500){
 }
 
 const statusEl=document.getElementById('formStatus');
+const locationLookupEl=document.getElementById('locationLookup');
+let locationLookupRequest=0;
+let resolvedVoterLocation=null;
+
+// Read the exact nested Firestore hierarchy created by Super Admin:
+// states/{stateCode}/lgas/{lgaCode}/wards/{wardCode}/pollingUnits/{pollingUnitCode}
+async function resolveVoterLocation(code){
+  if(!/^\d{9}$/.test(code)) throw new Error('Enter all 9 digits to identify the complete polling unit.');
+  const stateCode=code.slice(0,2),lgaCode=code.slice(2,4),wardCode=code.slice(4,6),pollingUnitCode=code.slice(6,9);
+  const stateSnap=await db.collection('states').doc(stateCode).get();
+  if(!stateSnap.exists) throw new Error('State code '+stateCode+' was not found in Super Admin. Check the state code.');
+  const state=stateSnap.data()||{};
+  const lgaSnap=await db.collection('states').doc(stateCode).collection('lgas').doc(lgaCode).get();
+  if(!lgaSnap.exists) throw new Error('LGA code '+lgaCode+' was not found under '+(state.name||stateCode)+'.');
+  const lga=lgaSnap.data()||{};
+  const wardSnap=await db.collection('states').doc(stateCode).collection('lgas').doc(lgaCode).collection('wards').doc(wardCode).get();
+  if(!wardSnap.exists) throw new Error('Ward code '+wardCode+' was not found under '+(lga.name||lgaCode)+'.');
+  const ward=wardSnap.data()||{};
+  const puSnap=await db.collection('states').doc(stateCode).collection('lgas').doc(lgaCode).collection('wards').doc(wardCode).collection('pollingUnits').doc(pollingUnitCode).get();
+  if(!puSnap.exists) throw new Error('Polling Unit code '+pollingUnitCode+' was not found under '+(ward.name||wardCode)+'.');
+  const pollingUnit=puSnap.data()||{};
+  return {
+    voterCardCode:code,
+    stateId:stateSnap.id,stateCode,stateName:state.name||'',
+    lgaId:lgaSnap.id,lgaCode,lgaName:lga.name||'',
+    wardId:wardSnap.id,wardCode,wardName:ward.name||'',
+    pollingUnitId:puSnap.id,pollingUnitCode,pollingUnitName:pollingUnit.name||''
+  };
+}
+
+function showLocationLookup(location){
+  locationLookupEl.classList.remove('error','loading');
+  locationLookupEl.textContent='';
+  const rows=[
+    ['State',location.stateName,location.stateCode],
+    ['LGA',location.lgaName,location.lgaCode],
+    ['Ward',location.wardName,location.wardCode],
+    ['Polling Unit',location.pollingUnitName,location.pollingUnitCode]
+  ];
+  rows.forEach(([label,name,code])=>{
+    const line=document.createElement('div');
+    const strong=document.createElement('strong');strong.textContent=label+': ';
+    line.append(strong,document.createTextNode((name||'Name not set')+' ('+code+')'));
+    locationLookupEl.appendChild(line);
+  });
+  const success=document.createElement('div');success.style.fontWeight='700';success.style.marginTop='4px';success.style.color='#16803a';success.textContent='Location verified from Super Admin.';locationLookupEl.appendChild(success);
+}
+
+async function updateLocationLookup(){
+  const code=document.getElementById('voterCardCode').value;
+  const requestId=++locationLookupRequest;
+  resolvedVoterLocation=null;
+  locationLookupEl.classList.remove('error');
+  if(!code){locationLookupEl.classList.remove('loading');locationLookupEl.textContent='Location details will appear here when you enter the code.';return;}
+  if(code.length<9){
+    locationLookupEl.classList.remove('loading');
+    locationLookupEl.textContent='Code entered: '+code.length+'/9 digits. Complete the code to retrieve State, LGA, Ward and Polling Unit names.';
+    return;
+  }
+  locationLookupEl.classList.add('loading');
+  locationLookupEl.textContent='Checking the code against Super Admin location records…';
+  try{
+    const location=await resolveVoterLocation(code);
+    if(requestId!==locationLookupRequest)return;
+    resolvedVoterLocation=location;
+    showLocationLookup(location);
+  }catch(error){
+    if(requestId!==locationLookupRequest)return;
+    locationLookupEl.classList.remove('loading');locationLookupEl.classList.add('error');
+    locationLookupEl.textContent='Location lookup failed: '+(error.message||'Unable to find this location.');
+  }
+}
+document.getElementById('voterCardCode').addEventListener('input',updateLocationLookup);
 async function loadTeamLeaders(){
   teamLeader.innerHTML='<option value="">Loading team leaders…</option>';
   try{
@@ -320,7 +394,12 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
   const wardCode=voterCardCode.slice(4,6);
   const pollingUnitCode=voterCardCode.slice(6,9);
 
-  const selectedLeader=category.value==='Team Leader'?null:teamLeader.value||null;
+  // Verify every segment and retrieve the official names from Super Admin before saving.
+   const voterLocation=await resolveVoterLocation(voterCardCode);
+   resolvedVoterLocation=voterLocation;
+   showLocationLookup(voterLocation);
+
+   const selectedLeader=category.value==='Team Leader'?null:teamLeader.value||null;
   const selectedLeaderName=selectedLeader
    ? (teamLeader.selectedOptions[0]?.textContent||null)
    : null;
@@ -338,9 +417,17 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
    accountNumber:f.accountNumber.value.trim(),
    voterCardCode,
    stateCode,
+   stateId:voterLocation.stateId,
+   stateName:voterLocation.stateName,
    lgaCode,
+   lgaId:voterLocation.lgaId,
+   lgaName:voterLocation.lgaName,
    wardCode,
+   wardId:voterLocation.wardId,
+   wardName:voterLocation.wardName,
    pollingUnitCode,
+   pollingUnitId:voterLocation.pollingUnitId,
+   pollingUnitName:voterLocation.pollingUnitName,
    photoDataUrl:null,
    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
    verified:false
