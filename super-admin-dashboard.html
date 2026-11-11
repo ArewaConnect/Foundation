@@ -165,22 +165,26 @@
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>1. Create Programme</h3>
 <div class="grid">
-<div><label>Programme name *</label><input id="programName" placeholder="e.g. Sugar Distribution Programme"></div>
-<div><label>Assistance type *</label><select id="programType"><option value="">Select assistance type</option><option>Food Assistance</option><option>Cash Assistance</option><option>Business Support</option><option>Fertilizer Support</option><option>Equipment Support</option><option>Education Support</option><option>Medical Assistance</option><option>Other</option></select></div>
+<div><label>Programme name *</label><input id="programName" placeholder="Enter programme name"></div>
+<div><label>Programme category *</label><select id="programType"><option value="">Select programme category</option><option>Training</option><option>Sports Support</option><option>Education Support</option><option>Farming Support</option><option>Food Assistance</option><option>Cash Assistance</option><option>Business Support</option><option>Fertilizer Support</option><option>Equipment Support</option><option>Medical Assistance</option><option>Community Development</option><option>Other Support</option></select></div>
 <div><label>Total available quantity *</label><input id="programStock" type="number" min="0.01" step="any" placeholder="e.g. 200"></div>
-<div><label>Unit *</label><input id="programUnit" placeholder="e.g. Modu, bags, items, Naira"></div>
+<div><label>Unit *</label><input id="programUnit" placeholder="e.g. bags, items, Naira, participants"></div>
+<div class="wide"><label>Programme coordinator / supervisor</label><input id="programCoordinator" placeholder="Enter the name of the person managing this programme"></div>
 </div>
-<label>Programme description</label><textarea id="programDescription" placeholder="Describe the assistance being provided..."></textarea>
+<label>Programme description</label><textarea id="programDescription" placeholder="Describe the programme, its purpose and assistance being provided..."></textarea>
 <button id="createProgramBtn">Create Programme</button><div class="status" id="programStatus"></div>
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none" id="beneficiaryPicker" hidden>
 <h3>2. Select Members Who Will Benefit</h3><p class="muted" id="activeProgramLabel"></p>
 <div class="grid">
-<div><label>Search members</label><input id="benefitSearch" placeholder="Search by name or phone"></div>
+<div><label>Search members</label><input id="benefitSearch" placeholder="Search by member name or phone"></div>
 <div><label>Filter by role</label><select id="benefitRole"><option value="">All roles</option><option>Team Leader</option><option>Polling Unit Agent</option><option>Mobilization Agent</option><option>Member</option></select></div>
+<div><label>Minimum age</label><input id="benefitAgeMin" type="number" min="1" max="120" placeholder="Any minimum age"></div>
+<div><label>Maximum age</label><input id="benefitAgeMax" type="number" min="1" max="120" placeholder="Any maximum age"></div>
 <div><label>Filter by State</label><select id="benefitState"><option value="">All states</option></select></div>
-<div><label>Filter by LGA</label><select id="benefitLga" disabled><option value="">All LGAs</option></select></div>
+<div><label>Filter by L.G.A.</label><select id="benefitLga" disabled><option value="">All LGAs</option></select></div>
 <div><label>Filter by Ward</label><select id="benefitWard" disabled><option value="">All wards</option></select></div>
+<div><label>Filter by Polling Unit</label><select id="benefitPu" disabled><option value="">All polling units</option></select></div>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" id="selectVisibleBtn">Select visible members</button><button type="button" id="clearSelectedBtn" style="background:#64748b">Clear selection</button><span class="muted" id="selectedCount" style="align-self:center">0 selected</span></div>
 <div id="benefitMemberCards" class="grid"></div>
@@ -814,20 +818,153 @@ $("puWard").onchange=refreshPus;
 let activeProgramId=null,activeProgramData=null,allBenefitMembers=[],selectedBenefitMembers=new Map(),currentDistributionId=null;
 const safeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtQty=v=>Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});
-function memberCardHtml(m){const selected=selectedBenefitMembers.has(m.id);const benefits=Array.isArray(m.benefits)?m.benefits.length:0;return `<article style="background:#fff;border:2px solid ${selected?'#16a34a':'#dbe5df'};border-radius:13px;padding:10px;display:flex;gap:10px;align-items:flex-start;min-width:0"><div style="width:62px;height:72px;flex:none;border-radius:8px;background:#edf5ef;overflow:hidden;display:grid;place-items:center;font-size:10px;color:#64748b"><button type="button" class="member-photo-view-btn" data-view-member-photo="${safeText(m.id)}" style="padding:7px">View</button></div><div style="min-width:0;flex:1"><b>${safeText(m.fullName||'Unnamed member')}</b><div class="muted">${safeText(m.category||'')} · ${safeText(m.gender||'')} · ${safeText(m.age||'')}</div><div class="muted">${safeText(m.stateName||'')} ${safeText(m.lgaName||'')} ${safeText(m.wardName||'')}</div><div class="muted">Benefits Received: ${benefits}</div><button type="button" data-member-select="${safeText(m.id)}" style="margin-top:7px;padding:7px 12px;background:${selected?'#64748b':'#078b25'}">${selected?'Selected ✓':'Select'}</button></div></article>`}
-function drawBenefitMembers(){const q=$('benefitSearch').value.trim().toLowerCase(),role=$('benefitRole').value,st=$('benefitState').value,lg=$('benefitLga').value,wd=$('benefitWard').value;const filtered=allBenefitMembers.filter(m=>(!q||String(m.fullName||'').toLowerCase().includes(q)||String(m.phone||'').includes(q))&&(!role||m.category===role)&&(!st||m._stateId===st)&&(!lg||m._lgaId===lg)&&(!wd||m._wardId===wd));$('benefitMemberCards').innerHTML=filtered.length?filtered.map(memberCardHtml).join(''):'<p class="muted">No members match these filters.</p>';$('selectedCount').textContent=selectedBenefitMembers.size+' selected';drawAllocationInputs();}
-async function loadBenefitMembers(){const snap=await getDocs(query(collection(db,'members'),orderBy('createdAt','desc')));allBenefitMembers=snap.docs.map(d=>{const m={id:d.id,...d.data()};const code=String(m.voterCardCode||'').replace(/\s/g,'');if(/^\d{9}$/.test(code)){m._stateId=code.slice(0,2);m._lgaId=code.slice(2,4);m._wardId=code.slice(4,6);}return m;});const states=await readChildren('states');await fillSelect('benefitState',states,'All states');$('benefitLga').innerHTML='<option value="">All LGAs</option>';$('benefitWard').innerHTML='<option value="">All wards</option>';drawBenefitMembers();}
-async function populateBenefitLgas(){const st=$('benefitState').value;const items=st?await readChildren(`states/${st}/lgas`):[];await fillSelect('benefitLga',items,'All LGAs');$('benefitLga').disabled=!st;$('benefitWard').innerHTML='<option value="">All wards</option>';$('benefitWard').disabled=true;drawBenefitMembers();}
-async function populateBenefitWards(){const st=$('benefitState').value,lg=$('benefitLga').value;const items=st&&lg?await readChildren(`states/${st}/lgas/${lg}/wards`):[];await fillSelect('benefitWard',items,'All wards');$('benefitWard').disabled=!(st&&lg);drawBenefitMembers();}
+function memberCardHtml(m,index){
+  const selected=selectedBenefitMembers.has(m.id);
+  const serial=String(index+1).padStart(3,"0");
+  return `<article style="background:#fff;border:1px solid ${selected?'#16a34a':'#dbe5df'};border-radius:11px;padding:10px 12px;display:flex;gap:10px;align-items:center;min-width:0">
+    <span style="min-width:42px;color:#64748b;font-weight:bold">#${serial}</span>
+    <div style="min-width:0;flex:1"><b>${safeText(m.fullName||"Unnamed member")}</b><div class="muted">${safeText(m.category||"Member")} · Age ${safeText(m.age??"Not provided")}</div></div>
+    <button type="button" data-member-select="${safeText(m.id)}" style="padding:8px 13px;min-width:82px;background:${selected?'#64748b':'#078b25'}">${selected?'Selected ✓':'Select'}</button>
+  </article>`;
+}
+function getFilteredBenefitMembers(){
+  const q=$("benefitSearch").value.trim().toLowerCase(),role=$("benefitRole").value;
+  const st=$("benefitState").value,lg=$("benefitLga").value,wd=$("benefitWard").value,pu=$("benefitPu").value;
+  const min=$("benefitAgeMin").value===""?null:Number($("benefitAgeMin").value);
+  const max=$("benefitAgeMax").value===""?null:Number($("benefitAgeMax").value);
+  return allBenefitMembers.filter(m=>{
+    const age=Number(m.age);
+    return (!q||String(m.fullName||"").toLowerCase().includes(q)||String(m.phone||"").includes(q))
+      &&(!role||m.category===role)
+      &&(min===null||(Number.isFinite(age)&&age>=min))
+      &&(max===null||(Number.isFinite(age)&&age<=max))
+      &&(!st||m._stateId===st)&&(!lg||m._lgaId===lg)&&(!wd||m._wardId===wd)&&(!pu||m._pollingUnitId===pu);
+  });
+}
+function drawBenefitMembers(){
+  const filtered=getFilteredBenefitMembers();
+  $("benefitMemberCards").innerHTML=filtered.length?filtered.map((m,i)=>memberCardHtml(m,i)).join(""):'<p class="muted">No members match these filters.</p>';
+  $("selectedCount").textContent=selectedBenefitMembers.size+" selected";
+  $("selectVisibleBtn").textContent="Select all "+filtered.length+" visible";
+  drawAllocationInputs();
+}
+async function loadBenefitMembers(){
+  const snap=await getDocs(query(collection(db,'members'),orderBy('createdAt','desc')));
+  allBenefitMembers=snap.docs.map(d=>{
+    const m={id:d.id,...d.data()};
+    const code=String(m.voterCardCode||[m.stateCode,m.lgaCode,m.wardCode,m.pollingUnitCode].filter(Boolean).join('')).replace(/\s/g,'');
+    if(/^\d{9}$/.test(code)){m._stateId=code.slice(0,2);m._lgaId=code.slice(2,4);m._wardId=code.slice(4,6);m._pollingUnitId=code.slice(6,9);}
+    else {m._stateId=m.stateId||"";m._lgaId=m.lgaId||"";m._wardId=m.wardId||"";m._pollingUnitId=m.pollingUnitId||"";}
+    return m;
+  });
+  const states=await readChildren('states');
+  await fillSelect('benefitState',states,'All states');
+  $('benefitLga').innerHTML='<option value="">All LGAs</option>';
+  $('benefitWard').innerHTML='<option value="">All wards</option>';
+  $('benefitPu').innerHTML='<option value="">All polling units</option>';
+  drawBenefitMembers();
+}
+async function populateBenefitLgas(){
+  const st=$('benefitState').value,items=st?await readChildren(`states/${st}/lgas`):[];
+  await fillSelect('benefitLga',items,'All LGAs');$('benefitLga').disabled=!st;
+  $('benefitWard').innerHTML='<option value="">All wards</option>';$('benefitWard').disabled=true;
+  $('benefitPu').innerHTML='<option value="">All polling units</option>';$('benefitPu').disabled=true;
+  drawBenefitMembers();
+}
+async function populateBenefitWards(){
+  const st=$('benefitState').value,lg=$('benefitLga').value;
+  const items=st&&lg?await readChildren(`states/${st}/lgas/${lg}/wards`):[];
+  await fillSelect('benefitWard',items,'All wards');$('benefitWard').disabled=!(st&&lg);
+  $('benefitPu').innerHTML='<option value="">All polling units</option>';$('benefitPu').disabled=true;
+  drawBenefitMembers();
+}
+async function populateBenefitPollingUnits(){
+  const st=$('benefitState').value,lg=$('benefitLga').value,wd=$('benefitWard').value;
+  const items=st&&lg&&wd?await readChildren(`states/${st}/lgas/${lg}/wards/${wd}/pollingUnits`):[];
+  await fillSelect('benefitPu',items,'All polling units');$('benefitPu').disabled=!(st&&lg&&wd);
+  drawBenefitMembers();
+}
 function drawAllocationInputs(){const chosen=[...selectedBenefitMembers.values()];if($('allocationMode').value==='individual'){$('sameAllocationBox').hidden=true;$('individualAllocations').innerHTML=chosen.map(m=>`<div class="grid" style="align-items:end"><div><label>${safeText(m.fullName)}</label></div><div><input type="number" min="0.01" step="any" data-individual-qty="${safeText(m.id)}" placeholder="Quantity"></div></div>`).join('');}else{$('sameAllocationBox').hidden=false;$('individualAllocations').innerHTML='';}updateAllocationSummary();}
 function updateAllocationSummary(){const chosen=[...selectedBenefitMembers.values()];let total=0;if($('allocationMode').value==='same')total=chosen.length*Number($('sameAllocation').value||0);else document.querySelectorAll('[data-individual-qty]').forEach(x=>total+=Number(x.value||0));$('allocationSummary').textContent=`${chosen.length} members selected · ${fmtQty(total)} ${activeProgramData?.unit||''} allocated · ${fmtQty(Number(activeProgramData?.totalQuantity||0)-total)} ${activeProgramData?.unit||''} remaining (before saving)`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-member-select]');if(!b)return;const id=b.dataset.memberSelect,m=allBenefitMembers.find(x=>x.id===id);if(!m)return;if(selectedBenefitMembers.has(id))selectedBenefitMembers.delete(id);else selectedBenefitMembers.set(id,m);drawBenefitMembers();});
-$('createProgramBtn').onclick=async()=>{const name=$('programName').value.trim(),type=$('programType').value,stock=Number($('programStock').value),unit=$('programUnit').value.trim();if(!name||!type||!Number.isFinite(stock)||stock<=0||!unit){$('programStatus').textContent='Enter programme name, assistance type, positive available quantity and unit.';return;}try{$('createProgramBtn').disabled=true;const ref=await addDoc(collection(db,'programmes'),{name,assistanceType:type,totalQuantity:stock,unit,description:$('programDescription').value.trim(),allocatedQuantity:0,receivedQuantity:0,status:'open',createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});activeProgramId=ref.id;activeProgramData={name,assistanceType:type,totalQuantity:stock,unit};$('programStatus').textContent='Programme created. Now select members who will benefit.';$('activeProgramLabel').textContent=`${name} · ${fmtQty(stock)} ${unit} available`;$('beneficiaryPicker').hidden=false;selectedBenefitMembers.clear();await loadBenefitMembers();await loadProgrammes();$('beneficiaryPicker').scrollIntoView({behavior:'smooth',block:'start'});}catch(e){$('programStatus').textContent='Could not create programme: '+e.message;}finally{$('createProgramBtn').disabled=false;}};
-$('benefitSearch').oninput=drawBenefitMembers;$('benefitRole').onchange=drawBenefitMembers;$('benefitState').onchange=populateBenefitLgas;$('benefitLga').onchange=populateBenefitWards;$('benefitWard').onchange=drawBenefitMembers;$('selectVisibleBtn').onclick=()=>{const q=$('benefitSearch').value.trim().toLowerCase(),role=$('benefitRole').value,st=$('benefitState').value,lg=$('benefitLga').value,wd=$('benefitWard').value;allBenefitMembers.filter(m=>(!q||String(m.fullName||'').toLowerCase().includes(q)||String(m.phone||'').includes(q))&&(!role||m.category===role)&&(!st||m._stateId===st)&&(!lg||m._lgaId===lg)&&(!wd||m._wardId===wd)).forEach(m=>selectedBenefitMembers.set(m.id,m));drawBenefitMembers();};$('clearSelectedBtn').onclick=()=>{selectedBenefitMembers.clear();drawBenefitMembers();};$('allocationMode').onchange=drawAllocationInputs;$('sameAllocation').oninput=updateAllocationSummary;$('individualAllocations').oninput=updateAllocationSummary;
-$('saveAssignmentsBtn').onclick=async()=>{if(!activeProgramId||!selectedBenefitMembers.size){$('assignmentStatus').textContent='Create a programme and select at least one member.';return;}const chosen=[...selectedBenefitMembers.values()];const allocations=chosen.map(m=>({m,qty:$('allocationMode').value==='same'?Number($('sameAllocation').value):Number(document.querySelector(`[data-individual-qty="${CSS.escape(m.id)}"]`)?.value)}));if(allocations.some(x=>!Number.isFinite(x.qty)||x.qty<=0)){$('assignmentStatus').textContent='Enter a valid positive quantity for every selected member.';return;}const total=allocations.reduce((s,x)=>s+x.qty,0);if(total>Number(activeProgramData.totalQuantity)+1e-9){$('assignmentStatus').textContent='The total allocation exceeds the programme stock.';return;}try{$('saveAssignmentsBtn').disabled=true;await runTransaction(db,async tx=>{const pRef=doc(db,'programmes',activeProgramId),pSnap=await tx.get(pRef);if(!pSnap.exists())throw new Error('Programme no longer exists.');const p=pSnap.data(),newTotal=Number(p.allocatedQuantity||0)+total;if(newTotal>Number(p.totalQuantity))throw new Error('Insufficient remaining stock. Refresh and review allocations.');const refs=allocations.map(x=>doc(db,'programmes',activeProgramId,'beneficiaries',x.m.id));const existing=await Promise.all(refs.map(ref=>tx.get(ref)));const duplicateIndex=existing.findIndex(x=>x.exists());if(duplicateIndex>=0)throw new Error(`${allocations[duplicateIndex].m.fullName} is already assigned to this programme.`);allocations.forEach((x,i)=>tx.set(refs[i],{memberId:x.m.id,memberName:x.m.fullName||'',memberPhoto:x.m.photoDataUrl||'',allocatedQuantity:x.qty,unit:p.unit,status:'pending',assignedAt:new Date(),assignedBy:auth.currentUser.uid}));tx.update(pRef,{allocatedQuantity:newTotal,updatedAt:new Date()});});$('assignmentStatus').textContent=`Successfully assigned ${allocations.length} beneficiaries. Total allocated: ${fmtQty(total)} ${activeProgramData.unit}.`;selectedBenefitMembers.clear();await loadProgrammes();await openDistribution(activeProgramId,activeProgramData.name);}catch(e){$('assignmentStatus').textContent='Assignment failed: '+e.message;}finally{$('saveAssignmentsBtn').disabled=false;}};
-async function loadProgrammes(){try{const snap=await getDocs(query(collection(db,'programmes'),orderBy('createdAt','desc')));$('programList').innerHTML=snap.empty?'No programmes created yet.':snap.docs.map(d=>{const p=d.data();return `<div style="padding:10px;border-bottom:1px solid #dbe5df"><b>${safeText(p.name)}</b> · ${safeText(p.assistanceType)}<div class="muted">${fmtQty(p.allocatedQuantity)} / ${fmtQty(p.totalQuantity)} ${safeText(p.unit)} allocated · ${safeText(p.status)}</div><button type="button" data-open-program="${d.id}" data-program-name="${safeText(p.name)}" style="margin-top:6px">Open Distribution Register</button></div>`}).join('');}catch(e){$('programList').textContent='Could not load programmes: '+e.message;}}
+$('createProgramBtn').onclick=async()=>{
+  const name=$('programName').value.trim(),type=$('programType').value,stock=Number($('programStock').value),unit=$('programUnit').value.trim();
+  const coordinator=$('programCoordinator').value.trim();
+  if(!name||!type||!Number.isFinite(stock)||stock<=0||!unit){$('programStatus').textContent='Enter programme name, category, positive available quantity and unit.';return;}
+  try{
+    $('createProgramBtn').disabled=true;
+    const ref=await addDoc(collection(db,'programmes'),{
+      name,assistanceType:type,totalQuantity:stock,unit,coordinator,
+      description:$('programDescription').value.trim(),
+      allocatedQuantity:0,receivedQuantity:0,status:'open',
+      beneficiaryCount:0,receivedBeneficiaryCount:0,
+      createdAt:serverTimestamp(),createdBy:auth.currentUser.uid
+    });
+    activeProgramId=ref.id;activeProgramData={name,assistanceType:type,totalQuantity:stock,unit,coordinator};
+    $('programStatus').textContent='Programme created. Now select members who will benefit.';
+    $('activeProgramLabel').textContent=`${name} · ${type} · ${fmtQty(stock)} ${unit} available · Coordinator: ${coordinator||"Not assigned"}`;
+    $('beneficiaryPicker').hidden=false;selectedBenefitMembers.clear();
+    await loadBenefitMembers();await loadProgrammes();
+    $('beneficiaryPicker').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){$('programStatus').textContent='Could not create programme: '+e.message;}
+  finally{$('createProgramBtn').disabled=false;}
+};
+$('benefitSearch').oninput=drawBenefitMembers;
+$('benefitRole').onchange=drawBenefitMembers;
+$('benefitAgeMin').oninput=drawBenefitMembers;
+$('benefitAgeMax').oninput=drawBenefitMembers;
+$('benefitState').onchange=populateBenefitLgas;
+$('benefitLga').onchange=populateBenefitWards;
+$('benefitWard').onchange=populateBenefitPollingUnits;
+$('benefitPu').onchange=drawBenefitMembers;
+$('selectVisibleBtn').onclick=()=>{getFilteredBenefitMembers().forEach(m=>selectedBenefitMembers.set(m.id,m));drawBenefitMembers();};$('clearSelectedBtn').onclick=()=>{selectedBenefitMembers.clear();drawBenefitMembers();};$('allocationMode').onchange=drawAllocationInputs;$('sameAllocation').oninput=updateAllocationSummary;$('individualAllocations').oninput=updateAllocationSummary;
+$('saveAssignmentsBtn').onclick=async()=>{if(!activeProgramId||!selectedBenefitMembers.size){$('assignmentStatus').textContent='Create a programme and select at least one member.';return;}const chosen=[...selectedBenefitMembers.values()];const allocations=chosen.map(m=>({m,qty:$('allocationMode').value==='same'?Number($('sameAllocation').value):Number(document.querySelector(`[data-individual-qty="${CSS.escape(m.id)}"]`)?.value)}));if(allocations.some(x=>!Number.isFinite(x.qty)||x.qty<=0)){$('assignmentStatus').textContent='Enter a valid positive quantity for every selected member.';return;}const total=allocations.reduce((s,x)=>s+x.qty,0);if(total>Number(activeProgramData.totalQuantity)+1e-9){$('assignmentStatus').textContent='The total allocation exceeds the programme stock.';return;}try{$('saveAssignmentsBtn').disabled=true;await runTransaction(db,async tx=>{const pRef=doc(db,'programmes',activeProgramId),pSnap=await tx.get(pRef);if(!pSnap.exists())throw new Error('Programme no longer exists.');const p=pSnap.data(),newTotal=Number(p.allocatedQuantity||0)+total;if(newTotal>Number(p.totalQuantity))throw new Error('Insufficient remaining stock. Refresh and review allocations.');const refs=allocations.map(x=>doc(db,'programmes',activeProgramId,'beneficiaries',x.m.id));const existing=await Promise.all(refs.map(ref=>tx.get(ref)));const duplicateIndex=existing.findIndex(x=>x.exists());if(duplicateIndex>=0)throw new Error(`${allocations[duplicateIndex].m.fullName} is already assigned to this programme.`);allocations.forEach((x,i)=>tx.set(refs[i],{memberId:x.m.id,memberName:x.m.fullName||'',memberPhoto:'',coordinator:p.coordinator||'',allocatedQuantity:x.qty,unit:p.unit,status:'pending',assignedAt:new Date(),assignedBy:auth.currentUser.uid}));tx.update(pRef,{allocatedQuantity:newTotal,updatedAt:new Date()});});$('assignmentStatus').textContent=`Successfully assigned ${allocations.length} beneficiaries. Total allocated: ${fmtQty(total)} ${activeProgramData.unit}.`;selectedBenefitMembers.clear();await loadProgrammes();await openDistribution(activeProgramId,activeProgramData.name);}catch(e){$('assignmentStatus').textContent='Assignment failed: '+e.message;}finally{$('saveAssignmentsBtn').disabled=false;}};
+async function loadProgrammes(){
+  try{
+    const snap=await getDocs(query(collection(db,'programmes'),orderBy('createdAt','desc')));
+    if(snap.empty){$('programList').innerHTML='No programmes created yet.';return;}
+    const cards=await Promise.all(snap.docs.map(async d=>{
+      const p=d.data();let assigned=0,received=0;
+      try{
+        const bs=await getDocs(collection(db,'programmes',d.id,'beneficiaries'));
+        assigned=bs.size;received=bs.docs.filter(x=>x.data().status==='received').length;
+      }catch(err){console.warn('Could not count programme beneficiaries',d.id,err);}
+      return `<div style="padding:12px;border-bottom:1px solid #dbe5df">
+        <b>${safeText(p.name)}</b> · ${safeText(p.assistanceType)}
+        <div class="muted">Coordinator / Supervisor: ${safeText(p.coordinator||'Not assigned')}</div>
+        <div class="muted">${fmtQty(p.allocatedQuantity)} / ${fmtQty(p.totalQuantity)} ${safeText(p.unit)} allocated · ${safeText(p.status)}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
+          <span class="member-status">Beneficiaries: ${assigned}</span>
+          <span class="member-status verified">Receipts: ${received}</span>
+          <span class="member-status rejected">Awaiting receipt: ${Math.max(0,assigned-received)}</span>
+        </div>
+        <button type="button" data-open-program="${d.id}" data-program-name="${safeText(p.name)}" style="margin-top:4px">Open Beneficiary Receipt Register</button>
+      </div>`;
+    }));
+    $('programList').innerHTML=cards.join('');
+  }catch(e){$('programList').textContent='Could not load programmes: '+e.message;}
+}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-open-program]');if(b)openDistribution(b.dataset.openProgram,b.dataset.programName);});
-async function openDistribution(id,name){currentDistributionId=id;$('distributionPanel').hidden=false;$('distributionTitle').textContent='Distribution Register — '+name;try{const snap=await getDocs(query(collection(db,'programmes',id,'beneficiaries'),orderBy('assignedAt','asc')));$('distributionList').innerHTML=snap.empty?'<p class="muted">No beneficiaries assigned yet.</p>':snap.docs.map(d=>{const x=d.data();return `<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #dbe5df;flex-wrap:wrap"><div><b>${safeText(x.memberName)}</b><div class="muted">Allocated: ${fmtQty(x.allocatedQuantity)} ${safeText(x.unit)} · ${safeText(x.status)}</div></div>${x.status==='received'?`<span style="color:#168b43;font-weight:bold">Received ✓</span>`:`<button type="button" data-mark-received="${d.id}" data-program-id="${id}" style="background:#168b43">Mark as Received</button>`}</div>`}).join('');}catch(e){$('distributionList').textContent='Could not load distribution register: '+e.message;}}
+async function openDistribution(id,name){
+  currentDistributionId=id;$('distributionPanel').hidden=false;$('distributionTitle').textContent='Beneficiary Receipt Register — '+name;
+  try{
+    const [snap,programSnap]=await Promise.all([
+      getDocs(query(collection(db,'programmes',id,'beneficiaries'),orderBy('assignedAt','asc'))),
+      getDoc(doc(db,'programmes',id))
+    ]);
+    const docs=snap.docs,received=docs.filter(d=>d.data().status==='received').length,pending=docs.length-received;
+    const coordinator=programSnap.exists()?programSnap.data().coordinator||'Not assigned':'Not assigned';
+    const summary=`<div class="panel" style="background:#f8fafc;box-shadow:none"><b>Coordinator / Supervisor:</b> ${safeText(coordinator)}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px"><span class="member-status">Selected beneficiaries: ${docs.length}</span><span class="member-status verified">Received: ${received}</span><span class="member-status rejected">Pending: ${pending}</span></div></div>`;
+    const list=snap.empty?'<p class="muted">No beneficiaries assigned yet.</p>':docs.map((d,i)=>{
+      const x=d.data();
+      return `<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #dbe5df;flex-wrap:wrap">
+        <div style="min-width:0"><b>${String(i+1).padStart(3,'0')}. ${safeText(x.memberName)}</b><div class="muted">Allocated: ${fmtQty(x.allocatedQuantity)} ${safeText(x.unit)} · ${safeText(x.status)}</div></div>
+        ${x.status==='received'?`<span class="member-status verified">Received ✓</span>`:`<button type="button" data-mark-received="${d.id}" data-program-id="${id}" style="background:#168b43">Mark as Received</button>`}
+      </div>`;
+    }).join('');
+    $('distributionList').innerHTML=summary+list;
+  }catch(e){$('distributionList').textContent='Could not load receipt register: '+e.message;}
+}
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-mark-received]');if(!b)return;if(!confirm('Confirm that this member has received the allocated assistance? This action will be recorded.'))return;try{b.disabled=true;const pid=b.dataset.programId,mid=b.dataset.markReceived,benefitRef=doc(db,'programmes',pid,'beneficiaries',mid),memberRef=doc(db,'members',mid),programRef=doc(db,'programmes',pid);await runTransaction(db,async tx=>{const [bs,ms,ps]=await Promise.all([tx.get(benefitRef),tx.get(memberRef),tx.get(programRef)]);if(!bs.exists()||!ms.exists()||!ps.exists())throw new Error('Member, assignment or programme record is missing.');if(bs.data().status==='received')throw new Error('This allocation has already been marked received.');const a=bs.data(),p=ps.data(),now=new Date();tx.update(benefitRef,{status:'received',receivedAt:now,receivedBy:auth.currentUser.uid});tx.update(programRef,{receivedQuantity:Number(p.receivedQuantity||0)+Number(a.allocatedQuantity||0)});tx.update(memberRef,{benefits:arrayUnion({programmeId:pid,programName:p.name,assistanceType:p.assistanceType,quantity:a.allocatedQuantity,unit:a.unit,dateReceived:now,description:p.description||'',status:'received'})});});await addDoc(collection(db,'distributionAudit'),{programmeId:pid,memberId:mid,action:'received',performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});await openDistribution(pid,$('distributionTitle').textContent.replace('Distribution Register — ',''));}catch(err){alert('Could not confirm receipt: '+err.message);b.disabled=false;}});
 
 async function loadAccounts(){try{let s=await getDocs(query(collection(db,"userAccounts"),orderBy("createdAt","desc")));$("accounts").innerHTML="";if(s.empty){$("accounts").innerHTML='<tr><td colspan="5">No accounts yet.</td></tr>';return}s.forEach(d=>{let x=d.data(),tr=document.createElement("tr");[x.username,x.email,x.role,(x.permissions||[]).join(", "),x.active===false?"Disabled":"Active"].forEach(v=>{let td=document.createElement("td");td.textContent=v||"";tr.appendChild(td)});$("accounts").appendChild(tr)})}catch(e){$("listStatus").textContent="Account list unavailable until backend/rules are configured: "+e.message}}
