@@ -229,7 +229,7 @@ body{padding:20px 16px}
         }
 
         const role = String(profile.role || '').trim();
-        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin'];
+        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
         if (!allowedRoles.includes(role) && profile.superAdmin !== true) {
           await signOut(auth);
           throw new Error('Your account role is not recognized. Please contact Super Admin.');
@@ -253,6 +253,8 @@ body{padding:20px 16px}
           dashboard = 'registration.html';
         } else if (role === 'Admin' || role === 'admin') {
           dashboard = 'admin-dashboard.html';
+        } else if (['Programme Coordinator', 'Programme Supervisor', 'Programme Agent'].includes(role)) {
+          dashboard = 'programme-coordinator.html';
         }
 
         if (!dashboard) {

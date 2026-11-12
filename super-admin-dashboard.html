@@ -108,7 +108,22 @@
     </form>
   </div>
 </div>
-<section class="panel admin-section" id="accountsManager"><h1>Accounts & Access</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div></section>
+<section class="panel admin-section" id="accountsManager"><h1>Accounts & Access</h1><p class="muted">Cloud Shell and Cloud Functions are not used here. First create the user's login in Firebase Console → Authentication → Users → Add user. Then copy that user's UID and enter it below to save their Firestore role profile.</p><div class="grid"><div><label>Firebase Authentication UID *</label><input id="uid"></div><div><label>Username *</label><input id="username"></div><div><label>Email *</label><input id="email" type="email"></div><div><label>Role *</label><select id="role"><option>Founder</option><option>Registration Agent</option></select></div></div><p class="muted">This page saves the role/permissions profile in Firestore. It does not create the Firebase Authentication login or password.</p><label>Page permissions</label><div class="permissions"><label><input type="checkbox" value="founder-dashboard" checked> Founder Dashboard</label><label><input type="checkbox" value="members-record" checked> Members Record</label><label><input type="checkbox" value="registration"> Member Registration</label><label><input type="checkbox" value="admin-dashboard"> Admin Dashboard</label></div><p><button id="createBtn">Save Firestore Profile</button> <button id="clearBtn" style="background:#e2e8f0;color:#1e293b">Clear</button></p><div id="createStatus" class="status"></div>
+<div class="panel" style="background:#f8fafc;box-shadow:none;margin-top:18px">
+<h2>Programme Agents & Supervisors</h2>
+<p class="muted">Create a dedicated login for each programme coordinator or supervisor. Their login will only show programmes assigned to their account.</p>
+<div class="grid">
+<div><label>Full name *</label><input id="agentFullName" placeholder="Coordinator's full name"></div>
+<div><label>Phone number *</label><input id="agentPhone" type="tel" placeholder="Phone number"></div>
+<div><label>Email address *</label><input id="agentEmail" type="email" placeholder="coordinator@example.com"></div>
+<div><label>Temporary password *</label><div style="display:flex;gap:6px"><input id="agentPassword" type="text" minlength="8" placeholder="Generate a strong password" style="flex:1"><button type="button" id="generateAgentPasswordBtn" style="white-space:nowrap">Generate</button></div></div>
+<div><label>Account type *</label><select id="agentType"><option value="Programme Coordinator">Programme Coordinator</option><option value="Programme Supervisor">Programme Supervisor</option><option value="Programme Agent">Programme Agent</option></select></div>
+</div>
+<p class="muted">Give the generated email and password to the person. They can use the Foundation homepage to sign in.</p>
+<button type="button" id="createAgentBtn">Create Agent Account</button>
+<div class="status" id="agentCreateStatus"></div>
+</div>
+</section>
 <section class="panel admin-section" id="profileGalleryManager">
 <h2>Admin Profile & Programme Gallery</h2>
 <p class="muted">Manage the administrator display name and profile photograph, and publish photographs of programmes conducted.</p>
@@ -169,7 +184,7 @@
 <div><label>Programme category *</label><select id="programType"><option value="">Select programme category</option><option>Training</option><option>Sports Support</option><option>Education Support</option><option>Farming Support</option><option>Food Assistance</option><option>Cash Assistance</option><option>Business Support</option><option>Fertilizer Support</option><option>Equipment Support</option><option>Medical Assistance</option><option>Community Development</option><option>Other Support</option></select></div>
 <div><label>Total available quantity *</label><input id="programStock" type="number" min="0.01" step="any" placeholder="e.g. 200"></div>
 <div><label>Unit *</label><input id="programUnit" placeholder="e.g. bags, items, Naira, participants"></div>
-<div class="wide"><label>Programme coordinator / supervisor</label><input id="programCoordinator" placeholder="Enter the name of the person managing this programme"></div>
+<div class="wide"><label>Assign coordinator / supervisor</label><select id="programCoordinator"><option value="">Select an active programme agent</option></select><p class="muted">Create the coordinator under Accounts & Access first. Only active programme agents appear here.</p></div>
 </div>
 <label>Programme description</label><textarea id="programDescription" placeholder="Describe the programme, its purpose and assistance being provided..."></textarea>
 <button id="createProgramBtn">Create Programme</button><div class="status" id="programStatus"></div>
@@ -220,13 +235,61 @@
 </main>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTimestamp,addDoc,updateDoc,runTransaction,arrayUnion,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
-const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);let user=null;
+const app=initializeApp(config),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+// Secondary Firebase app creates agent credentials without signing the Super Admin out.
+const agentApp=initializeApp(config,"ehFoundationAgentCreator"),agentAuth=getAuth(agentApp);let user=null;
 $("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammes();loadAdminProfile();loadAdminMembers();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};if(adminData.superAdmin!==true && adminData.role!=="super_admin" && adminData.role!=="Super Admin" && adminData.admin!==true){await signOut(auth);$("loginStatus").textContent="Access denied: Super Admin permission was not found in Firestore userAccounts/"+u.uid+".";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammeAgents();loadProgrammes();loadAdminProfile();loadAdminMembers();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
+async function loadProgrammeAgents(){
+  try{
+    const snap=await getDocs(collection(db,"userAccounts"));
+    const agents=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(x=>x.active===true && ["Programme Coordinator","Programme Supervisor","Programme Agent"].includes(String(x.role||"")));
+    const select=$("programCoordinator"),current=select.value;
+    select.innerHTML='<option value="">Select an active programme agent</option>';
+    agents.sort((a,b)=>String(a.fullName||a.username||"").localeCompare(String(b.fullName||b.username||"")));
+    agents.forEach(a=>{
+      const option=document.createElement("option");
+      option.value=a.uid||a.id;
+      option.textContent=(a.fullName||a.username||a.email)+" — "+a.role;
+      option.dataset.name=a.fullName||a.username||a.email;
+      select.appendChild(option);
+    });
+    if(current && agents.some(a=>(a.uid||a.id)===current))select.value=current;
+    $("agentCreateStatus").textContent=agents.length+" active programme agent(s) available.";
+  }catch(e){$("agentCreateStatus").textContent="Could not load programme agents: "+e.message;}
+}
+$("generateAgentPasswordBtn").onclick=()=>{
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+  const bytes=new Uint32Array(16);crypto.getRandomValues(bytes);
+  $("agentPassword").value=Array.from(bytes,b=>chars[b%chars.length]).join("");
+};
+$("createAgentBtn").onclick=async()=>{
+  const fullName=$("agentFullName").value.trim(),phone=$("agentPhone").value.trim(),email=$("agentEmail").value.trim().toLowerCase(),password=$("agentPassword").value,role=$("agentType").value;
+  if(!fullName||!phone||!email||password.length<8){$("agentCreateStatus").textContent="Enter full name, phone, valid email and a password of at least 8 characters.";return;}
+  const btn=$("createAgentBtn");
+  try{
+    btn.disabled=true;$("agentCreateStatus").textContent="Creating Firebase login and account profile…";
+    const credential=await createUserWithEmailAndPassword(agentAuth,email,password);
+    const uid=credential.user.uid;
+    await setDoc(doc(db,"userAccounts",uid),{
+      uid,username:fullName,email,fullName,phone,role,
+      accountType:"programme_agent",permissions:["assigned-programmes","beneficiary-receipts"],
+      active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid
+    });
+    await signOut(agentAuth);
+    $("agentCreateStatus").textContent="ACCOUNT CREATED SUCCESSFULLY. Give these login details to the coordinator — Email: "+email+" | Temporary password: "+password+" | UID: "+uid+". Keep this information private.";
+    ["agentFullName","agentPhone"].forEach(id=>$(id).value="");
+    await loadProgrammeAgents();await loadAccounts();
+  }catch(e){
+    $("agentCreateStatus").textContent="Account creation failed: "+(e.code==="auth/email-already-in-use"?"This email already has a Firebase Authentication account. Use a different email.":e.message);
+    try{if(agentAuth.currentUser)await signOut(agentAuth);}catch(_){}
+  }finally{btn.disabled=false;}
+};
 $("clearBtn").onclick=()=>["uid","username","email"].forEach(id=>$(id).value="");$("logoutBtn").onclick=()=>signOut(auth);
 
 
@@ -889,20 +952,21 @@ function updateAllocationSummary(){const chosen=[...selectedBenefitMembers.value
 document.addEventListener('click',e=>{const b=e.target.closest('[data-member-select]');if(!b)return;const id=b.dataset.memberSelect,m=allBenefitMembers.find(x=>x.id===id);if(!m)return;if(selectedBenefitMembers.has(id))selectedBenefitMembers.delete(id);else selectedBenefitMembers.set(id,m);drawBenefitMembers();});
 $('createProgramBtn').onclick=async()=>{
   const name=$('programName').value.trim(),type=$('programType').value,stock=Number($('programStock').value),unit=$('programUnit').value.trim();
-  const coordinator=$('programCoordinator').value.trim();
-  if(!name||!type||!Number.isFinite(stock)||stock<=0||!unit){$('programStatus').textContent='Enter programme name, category, positive available quantity and unit.';return;}
+  const coordinatorId=$('programCoordinator').value;
+  const coordinatorName=$('programCoordinator').selectedOptions[0]?.dataset.name||"";
+  if(!name||!type||!coordinatorId||!Number.isFinite(stock)||stock<=0||!unit){$('programStatus').textContent='Enter programme name, category, assign an active coordinator, and provide a positive quantity and unit.';return;}
   try{
     $('createProgramBtn').disabled=true;
     const ref=await addDoc(collection(db,'programmes'),{
-      name,assistanceType:type,totalQuantity:stock,unit,coordinator,
+      name,assistanceType:type,totalQuantity:stock,unit,coordinator:coordinatorName,coordinatorId,
       description:$('programDescription').value.trim(),
       allocatedQuantity:0,receivedQuantity:0,status:'open',
       beneficiaryCount:0,receivedBeneficiaryCount:0,
       createdAt:serverTimestamp(),createdBy:auth.currentUser.uid
     });
-    activeProgramId=ref.id;activeProgramData={name,assistanceType:type,totalQuantity:stock,unit,coordinator};
+    activeProgramId=ref.id;activeProgramData={name,assistanceType:type,totalQuantity:stock,unit,coordinator:coordinatorName,coordinatorId};
     $('programStatus').textContent='Programme created. Now select members who will benefit.';
-    $('activeProgramLabel').textContent=`${name} · ${type} · ${fmtQty(stock)} ${unit} available · Coordinator: ${coordinator||"Not assigned"}`;
+    $('activeProgramLabel').textContent=`${name} · ${type} · ${fmtQty(stock)} ${unit} available · Coordinator: ${coordinatorName||"Not assigned"}`;
     $('beneficiaryPicker').hidden=false;selectedBenefitMembers.clear();
     await loadBenefitMembers();await loadProgrammes();
     $('beneficiaryPicker').scrollIntoView({behavior:'smooth',block:'start'});
@@ -918,7 +982,7 @@ $('benefitLga').onchange=populateBenefitWards;
 $('benefitWard').onchange=populateBenefitPollingUnits;
 $('benefitPu').onchange=drawBenefitMembers;
 $('selectVisibleBtn').onclick=()=>{getFilteredBenefitMembers().forEach(m=>selectedBenefitMembers.set(m.id,m));drawBenefitMembers();};$('clearSelectedBtn').onclick=()=>{selectedBenefitMembers.clear();drawBenefitMembers();};$('allocationMode').onchange=drawAllocationInputs;$('sameAllocation').oninput=updateAllocationSummary;$('individualAllocations').oninput=updateAllocationSummary;
-$('saveAssignmentsBtn').onclick=async()=>{if(!activeProgramId||!selectedBenefitMembers.size){$('assignmentStatus').textContent='Create a programme and select at least one member.';return;}const chosen=[...selectedBenefitMembers.values()];const allocations=chosen.map(m=>({m,qty:$('allocationMode').value==='same'?Number($('sameAllocation').value):Number(document.querySelector(`[data-individual-qty="${CSS.escape(m.id)}"]`)?.value)}));if(allocations.some(x=>!Number.isFinite(x.qty)||x.qty<=0)){$('assignmentStatus').textContent='Enter a valid positive quantity for every selected member.';return;}const total=allocations.reduce((s,x)=>s+x.qty,0);if(total>Number(activeProgramData.totalQuantity)+1e-9){$('assignmentStatus').textContent='The total allocation exceeds the programme stock.';return;}try{$('saveAssignmentsBtn').disabled=true;await runTransaction(db,async tx=>{const pRef=doc(db,'programmes',activeProgramId),pSnap=await tx.get(pRef);if(!pSnap.exists())throw new Error('Programme no longer exists.');const p=pSnap.data(),newTotal=Number(p.allocatedQuantity||0)+total;if(newTotal>Number(p.totalQuantity))throw new Error('Insufficient remaining stock. Refresh and review allocations.');const refs=allocations.map(x=>doc(db,'programmes',activeProgramId,'beneficiaries',x.m.id));const existing=await Promise.all(refs.map(ref=>tx.get(ref)));const duplicateIndex=existing.findIndex(x=>x.exists());if(duplicateIndex>=0)throw new Error(`${allocations[duplicateIndex].m.fullName} is already assigned to this programme.`);allocations.forEach((x,i)=>tx.set(refs[i],{memberId:x.m.id,memberName:x.m.fullName||'',memberPhoto:'',coordinator:p.coordinator||'',allocatedQuantity:x.qty,unit:p.unit,status:'pending',assignedAt:new Date(),assignedBy:auth.currentUser.uid}));tx.update(pRef,{allocatedQuantity:newTotal,updatedAt:new Date()});});$('assignmentStatus').textContent=`Successfully assigned ${allocations.length} beneficiaries. Total allocated: ${fmtQty(total)} ${activeProgramData.unit}.`;selectedBenefitMembers.clear();await loadProgrammes();await openDistribution(activeProgramId,activeProgramData.name);}catch(e){$('assignmentStatus').textContent='Assignment failed: '+e.message;}finally{$('saveAssignmentsBtn').disabled=false;}};
+$('saveAssignmentsBtn').onclick=async()=>{if(!activeProgramId||!selectedBenefitMembers.size){$('assignmentStatus').textContent='Create a programme and select at least one member.';return;}const chosen=[...selectedBenefitMembers.values()];const allocations=chosen.map(m=>({m,qty:$('allocationMode').value==='same'?Number($('sameAllocation').value):Number(document.querySelector(`[data-individual-qty="${CSS.escape(m.id)}"]`)?.value)}));if(allocations.some(x=>!Number.isFinite(x.qty)||x.qty<=0)){$('assignmentStatus').textContent='Enter a valid positive quantity for every selected member.';return;}const total=allocations.reduce((s,x)=>s+x.qty,0);if(total>Number(activeProgramData.totalQuantity)+1e-9){$('assignmentStatus').textContent='The total allocation exceeds the programme stock.';return;}try{$('saveAssignmentsBtn').disabled=true;await runTransaction(db,async tx=>{const pRef=doc(db,'programmes',activeProgramId),pSnap=await tx.get(pRef);if(!pSnap.exists())throw new Error('Programme no longer exists.');const p=pSnap.data(),newTotal=Number(p.allocatedQuantity||0)+total;if(newTotal>Number(p.totalQuantity))throw new Error('Insufficient remaining stock. Refresh and review allocations.');const refs=allocations.map(x=>doc(db,'programmes',activeProgramId,'beneficiaries',x.m.id));const existing=await Promise.all(refs.map(ref=>tx.get(ref)));const duplicateIndex=existing.findIndex(x=>x.exists());if(duplicateIndex>=0)throw new Error(`${allocations[duplicateIndex].m.fullName} is already assigned to this programme.`);allocations.forEach((x,i)=>tx.set(refs[i],{memberId:x.m.id,memberName:x.m.fullName||'',memberPhoto:'',coordinator:p.coordinator||'',coordinatorId:p.coordinatorId||'',memberLocation:[x.m.stateName||x.m.stateCode,x.m.lgaName||x.m.lgaCode,x.m.wardName||x.m.wardCode,x.m.pollingUnitName||x.m.pollingUnitCode].filter(Boolean).join(' · '),allocatedQuantity:x.qty,unit:p.unit,status:'pending',assignedAt:new Date(),assignedBy:auth.currentUser.uid}));tx.update(pRef,{allocatedQuantity:newTotal,updatedAt:new Date()});});$('assignmentStatus').textContent=`Successfully assigned ${allocations.length} beneficiaries. Total allocated: ${fmtQty(total)} ${activeProgramData.unit}.`;selectedBenefitMembers.clear();await loadProgrammes();await openDistribution(activeProgramId,activeProgramData.name);}catch(e){$('assignmentStatus').textContent='Assignment failed: '+e.message;}finally{$('saveAssignmentsBtn').disabled=false;}};
 async function loadProgrammes(){
   try{
     const snap=await getDocs(query(collection(db,'programmes'),orderBy('createdAt','desc')));
