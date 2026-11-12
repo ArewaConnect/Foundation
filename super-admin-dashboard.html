@@ -38,6 +38,9 @@
 .admin-topbar{padding:8px 10px}
 
 .admin-section[hidden]{display:none!important}
+
+.call-beneficiary-btn{display:inline-block;background:#0b7a3b;color:#fff;text-decoration:none;border-radius:10px;padding:10px 13px;font-weight:bold;font-size:13px;white-space:nowrap}
+.call-beneficiary-btn:active{background:#075e2d}
 </style></head><body><main class="wrap"><section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
 <div id="adminApp" hidden>
 <div class="admin-topbar" id="adminTopbar">
@@ -1019,13 +1022,29 @@ async function openDistribution(id,name){
     const docs=snap.docs,received=docs.filter(d=>d.data().status==='received').length,pending=docs.length-received;
     const coordinator=programSnap.exists()?programSnap.data().coordinator||'Not assigned':'Not assigned';
     const summary=`<div class="panel" style="background:#f8fafc;box-shadow:none"><b>Coordinator / Supervisor:</b> ${safeText(coordinator)}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px"><span class="member-status">Selected beneficiaries: ${docs.length}</span><span class="member-status verified">Received: ${received}</span><span class="member-status rejected">Pending: ${pending}</span></div></div>`;
-    const list=snap.empty?'<p class="muted">No beneficiaries assigned yet.</p>':docs.map((d,i)=>{
+    const list=snap.empty?'<p class="muted">No beneficiaries assigned yet.</p>':(await Promise.all(docs.map(async(d,i)=>{
       const x=d.data();
+      let phone='';
+      if(x.status==='received'){
+        try{
+          const memberSnap=await getDoc(doc(db,'members',d.id));
+          if(memberSnap.exists()){
+            const member=memberSnap.data()||{};
+            phone=String(member.phone||member.phoneNumber||member.mobileNumber||member.mobile||'').trim();
+          }
+        }catch(phoneError){console.warn('Could not retrieve beneficiary phone number:',d.id,phoneError);}
+      }
+      const dialNumber=phone.replace(/[^+\d]/g,'');
+      const callAction=x.status==='received'
+        ? (dialNumber
+          ? `<a href="tel:${safeText(dialNumber)}" class="call-beneficiary-btn" aria-label="Call ${safeText(x.memberName||'beneficiary')} to confirm receipt">Call to Confirm</a>`
+          : `<span class="muted" style="color:#b45309">No phone number saved</span>`)
+        : `<button type="button" data-mark-received="${safeText(d.id)}" data-program-id="${safeText(id)}" style="background:#168b43">Mark as Received</button>`;
       return `<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #dbe5df;flex-wrap:wrap">
-        <div style="min-width:0"><b>${String(i+1).padStart(3,'0')}. ${safeText(x.memberName)}</b><div class="muted">Allocated: ${fmtQty(x.allocatedQuantity)} ${safeText(x.unit)} · ${safeText(x.status)}</div></div>
-        ${x.status==='received'?`<span class="member-status verified">Received ✓</span>`:`<button type="button" data-mark-received="${d.id}" data-program-id="${id}" style="background:#168b43">Mark as Received</button>`}
+        <div style="min-width:0"><b>${String(i+1).padStart(3,'0')}. ${safeText(x.memberName)}</b><div class="muted">Allocated: ${fmtQty(x.allocatedQuantity)} ${safeText(x.unit)} · ${safeText(x.status)}${phone?' · '+safeText(phone):''}</div></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${x.status==='received'?'<span class="member-status verified">Received ✓</span>':''}${callAction}</div>
       </div>`;
-    }).join('');
+    }))).join('');
     $('distributionList').innerHTML=summary+list;
   }catch(e){$('distributionList').textContent='Could not load receipt register: '+e.message;}
 }
