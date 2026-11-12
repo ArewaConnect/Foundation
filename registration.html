@@ -138,11 +138,12 @@ body:after{right:-160px;bottom:-120px;width:650px;height:260px;background:linear
 <div class="field"><label for="businessType">Business Type</label><input id="businessType" name="businessType" placeholder="Enter business type"></div>
 <div class="field"><label for="accountName">Account Name</label><input id="accountName" name="accountName" placeholder="Bank account name"></div>
 <div class="field"><label for="accountNumber">Account Number</label><input id="accountNumber" name="accountNumber" inputmode="numeric" placeholder="Bank account number"></div>
+<div class="field"><label for="bankName">Bank Name</label><input id="bankName" name="bankName" placeholder="Enter bank name" autocomplete="organization"></div>
 </div>
 
 <div class="section-title" style="margin-top:16px">Voter’s Card Code</div>
 <div class="grid">
-<div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit location code" autocomplete="off"><div class="helper">Enter the 9-digit location code: State (2) + LGA (2) + Ward (2) + Polling Unit (3). The names below are retrieved directly from Super Admin location records.</div><div id="locationLookup" class="location-lookup" aria-live="polite">Location details will appear here when you enter the code.</div></div>
+<div class="field full"><label for="voterCardCode">Voter’s Card Code *</label><input id="voterCardCode" name="voterCardCode" inputmode="numeric" maxlength="9" pattern="[0-9]{9}" required placeholder="Enter 9-digit location code" autocomplete="off"><div id="locationLookup" class="location-lookup" aria-live="polite"></div></div>
 </div>
 <div class="submit-row"><button class="submit-btn" type="submit">Register Member</button></div>
 <div class="status" id="formStatus" aria-live="polite"></div>
@@ -289,7 +290,7 @@ async function updateLocationLookup(){
   const requestId=++locationLookupRequest;
   resolvedVoterLocation=null;
   locationLookupEl.classList.remove('error');
-  if(!code){locationLookupEl.classList.remove('loading');locationLookupEl.textContent='Location details will appear here when you enter the code.';return;}
+  if(!code){locationLookupEl.classList.remove('loading');locationLookupEl.textContent='';return;}
   if(code.length<9){
     locationLookupEl.classList.remove('loading');
     locationLookupEl.textContent='Code entered: '+code.length+'/9 digits. Complete the code to retrieve State, LGA, Ward and Polling Unit names.';
@@ -431,6 +432,7 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
    businessType:f.businessType.value.trim(),
    accountName:f.accountName.value.trim(),
    accountNumber:f.accountNumber.value.trim(),
+   bankName:f.bankName.value.trim(),
    voterCardCode,
    stateCode,
    stateId:voterLocation.stateId,
