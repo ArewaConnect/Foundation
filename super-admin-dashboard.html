@@ -41,6 +41,7 @@
 
 .call-beneficiary-btn{display:inline-block;background:#0b7a3b;color:#fff;text-decoration:none;border-radius:10px;padding:10px 13px;font-weight:bold;font-size:13px;white-space:nowrap}
 .call-beneficiary-btn:active{background:#075e2d}
+.programme-heading-single-line{white-space:nowrap;font-size:clamp(13px,3.7vw,20px);letter-spacing:-.25px}
 </style></head><body><main class="wrap"><section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the Firebase Authentication email/password, then verify Super Admin access in Firestore.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
 <div id="adminApp" hidden>
 <div class="admin-topbar" id="adminTopbar">
@@ -178,8 +179,8 @@
 <p class="muted"><b>Code format:</b> State (2 digits) + LGA (2 digits) + Ward (2 digits) + Polling Unit (3 digits). Example: 06 04 01 001. The serial codes are scoped to their parent location.</p>
 </section>
 <section class="panel admin-section" id="programmeManager">
-<h2>Programme & Beneficiary Management</h2>
-<p class="muted">Create assistance programmes, select beneficiaries using their member cards, assign equal or individual quantities, and record confirmed receipt. Distribution records are retained for audit.</p>
+<h2 class="programme-heading-single-line">Programme & Beneficiary Management</h2>
+
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>1. Create Programme</h3>
 <div class="grid">
@@ -187,7 +188,7 @@
 <div><label>Programme category *</label><select id="programType"><option value="">Select programme category</option><option>Training</option><option>Sports Support</option><option>Education Support</option><option>Farming Support</option><option>Food Assistance</option><option>Cash Assistance</option><option>Business Support</option><option>Fertilizer Support</option><option>Equipment Support</option><option>Medical Assistance</option><option>Community Development</option><option>Other Support</option></select></div>
 <div><label>Total available quantity *</label><input id="programStock" type="number" min="0.01" step="any" placeholder="e.g. 200"></div>
 <div><label>Unit *</label><input id="programUnit" placeholder="e.g. bags, items, Naira, participants"></div>
-<div class="wide"><label>Assign coordinator / supervisor</label><select id="programCoordinator"><option value="">Select an active programme agent</option></select><p class="muted">Create the coordinator under Accounts & Access first. Only active programme agents appear here.</p></div>
+<div class="wide"><label>Assign coordinator / supervisor</label><select id="programCoordinator"><option value="">Select an active programme agent</option></select></div>
 </div>
 <label>Programme description</label><textarea id="programDescription" placeholder="Describe the programme, its purpose and assistance being provided..."></textarea>
 <button id="createProgramBtn">Create Programme</button><div class="status" id="programStatus"></div>
