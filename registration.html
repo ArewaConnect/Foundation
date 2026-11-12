@@ -309,6 +309,7 @@ async function updateLocationLookup(){
   }
 }
 document.getElementById('voterCardCode').addEventListener('input',updateLocationLookup);
+let currentRegistrationProfile=null;let accountWatchUnsubscribe=null;
 async function loadTeamLeaders(){
   teamLeader.innerHTML='<option value="">Loading team leaders…</option>';
   try{
@@ -327,6 +328,7 @@ async function loadTeamLeaders(){
     }
 
     const profile=profileSnap.data()||{};
+    currentRegistrationProfile=profile;
     const role=String(profile.role||'');
     const permissions=Array.isArray(profile.permissions)?profile.permissions:[];
     const isSuperAdmin=profile.superAdmin===true||role==='Super Admin'||role==='super_admin';
@@ -366,8 +368,14 @@ async function loadTeamLeaders(){
 }
 
 auth.onAuthStateChanged(user=>{
-  if(user) loadTeamLeaders();
-  else {
+  if(accountWatchUnsubscribe){accountWatchUnsubscribe();accountWatchUnsubscribe=null;}
+  if(user){
+    accountWatchUnsubscribe=db.collection('userAccounts').doc(user.uid).onSnapshot(snap=>{
+      const p=snap.exists?snap.data():{};const perms=Array.isArray(p.permissions)?p.permissions:[];const role=String(p.role||'');const privileged=p.superAdmin===true||['Super Admin','super_admin','Admin','admin'].includes(role);
+      if(p.active!==true||!(privileged||perms.includes('registration')||perms.includes('member-registration')||perms.includes('members-record'))){alert('Your account has been deactivated or its page permission has been removed. You will be signed out.');auth.signOut().then(()=>location.href='index.html');}
+      else {currentRegistrationProfile=p;loadTeamLeaders();}
+    },err=>{console.error('Account access monitor failed:',err);});
+  } else {
     teamLeader.innerHTML='<option value="">Sign in first</option>';
     roleHelp.textContent='Please sign in before loading Team Leaders.';
   }
@@ -376,6 +384,14 @@ document.getElementById('memberForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=event.submitter;button.disabled=true;button.textContent='Saving...';statusEl.textContent='';
  try{
   const f=event.currentTarget;
+  const signedUser=auth.currentUser;
+  if(!signedUser)throw new Error('Your login session has expired. Please sign in again.');
+  const freshProfileSnap=await db.collection('userAccounts').doc(signedUser.uid).get();
+  const freshProfile=freshProfileSnap.exists?freshProfileSnap.data():{};
+  const freshPermissions=Array.isArray(freshProfile.permissions)?freshProfile.permissions:[];
+  const freshRole=String(freshProfile.role||'');
+  const isPrivileged=freshProfile.superAdmin===true||['Super Admin','super_admin','Admin','admin'].includes(freshRole);
+  if(freshProfile.active!==true||!(isPrivileged||freshPermissions.includes('registration')||freshPermissions.includes('member-registration')))throw new Error('Your account is inactive or does not have Member Registration permission.');
   if(!['Team Leader','Polling Unit Agent','Mobilization Agent','Member'].includes(category.value)){
    throw new Error('Please select a valid membership category.');
   }

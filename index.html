@@ -229,7 +229,7 @@ body{padding:20px 16px}
         }
 
         const role = String(profile.role || '').trim();
-        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
+        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin', 'Registration Coordinator', 'Registrar', 'Supervisor', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
         if (!allowedRoles.includes(role) && profile.superAdmin !== true) {
           await signOut(auth);
           throw new Error('Your account role is not recognized. Please contact Super Admin.');
@@ -249,12 +249,14 @@ body{padding:20px 16px}
           dashboard = 'super-admin-dashboard.html';
         } else if (role === 'Founder') {
           dashboard = 'backup-founder-dashboard.html';
-        } else if (role === 'Registration Agent') {
+        } else if (['Registration Agent','Registration Coordinator','Registrar','Supervisor'].includes(role)) {
+          if (!permissions.includes('registration') && !permissions.includes('members-record')) throw new Error('No registration or members-record page permission has been assigned.');
           dashboard = 'registration.html';
+        } else if (['Programme Coordinator','Programme Supervisor','Programme Agent'].includes(role)) {
+          if (!permissions.includes('assigned-programmes')) throw new Error('No assigned-programmes permission has been assigned.');
+          dashboard = 'programme-coordinator.html';
         } else if (role === 'Admin' || role === 'admin') {
           dashboard = 'admin-dashboard.html';
-        } else if (['Programme Coordinator', 'Programme Supervisor', 'Programme Agent'].includes(role)) {
-          dashboard = 'programme-coordinator.html';
         }
 
         if (!dashboard) {
