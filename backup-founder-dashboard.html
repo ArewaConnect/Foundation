@@ -875,7 +875,7 @@ onAuthStateChanged(auth,async user=>{
     const snap=await getDoc(doc(db,"userAccounts",user.uid));
     if(!snap.exists()){showError("Your account profile was not found. Ask Super Admin to create a Founder account.");return;}
     const a=snap.data()||{},role=String(a.role||"").toLowerCase(),perms=Array.isArray(a.permissions)?a.permissions:[];
-    const allowed=a.active!==false&&(a.superAdmin===true||role==="founder"||role==="super_admin"||role==="admin"||perms.includes("founder-dashboard"));
+    const allowed=a.active===true&&(role==="founder"||perms.includes("founder-dashboard"));
     if(!allowed){showError("Access denied. Your account must be active and have Founder Dashboard permission.");return;}
     await loadDashboardData();
   }catch(e){console.error(e);showError("Could not load dashboard data: "+(e.message||"Check Firebase access and Firestore rules."));}
@@ -887,7 +887,10 @@ onAuthStateChanged(auth,async user=>{
   const avatar=document.getElementById('founderAvatar');
   if(!avatar) return;
   let taps=0,resetTimer=null;
-  avatar.addEventListener('click',function(){
+  avatar.setAttribute('role','button');
+  avatar.setAttribute('tabindex','0');
+  avatar.setAttribute('aria-label','Tap five times to open Super Admin login');
+  function registerTap(){
     taps++;
     clearTimeout(resetTimer);
     if(taps>=5){
@@ -896,6 +899,10 @@ onAuthStateChanged(auth,async user=>{
       return;
     }
     resetTimer=setTimeout(function(){taps=0;},3500);
+  }
+  avatar.addEventListener('click',registerTap);
+  avatar.addEventListener('keydown',function(event){
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();registerTap();}
   });
 })();
 </script>

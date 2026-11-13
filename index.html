@@ -219,20 +219,24 @@ body{padding:20px 16px}
 
         if (!profileSnap.exists()) {
           await signOut(auth);
-          throw new Error('Your login is valid, but your Firestore userAccounts profile was not found. Ask the Founder to save your profile using your Firebase Authentication UID.');
+          throw new Error('Your login is valid, but your Firestore userAccounts profile was not found. Ask Super Admin to save your profile using your Firebase Authentication UID.');
         }
 
         const profile = profileSnap.data();
         if (profile.active !== true) {
           await signOut(auth);
-          throw new Error('Your account is inactive. Please contact the Founder.');
+          throw new Error('Your account is inactive. Please contact Super Admin.');
         }
 
         const role = String(profile.role || '').trim();
-        const allowedRoles = ['Founder', 'Super Admin', 'super_admin', 'Site Administrator', 'Site Admin', 'Super Admin / Site Administrator', 'Registration Agent', 'Admin', 'admin', 'Registration Coordinator', 'Registrar', 'Supervisor', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
+        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Registration Coordinator', 'Registrar', 'Supervisor', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
+        if (profile.superAdmin === true || role === 'Super Admin' || role === 'super_admin') {
+          await signOut(auth);
+          throw new Error('Super Admin access is available only through the Founder Dashboard profile photo.');
+        }
         if (!allowedRoles.includes(role)) {
           await signOut(auth);
-          throw new Error('Your account role is not recognized. Please contact the Founder.');
+          throw new Error('Your account role is not recognized. Please contact Super Admin.');
         }
 
         const permissions = Array.isArray(profile.permissions) ? profile.permissions : [];
@@ -247,8 +251,6 @@ body{padding:20px 16px}
         let dashboard = '';
         if (role === 'Founder') {
           dashboard = 'backup-founder-dashboard.html';
-        } else if (profile.superAdmin === true || ['Super Admin','super_admin','Site Administrator','Site Admin','Super Admin / Site Administrator'].includes(role)) {
-          dashboard = 'super-admin-dashboard.html';
         } else if (['Registration Agent','Registration Coordinator','Registrar','Supervisor'].includes(role)) {
           if (!permissions.includes('registration') && !permissions.includes('members-record')) throw new Error('No registration or members-record page permission has been assigned.');
           dashboard = 'registration.html';
