@@ -229,8 +229,12 @@ body{padding:20px 16px}
         }
 
         const role = String(profile.role || '').trim();
-        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Super Admin', 'super_admin', 'Registration Coordinator', 'Registrar', 'Supervisor', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
-        if (!allowedRoles.includes(role) && profile.superAdmin !== true) {
+        const allowedRoles = ['Founder', 'Registration Agent', 'Admin', 'admin', 'Registration Coordinator', 'Registrar', 'Supervisor', 'Programme Coordinator', 'Programme Supervisor', 'Programme Agent'];
+        if (profile.superAdmin === true || role === 'Super Admin' || role === 'super_admin') {
+          await signOut(auth);
+          throw new Error('Super Admin access is available only through the Founder Dashboard profile photo.');
+        }
+        if (!allowedRoles.includes(role)) {
           await signOut(auth);
           throw new Error('Your account role is not recognized. Please contact Super Admin.');
         }
@@ -245,9 +249,7 @@ body{padding:20px 16px}
 
         // Keep the authenticated session active and redirect according to Firestore role.
         let dashboard = '';
-        if (profile.superAdmin === true || role === 'Super Admin' || role === 'super_admin') {
-          dashboard = 'super-admin-dashboard.html';
-        } else if (role === 'Founder') {
+        if (role === 'Founder') {
           dashboard = 'backup-founder-dashboard.html';
         } else if (['Registration Agent','Registration Coordinator','Registrar','Supervisor'].includes(role)) {
           if (!permissions.includes('registration') && !permissions.includes('members-record')) throw new Error('No registration or members-record page permission has been assigned.');
