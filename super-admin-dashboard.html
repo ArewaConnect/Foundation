@@ -218,6 +218,33 @@
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>4. Programme Register</h3><div id="programList" class="muted">Loading programmes…</div>
+<div class="member-modal" id="programEditModal" role="dialog" aria-modal="true" aria-labelledby="programEditTitle">
+  <div class="member-modal-card">
+    <div class="member-modal-head">
+      <div><h2 id="programEditTitle">Edit Programme</h2><p class="muted">Update programme details. Total quantity cannot be lower than the quantity already allocated.</p></div>
+      <button type="button" id="closeProgramEditBtn" style="background:#64748b">Close</button>
+    </div>
+    <form id="programEditForm">
+      <input type="hidden" id="editProgramId">
+      <div class="member-modal-grid">
+        <div><label>Programme name *</label><input id="editProgramName" required></div>
+        <div><label>Programme category *</label><select id="editProgramType" required>
+          <option>Training</option><option>Sports Support</option><option>Education Support</option><option>Farming Support</option><option>Food Assistance</option><option>Cash Assistance</option><option>Business Support</option><option>Fertilizer Support</option><option>Equipment Support</option><option>Medical Assistance</option><option>Community Development</option><option>Other Support</option>
+        </select></div>
+        <div><label>Total available quantity *</label><input id="editProgramStock" type="number" min="0.01" step="any" required></div>
+        <div><label>Unit *</label><input id="editProgramUnit" required></div>
+        <div class="wide"><label>Coordinator / Supervisor</label><select id="editProgramCoordinator"><option value="">Not assigned</option></select></div>
+        <div class="wide"><label>Programme description</label><textarea id="editProgramDescription"></textarea></div>
+      </div>
+      <p class="muted" id="editProgramAllocatedInfo"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button type="submit" id="saveProgramEditBtn">Save Programme Changes</button>
+        <button type="button" id="cancelProgramEditBtn" style="background:#64748b">Cancel</button>
+      </div>
+      <div class="status" id="editProgramStatus"></div>
+    </form>
+  </div>
+</div>
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none" id="distributionPanel" hidden>
 <h3 id="distributionTitle">Distribution Register</h3><div id="distributionList"></div>
@@ -240,7 +267,7 @@
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTimestamp,addDoc,updateDoc,runTransaction,arrayUnion,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,collection,getDocs,query,orderBy,serverTimestamp,addDoc,updateDoc,runTransaction,arrayUnion,deleteDoc,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfoundation-48f1d.firebaseapp.com",projectId:"ehfoundation-48f1d",storageBucket:"ehfoundation-48f1d.firebasestorage.app",messagingSenderId:"126063666222",appId:"1:126063666222:web:8793cae852361441fb6bbf"};
 const app=initializeApp(config),adminAuthApp=initializeApp(config,"ehFoundationSuperAdminAuth"),auth=getAuth(adminAuthApp),db=getFirestore(adminAuthApp),$=id=>document.getElementById(id);
 // Secondary Firebase app creates agent credentials without signing the Super Admin out.
@@ -1081,12 +1108,121 @@ async function loadProgrammes(){
           <span class="member-status verified">Receipts: ${received}</span>
           <span class="member-status rejected">Awaiting receipt: ${Math.max(0,assigned-received)}</span>
         </div>
-        <button type="button" data-open-program="${d.id}" data-program-name="${safeText(p.name)}" style="margin-top:4px">Open Beneficiary Receipt Register</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" data-edit-program="${d.id}" style="background:#2563eb">Edit Programme</button>
+          <button type="button" data-delete-program="${d.id}" data-program-name="${safeText(p.name||'this programme')}" style="background:#b91c1c">Delete Programme</button>
+          <button type="button" data-open-program="${d.id}" data-program-name="${safeText(p.name)}">Open Beneficiary Receipt Register</button>
+        </div>
       </div>`;
     }));
     $('programList').innerHTML=cards.join('');
   }catch(e){$('programList').textContent='Could not load programmes: '+e.message;}
 }
+function closeProgramEditor(){
+  $('programEditModal').classList.remove('open');
+  $('editProgramStatus').textContent='';
+}
+$('closeProgramEditBtn').onclick=closeProgramEditor;
+$('cancelProgramEditBtn').onclick=closeProgramEditor;
+$('programEditModal').addEventListener('click',e=>{if(e.target===$('programEditModal'))closeProgramEditor();});
+async function openProgramEditor(programId){
+  try{
+    $('editProgramStatus').textContent='Loading programme…';
+    const snap=await getDoc(doc(db,'programmes',programId));
+    if(!snap.exists())throw new Error('This programme no longer exists.');
+    const data=snap.data()||{};
+    $('editProgramId').value=programId;
+    $('editProgramName').value=data.name||'';
+    const type=$('editProgramType');
+    if(![...type.options].some(o=>o.value===data.assistanceType)){
+      const option=document.createElement('option');option.value=data.assistanceType||'Other Support';option.textContent=data.assistanceType||'Other Support';type.appendChild(option);
+    }
+    type.value=data.assistanceType||'Other Support';
+    $('editProgramStock').value=Number(data.totalQuantity||0);
+    $('editProgramUnit').value=data.unit||'';
+    $('editProgramDescription').value=data.description||'';
+    const coordinator=$('editProgramCoordinator');
+    coordinator.innerHTML='<option value="">Not assigned</option>'+[...$('programCoordinator').options].filter(o=>o.value).map(o=>`<option value="${safeText(o.value)}" data-name="${safeText(o.dataset.name||o.textContent)}">${safeText(o.textContent)}</option>`).join('');
+    if(data.coordinatorId&&!([...coordinator.options].some(o=>o.value===data.coordinatorId))){
+      const option=document.createElement('option');option.value=data.coordinatorId;option.textContent=(data.coordinator||'Current coordinator')+' (currently assigned)';option.dataset.name=data.coordinator||'';coordinator.appendChild(option);
+    }
+    coordinator.value=data.coordinatorId||'';
+    $('editProgramAllocatedInfo').textContent=`Already allocated: ${fmtQty(data.allocatedQuantity)} ${data.unit||''}. Received quantity: ${fmtQty(data.receivedQuantity)}.`;
+    $('editProgramStatus').textContent='';
+    $('programEditModal').classList.add('open');
+  }catch(e){$('programStatus').textContent='Could not open programme for editing: '+e.message;}
+}
+document.addEventListener('click',async e=>{
+  const edit=e.target.closest('[data-edit-program]');
+  if(edit){await openProgramEditor(edit.dataset.editProgram);return;}
+  const del=e.target.closest('[data-delete-program]');
+  if(del){
+    const id=del.dataset.deleteProgram,name=del.dataset.programName||'this programme';
+    if(!confirm(`Delete "${name}"?\n\nThis will permanently delete the programme and its beneficiary assignment records. Existing distribution audit history will be retained. This action cannot be undone.`))return;
+    try{
+      del.disabled=true;
+      del.textContent='Deleting…';
+      const beneficiarySnap=await getDocs(collection(db,'programmes',id,'beneficiaries'));
+      for(let i=0;i<beneficiarySnap.docs.length;i+=400){
+        const batch=writeBatch(db);
+        beneficiarySnap.docs.slice(i,i+400).forEach(item=>batch.delete(item.ref));
+        await batch.commit();
+      }
+      await addDoc(collection(db,'distributionAudit'),{
+        programmeId:id,programmeName:name,action:'programme_deleted',
+        performedBy:auth.currentUser.uid,timestamp:serverTimestamp()
+      }).catch(err=>console.warn('Programme deletion audit could not be written:',err));
+      await deleteDoc(doc(db,'programmes',id));
+      if(activeProgramId===id){
+        activeProgramId=null;activeProgramData=null;selectedBenefitMembers.clear();
+        $('beneficiaryPicker').hidden=true;
+      }
+      if(currentDistributionId===id){
+        currentDistributionId=null;$('distributionPanel').hidden=true;
+      }
+      $('programStatus').textContent=`Programme "${name}" and ${beneficiarySnap.size} beneficiary assignment record(s) deleted. Historical audit records were retained.`;
+      await loadProgrammes();
+    }catch(err){
+      $('programStatus').textContent='Programme deletion failed: '+err.message;
+      del.disabled=false;del.textContent='Delete Programme';
+    }
+  }
+});
+$('programEditForm').onsubmit=async e=>{
+  e.preventDefault();
+  const id=$('editProgramId').value;
+  const name=$('editProgramName').value.trim();
+  const assistanceType=$('editProgramType').value;
+  const totalQuantity=Number($('editProgramStock').value);
+  const unit=$('editProgramUnit').value.trim();
+  const coordinatorId=$('editProgramCoordinator').value;
+  const coordinatorName=$('editProgramCoordinator').selectedOptions[0]?.dataset.name||'';
+  const description=$('editProgramDescription').value.trim();
+  if(!name||!assistanceType||!Number.isFinite(totalQuantity)||totalQuantity<=0||!unit){
+    $('editProgramStatus').textContent='Enter a programme name, category, positive quantity and unit.';return;
+  }
+  try{
+    $('saveProgramEditBtn').disabled=true;
+    $('editProgramStatus').textContent='Saving changes…';
+    const current=await getDoc(doc(db,'programmes',id));
+    if(!current.exists())throw new Error('This programme no longer exists.');
+    const old=current.data()||{};
+    const allocated=Number(old.allocatedQuantity||0);
+    if(totalQuantity<allocated)throw new Error(`Total quantity cannot be less than the ${fmtQty(allocated)} already allocated.`);
+    await updateDoc(doc(db,'programmes',id),{
+      name,assistanceType,totalQuantity,unit,coordinator:coordinatorName,
+      coordinatorId,description,updatedAt:serverTimestamp(),updatedBy:auth.currentUser.uid
+    });
+    if(activeProgramId===id){
+      activeProgramData={...activeProgramData,name,assistanceType,totalQuantity,unit,coordinator:coordinatorName,coordinatorId};
+      $('activeProgramLabel').textContent=`${name} · ${assistanceType} · ${fmtQty(totalQuantity)} ${unit} available · Coordinator: ${coordinatorName||'Not assigned'}`;
+    }
+    closeProgramEditor();
+    $('programStatus').textContent=`Programme "${name}" updated successfully.`;
+    await loadProgrammes();
+  }catch(err){$('editProgramStatus').textContent='Could not update programme: '+err.message;}
+  finally{$('saveProgramEditBtn').disabled=false;}
+};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-open-program]');if(b)openDistribution(b.dataset.openProgram,b.dataset.programName);});
 async function openDistribution(id,name){
   currentDistributionId=id;$('distributionPanel').hidden=false;$('distributionTitle').textContent='Beneficiary Receipt Register — '+name;
