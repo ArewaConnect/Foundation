@@ -245,8 +245,74 @@ const config={apiKey:"AIzaSyD6jNo0Qkqan5Ar0o0CGv3oarRdIF8rvIk",authDomain:"ehfou
 const app=initializeApp(config),db=getFirestore(app),auth=getAuth(app),$=id=>document.getElementById(id);
 // Secondary Firebase app creates agent credentials without signing the Super Admin out.
 const agentApp=initializeApp(config,"ehFoundationAgentCreator"),agentAuth=getAuth(agentApp);let user=null;
-$("loginBtn").onclick=async()=>{try{$("loginStatus").textContent="Signing in…";await signInWithEmailAndPassword(auth,$("loginEmail").value.trim(),$("loginPassword").value)}catch(e){$("loginStatus").textContent="Login error: "+e.message}};
-onAuthStateChanged(auth,async u=>{user=u;if(!u){$("loginPanel").hidden=false;$("adminApp").hidden=true;return}try{let adminDoc=await getDoc(doc(db,"userAccounts",u.uid));let adminData=adminDoc.exists()?adminDoc.data():{};const adminRole=String(adminData.role||"").trim().toLowerCase();const isFounder=adminRole==="founder";const isSiteAdmin=["super admin","super_admin","site administrator","site admin","super admin / site administrator"].includes(adminRole);const hasAdminAccess=adminData.active!==false&&(isFounder||isSiteAdmin||adminData.superAdmin===true||adminData.admin===true);if(!hasAdminAccess){await signOut(auth);$("loginStatus").textContent="Access denied: this dashboard is for the Founder or an active Super Admin / Site Administrator account.";return}$("loginPanel").hidden=true;$("adminApp").hidden=false;loadAccounts();loadProgrammeAgents();loadProgrammes();loadAdminProfile();loadAdminMembers();publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});loadProgrammeGallery();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("loginStatus").textContent=e.message}});
+const withTimeout=(promise,ms,label)=>Promise.race([
+  promise,
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+" timed out. Check your internet connection and Firebase availability.")),ms))
+]);
+let dashboardOpened=false;
+function showLoginError(message){
+  $("loginPanel").hidden=false;
+  $("adminApp").hidden=true;
+  $("loginStatus").textContent=message;
+  $("loginBtn").disabled=false;
+}
+async function verifyAdminAndOpen(u){
+  if(!u){dashboardOpened=false;$("loginPanel").hidden=false;$("adminApp").hidden=true;return;}
+  user=u;
+  $("loginBtn").disabled=true;
+  $("loginStatus").textContent="Signed in. Checking your dashboard permissions…";
+  try{
+    const adminDoc=await withTimeout(getDoc(doc(db,"userAccounts",u.uid)),15000,"Firestore account verification");
+    if(!adminDoc.exists()){
+      await signOut(auth);
+      showLoginError("Firebase login succeeded, but no userAccounts/"+u.uid+" profile exists. Ask the Founder to create or correct your account profile.");
+      return;
+    }
+    const adminData=adminDoc.data()||{};
+    const adminRole=String(adminData.role||"").trim().toLowerCase();
+    const isFounder=adminRole==="founder";
+    const isSiteAdmin=["super admin","super_admin","site administrator","site admin","super admin / site administrator"].includes(adminRole);
+    const hasAdminAccess=adminData.active!==false&&(isFounder||isSiteAdmin||adminData.superAdmin===true||adminData.admin===true);
+    if(!hasAdminAccess){
+      await signOut(auth);
+      showLoginError("Access denied. This dashboard requires an active Founder, Super Admin, or Site Administrator account. Your saved role is: "+(adminData.role||"not set")+".");
+      return;
+    }
+    dashboardOpened=true;
+    $("loginPanel").hidden=true;
+    $("adminApp").hidden=false;
+    $("loginStatus").textContent="";
+    $("loginBtn").disabled=false;
+    loadAccounts();loadProgrammeAgents();loadProgrammes();loadAdminProfile();loadAdminMembers();
+    publishFounderDashboardData().catch(e=>{console.error("Founder dashboard publishing failed:",e);$("adminProfileStatus").textContent="Founder profile publishing failed: "+e.message;$("carouselStatus").textContent="Programme gallery publishing failed: "+e.message+". Check Firestore rules for foundationPublicGallery.";});
+    loadProgrammeGallery();
+    refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message});
+  }catch(e){
+    console.error("Super Admin authentication/verification failed:",e);
+    showLoginError("Could not finish sign-in: "+(e.message||"Unknown Firebase error")+". If this persists, check Firestore rules for userAccounts/{UID} and the browser's network connection.");
+  }
+}
+$("loginBtn").onclick=async()=>{
+  const email=$("loginEmail").value.trim(),password=$("loginPassword").value;
+  if(!email||!password){$("loginStatus").textContent="Enter your email and password.";return;}
+  $("loginBtn").disabled=true;
+  $("loginStatus").textContent="Signing in to Firebase…";
+  try{
+    const credential=await withTimeout(signInWithEmailAndPassword(auth,email,password),15000,"Firebase Authentication");
+    await verifyAdminAndOpen(credential.user);
+  }catch(e){
+    console.error("Firebase sign-in failed:",e);
+    let msg=e.message||"Login failed.";
+    if(e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found")msg="Incorrect email or password. Check the Firebase Authentication account.";
+    else if(e.code==="auth/network-request-failed")msg="Network connection failed. Check your internet and try again.";
+    showLoginError(msg);
+  }
+};
+onAuthStateChanged(auth,u=>{
+  user=u;
+  if(!u){dashboardOpened=false;$("loginPanel").hidden=false;$("adminApp").hidden=true;return;}
+  if(!dashboardOpened)verifyAdminAndOpen(u);
+});
 $("generateStaffPasswordBtn").onclick=()=>{const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";const b=new Uint32Array(16);crypto.getRandomValues(b);$("staffPassword").value=Array.from(b,x=>chars[x%chars.length]).join("");};
 $("createStaffBtn").onclick=async()=>{const fullName=$("staffFullName").value.trim(),phone=$("staffPhone").value.trim(),email=$("staffEmail").value.trim().toLowerCase(),password=$("staffPassword").value,role=$("staffRole").value,permissions=[...document.querySelectorAll("#staffPermissions input:checked")].map(x=>x.value);if(!fullName||!email||password.length<8){$("staffCreateStatus").textContent="Enter full name, valid email and a password of at least 8 characters.";return;}if(!permissions.length){$("staffCreateStatus").textContent="Select at least one page permission.";return;}const btn=$("createStaffBtn");try{btn.disabled=true;$("staffCreateStatus").textContent="Creating Firebase login and Firestore profile…";const cred=await createUserWithEmailAndPassword(agentAuth,email,password);const uid=cred.user.uid;await setDoc(doc(db,"userAccounts",uid),{uid,username:fullName,fullName,phone,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});await signOut(agentAuth);$("staffCreateStatus").textContent="ACCOUNT CREATED. Email: "+email+" | Temporary password: "+password+" | UID: "+uid+". Share these credentials securely.";["staffFullName","staffPhone","staffEmail","staffPassword"].forEach(id=>$(id).value="");await loadAccounts();await loadProgrammeAgents();}catch(e){$("staffCreateStatus").textContent="Account creation failed: "+(e.code==="auth/email-already-in-use"?"This email already has a Firebase login.":e.message);try{if(agentAuth.currentUser)await signOut(agentAuth);}catch(_){}}finally{btn.disabled=false;}};
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
