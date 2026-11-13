@@ -42,7 +42,7 @@
 .call-beneficiary-btn{display:inline-block;background:#0b7a3b;color:#fff;text-decoration:none;border-radius:10px;padding:10px 13px;font-weight:bold;font-size:13px;white-space:nowrap}
 .call-beneficiary-btn:active{background:#075e2d}
 .programme-heading-single-line{white-space:nowrap;font-size:clamp(13px,3.7vw,20px);letter-spacing:-.25px}
-</style></head><body><main class="wrap"><section class="panel" id="loginPanel"><h1>Super Admin Login</h1><p class="muted">Sign in with the one designated Super Admin Firebase account. Access is verified against its active Firestore profile.</p><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
+</style></head><body><main class="wrap"><section class="panel" id="loginPanel"><h1>Super Admin Login</h1><div class="grid"><div><label>Email</label><input id="loginEmail" type="email"></div><div><label>Password</label><input id="loginPassword" type="password"></div></div><p><button id="loginBtn">Sign In</button></p><div class="status" id="loginStatus"></div></section>
 <div id="adminApp" hidden>
 <div class="admin-topbar" id="adminTopbar">
   <nav class="admin-nav" id="adminSectionNav" aria-label="Super Admin sections">
@@ -312,16 +312,14 @@ $("loginBtn").onclick=async()=>{
     showSuperAdminLogin(message);
   }
 };
-// Always show the Super Admin login page when arriving from the Founder shortcut.
-// Reset only the dedicated Super Admin auth session before attaching the observer.
-// The Founder uses the primary Firebase app and remains signed in.
-signOut(auth).catch(e=>console.warn("Could not reset previous Super Admin session:",e)).finally(()=>{
-  onAuthStateChanged(auth,u=>{
-    user=u;
-    if(!u){verificationInProgress=false;showSuperAdminLogin("");return;}
-    verifySingleSuperAdmin(u);
-  });
+onAuthStateChanged(auth,u=>{
+  user=u;
+  if(!u){verificationInProgress=false;showSuperAdminLogin("");return;}
+  verifySingleSuperAdmin(u);
 });
+// Always show the Super Admin login page when arriving from the Founder shortcut.
+// The Super Admin uses a separate Firebase app, so this does not sign out the Founder.
+signOut(auth).catch(e=>console.warn("Could not reset previous Super Admin session:",e));
 $("generateStaffPasswordBtn").onclick=()=>{const chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";const b=new Uint32Array(16);crypto.getRandomValues(b);$("staffPassword").value=Array.from(b,x=>chars[x%chars.length]).join("");};
 $("createStaffBtn").onclick=async()=>{const fullName=$("staffFullName").value.trim(),phone=$("staffPhone").value.trim(),email=$("staffEmail").value.trim().toLowerCase(),password=$("staffPassword").value,role=$("staffRole").value,permissions=[...document.querySelectorAll("#staffPermissions input:checked")].map(x=>x.value);if(!fullName||!email||password.length<8){$("staffCreateStatus").textContent="Enter full name, valid email and a password of at least 8 characters.";return;}if(!permissions.length){$("staffCreateStatus").textContent="Select at least one page permission.";return;}const btn=$("createStaffBtn");try{btn.disabled=true;$("staffCreateStatus").textContent="Creating Firebase login and Firestore profile…";const cred=await createUserWithEmailAndPassword(agentAuth,email,password);const uid=cred.user.uid;await setDoc(doc(db,"userAccounts",uid),{uid,username:fullName,fullName,phone,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});await signOut(agentAuth);$("staffCreateStatus").textContent="ACCOUNT CREATED. Email: "+email+" | Temporary password: "+password+" | UID: "+uid+". Share these credentials securely.";["staffFullName","staffPhone","staffEmail","staffPassword"].forEach(id=>$(id).value="");await loadAccounts();await loadProgrammeAgents();}catch(e){$("staffCreateStatus").textContent="Account creation failed: "+(e.code==="auth/email-already-in-use"?"This email already has a Firebase login.":e.message);try{if(agentAuth.currentUser)await signOut(agentAuth);}catch(_){}}finally{btn.disabled=false;}};
 $("createBtn").onclick=async()=>{let uid=$("uid").value.trim(),username=$("username").value.trim(),email=$("email").value.trim(),role=$("role").value,permissions=[...document.querySelectorAll(".permissions input:checked")].map(x=>x.value);if(!uid||!username||!email){$("createStatus").textContent="Enter the Firebase Authentication UID, username, and email.";return}try{$("createBtn").disabled=true;$("createStatus").textContent="Saving Firestore profile…";await setDoc(doc(db,"userAccounts",uid),{uid,username,email,role,permissions,active:true,createdAt:serverTimestamp(),createdBy:auth.currentUser.uid});$("createStatus").textContent="Firestore profile saved. UID: "+uid;["uid","username","email"].forEach(id=>$(id).value="");loadAccounts();loadProgrammes();refreshStates().catch(e=>{$("stateStatus").textContent="Location data could not load: "+e.message})}catch(e){$("createStatus").textContent="Firestore error: "+e.message}finally{$("createBtn").disabled=false}};
