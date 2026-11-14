@@ -218,6 +218,28 @@
 </div>
 <div class="panel" style="background:#f8fafc;box-shadow:none">
 <h3>4. Programme Register</h3><div id="programList" class="muted">Loading programmes…</div>
+<div class="member-modal" id="beneficiaryManageModal" role="dialog" aria-modal="true" aria-labelledby="beneficiaryManageTitle">
+  <div class="member-modal-card">
+    <div class="member-modal-head">
+      <div><h2 id="beneficiaryManageTitle">Manage Programme Beneficiaries</h2><p class="muted" id="beneficiaryManageSubtitle">Add, edit or remove members assigned to this programme.</p></div>
+      <button type="button" id="closeBeneficiaryManageBtn" style="background:#64748b">Close</button>
+    </div>
+    <div class="panel" style="background:#f8fafc;box-shadow:none">
+      <h3>Add Existing Member</h3>
+      <div class="grid">
+        <div><label>Search registered member</label><input id="beneficiaryAddSearch" placeholder="Search member name or phone"></div>
+        <div><label>Select member</label><select id="beneficiaryAddMember"><option value="">Search and select a registered member</option></select></div>
+        <div><label>Quantity for this member</label><input id="beneficiaryAddQuantity" type="number" min="0.01" step="any" placeholder="Enter quantity"></div>
+      </div>
+      <button type="button" id="addBeneficiaryBtn">Add Member to Programme</button>
+      <div class="status" id="beneficiaryAddStatus"></div>
+    </div>
+    <h3>Assigned Beneficiaries</h3>
+    <div class="muted" id="beneficiaryManageSummary"></div>
+    <div id="beneficiaryManageList"></div>
+    <div class="status" id="beneficiaryManageStatus"></div>
+  </div>
+</div>
 <div class="member-modal" id="programEditModal" role="dialog" aria-modal="true" aria-labelledby="programEditTitle">
   <div class="member-modal-card">
     <div class="member-modal-head">
@@ -1110,6 +1132,7 @@ async function loadProgrammes(){
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button type="button" data-edit-program="${d.id}" style="background:#2563eb">Edit Programme</button>
+          <button type="button" data-manage-beneficiaries="${d.id}" data-program-name="${safeText(p.name||'Programme')}" style="background:#0f766e">Manage Beneficiaries</button>
           <button type="button" data-delete-program="${d.id}" data-program-name="${safeText(p.name||'this programme')}" style="background:#b91c1c">Delete Programme</button>
           <button type="button" data-open-program="${d.id}" data-program-name="${safeText(p.name)}">Open Beneficiary Receipt Register</button>
         </div>
@@ -1153,6 +1176,8 @@ async function openProgramEditor(programId){
   }catch(e){$('programStatus').textContent='Could not open programme for editing: '+e.message;}
 }
 document.addEventListener('click',async e=>{
+  const manage=e.target.closest('[data-manage-beneficiaries]');
+  if(manage){await openBeneficiaryManager(manage.dataset.manageBeneficiaries,manage.dataset.programName||'Programme');return;}
   const edit=e.target.closest('[data-edit-program]');
   if(edit){await openProgramEditor(edit.dataset.editProgram);return;}
   const del=e.target.closest('[data-delete-program]');
@@ -1188,6 +1213,177 @@ document.addEventListener('click',async e=>{
     }
   }
 });
+
+// Manage the member list attached to an existing programme.
+let managedProgrammeId=null,managedProgrammeData=null,managedMembersCache=[];
+function closeBeneficiaryManager(){
+  $('beneficiaryManageModal').classList.remove('open');
+  managedProgrammeId=null;managedProgrammeData=null;
+}
+$('closeBeneficiaryManageBtn').onclick=closeBeneficiaryManager;
+$('beneficiaryManageModal').addEventListener('click',e=>{if(e.target===$('beneficiaryManageModal'))closeBeneficiaryManager();});
+
+async function openBeneficiaryManager(programmeId,programmeName){
+  managedProgrammeId=programmeId;
+  $('beneficiaryManageTitle').textContent='Manage Beneficiaries — '+programmeName;
+  $('beneficiaryManageList').textContent='Loading assigned members…';
+  $('beneficiaryManageStatus').textContent='';
+  $('beneficiaryAddStatus').textContent='';
+  $('beneficiaryManageModal').classList.add('open');
+  try{
+    const [programSnap,memberSnap,assignedSnap]=await Promise.all([
+      getDoc(doc(db,'programmes',programmeId)),
+      getDocs(collection(db,'members')),
+      getDocs(collection(db,'programmes',programmeId,'beneficiaries'))
+    ]);
+    if(!programSnap.exists())throw new Error('Programme no longer exists.');
+    managedProgrammeData=programSnap.data()||{};
+    managedMembersCache=memberSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const assignedIds=new Set(assignedSnap.docs.map(d=>d.id));
+    const available=managedMembersCache.filter(m=>!assignedIds.has(m.id));
+    $('beneficiaryAddSearch').value='';
+    fillBeneficiaryMemberSelect(available);
+    renderManagedBeneficiaries(assignedSnap.docs);
+  }catch(e){$('beneficiaryManageList').textContent='Could not load beneficiary records: '+e.message;}
+}
+function fillBeneficiaryMemberSelect(items){
+  const select=$('beneficiaryAddMember');
+  select.innerHTML='<option value="">Select a registered member</option>';
+  items.forEach(m=>{
+    const o=document.createElement('option');o.value=m.id;
+    o.textContent=(m.fullName||'Unnamed member')+' — '+(m.phone||m.phoneNumber||'No phone');
+    select.appendChild(o);
+  });
+  select.disabled=!items.length;
+  if(!items.length)select.innerHTML='<option value="">No matching unassigned members</option>';
+}
+$('beneficiaryAddSearch').oninput=()=>{
+  if(!managedProgrammeId)return;
+  getDocs(collection(db,'programmes',managedProgrammeId,'beneficiaries')).then(snap=>{
+    const assigned=new Set(snap.docs.map(d=>d.id));
+    const q=$('beneficiaryAddSearch').value.trim().toLowerCase();
+    const available=managedMembersCache.filter(m=>!assigned.has(m.id)&&
+      (!q||String(m.fullName||'').toLowerCase().includes(q)||String(m.phone||m.phoneNumber||'').toLowerCase().includes(q)));
+    fillBeneficiaryMemberSelect(available);
+  }).catch(e=>$('beneficiaryAddStatus').textContent='Could not search members: '+e.message);
+};
+async function renderManagedBeneficiaries(docs){
+  const assigned=docs.map(d=>({id:d.id,...d.data()}));
+  const received=assigned.filter(x=>x.status==='received').length;
+  $('beneficiaryManageSummary').textContent=`${assigned.length} assigned · ${received} received · ${assigned.length-received} pending · Programme allocation: ${fmtQty(managedProgrammeData.allocatedQuantity)} / ${fmtQty(managedProgrammeData.totalQuantity)} ${managedProgrammeData.unit||''}`;
+  if(!assigned.length){$('beneficiaryManageList').innerHTML='<p class="muted">No members assigned to this programme yet.</p>';return;}
+  $('beneficiaryManageList').innerHTML=assigned.map((b,i)=>`
+    <div style="padding:12px 4px;border-bottom:1px solid #dbe5df">
+      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <div style="min-width:180px;flex:1">
+          <b>${String(i+1).padStart(3,'0')}. ${safeText(b.memberName||'Unnamed member')}</b>
+          <div class="muted">${safeText(b.memberLocation||'Location not recorded')} · ${safeText(b.status||'pending')}</div>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+          <label style="margin:0">Quantity <input type="number" min="0.01" step="any" value="${Number(b.allocatedQuantity||0)}" data-beneficiary-qty="${safeText(b.id)}" style="width:110px;padding:8px" ${b.status==='received'?'disabled':''}></label>
+          <button type="button" data-save-beneficiary="${safeText(b.id)}" style="background:#2563eb" ${b.status==='received'?'disabled':''}>Update</button>
+          <button type="button" data-remove-beneficiary="${safeText(b.id)}" style="background:#b91c1c" ${b.status==='received'?'disabled':''}>Remove</button>
+          ${b.status==='received'?'<span class="member-status verified">Received ✓</span>':''}
+        </div>
+      </div>
+      ${b.status==='received'?'<p class="muted">This beneficiary has already received the assistance. Its allocation is locked to preserve the receipt record.</p>':''}
+    </div>`).join('');
+}
+$('addBeneficiaryBtn').onclick=async()=>{
+  const memberId=$('beneficiaryAddMember').value;
+  const qty=Number($('beneficiaryAddQuantity').value);
+  const member=managedMembersCache.find(m=>m.id===memberId);
+  if(!managedProgrammeId||!member){$('beneficiaryAddStatus').textContent='Select a registered member first.';return;}
+  if(!Number.isFinite(qty)||qty<=0){$('beneficiaryAddStatus').textContent='Enter a positive quantity.';return;}
+  const btn=$('addBeneficiaryBtn');
+  try{
+    btn.disabled=true;$('beneficiaryAddStatus').textContent='Adding beneficiary…';
+    await runTransaction(db,async tx=>{
+      const pRef=doc(db,'programmes',managedProgrammeId),bRef=doc(db,'programmes',managedProgrammeId,'beneficiaries',memberId);
+      const [ps,bs]=await Promise.all([tx.get(pRef),tx.get(bRef)]);
+      if(!ps.exists())throw new Error('Programme no longer exists.');
+      if(bs.exists())throw new Error('This member is already assigned to this programme.');
+      const p=ps.data(),allocated=Number(p.allocatedQuantity||0);
+      if(allocated+qty>Number(p.totalQuantity||0))throw new Error('Insufficient remaining programme quantity.');
+      tx.set(bRef,{
+        memberId,memberName:member.fullName||'',memberPhoto:'',
+        coordinator:p.coordinator||'',coordinatorId:p.coordinatorId||'',
+        memberLocation:[member.stateName||member.stateCode,member.lgaName||member.lgaCode,member.wardName||member.wardCode,member.pollingUnitName||member.pollingUnitCode].filter(Boolean).join(' · '),
+        allocatedQuantity:qty,unit:p.unit,status:'pending',
+        assignedAt:new Date(),assignedBy:auth.currentUser.uid
+      });
+      tx.update(pRef,{allocatedQuantity:allocated+qty,beneficiaryCount:Number(p.beneficiaryCount||0)+1,updatedAt:new Date()});
+    });
+    await addDoc(collection(db,'distributionAudit'),{programmeId:managedProgrammeId,memberId,action:'beneficiary_added',performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});
+    $('beneficiaryAddQuantity').value='';
+    $('beneficiaryAddStatus').textContent='Member added to this programme.';
+    await refreshManagedBeneficiaries();
+    await loadProgrammes();
+  }catch(e){$('beneficiaryAddStatus').textContent='Could not add member: '+e.message;}
+  finally{btn.disabled=false;}
+};
+async function refreshManagedBeneficiaries(){
+  if(!managedProgrammeId)return;
+  const [ps,bs]=await Promise.all([
+    getDoc(doc(db,'programmes',managedProgrammeId)),
+    getDocs(collection(db,'programmes',managedProgrammeId,'beneficiaries'))
+  ]);
+  if(ps.exists())managedProgrammeData=ps.data()||{};
+  renderManagedBeneficiaries(bs.docs);
+  const assigned=new Set(bs.docs.map(d=>d.id));
+  const q=$('beneficiaryAddSearch').value.trim().toLowerCase();
+  fillBeneficiaryMemberSelect(managedMembersCache.filter(m=>!assigned.has(m.id)&&
+    (!q||String(m.fullName||'').toLowerCase().includes(q)||String(m.phone||m.phoneNumber||'').toLowerCase().includes(q))));
+}
+document.addEventListener('click',async e=>{
+  const save=e.target.closest('[data-save-beneficiary]');
+  if(save){
+    const memberId=save.dataset.saveBeneficiary;
+    const input=document.querySelector(`[data-beneficiary-qty="${CSS.escape(memberId)}"]`);
+    const qty=Number(input?.value);
+    if(!Number.isFinite(qty)||qty<=0){$('beneficiaryManageStatus').textContent='Enter a valid positive quantity.';return;}
+    try{
+      save.disabled=true;
+      await runTransaction(db,async tx=>{
+        const pRef=doc(db,'programmes',managedProgrammeId),bRef=doc(db,'programmes',managedProgrammeId,'beneficiaries',memberId);
+        const [ps,bs]=await Promise.all([tx.get(pRef),tx.get(bRef)]);
+        if(!ps.exists()||!bs.exists())throw new Error('Programme or beneficiary record not found.');
+        const p=ps.data(),b=bs.data();
+        if(b.status==='received')throw new Error('Received allocations cannot be edited.');
+        const oldQty=Number(b.allocatedQuantity||0),delta=qty-oldQty,newAllocated=Number(p.allocatedQuantity||0)+delta;
+        if(newAllocated<0||newAllocated>Number(p.totalQuantity||0))throw new Error('The revised allocation exceeds available programme stock.');
+        tx.update(bRef,{allocatedQuantity:qty,updatedAt:new Date(),updatedBy:auth.currentUser.uid});
+        tx.update(pRef,{allocatedQuantity:newAllocated,updatedAt:new Date()});
+      });
+      await addDoc(collection(db,'distributionAudit'),{programmeId:managedProgrammeId,memberId,action:'beneficiary_quantity_updated',performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});
+      $('beneficiaryManageStatus').textContent='Beneficiary quantity updated.';
+      await refreshManagedBeneficiaries();await loadProgrammes();
+    }catch(err){$('beneficiaryManageStatus').textContent='Update failed: '+err.message;save.disabled=false;}
+    return;
+  }
+  const remove=e.target.closest('[data-remove-beneficiary]');
+  if(remove){
+    const memberId=remove.dataset.removeBeneficiary;
+    const name=remove.closest('div[style*="padding:12px"]')?.querySelector('b')?.textContent||'this member';
+    if(!confirm(`Remove ${name} from this programme? This only removes the beneficiary assignment; the member's main record remains.`))return;
+    try{
+      remove.disabled=true;
+      await runTransaction(db,async tx=>{
+        const pRef=doc(db,'programmes',managedProgrammeId),bRef=doc(db,'programmes',managedProgrammeId,'beneficiaries',memberId);
+        const [ps,bs]=await Promise.all([tx.get(pRef),tx.get(bRef)]);
+        if(!ps.exists()||!bs.exists())throw new Error('Programme or beneficiary record not found.');
+        const p=ps.data(),b=bs.data();
+        if(b.status==='received')throw new Error('A member who has received assistance cannot be removed from the beneficiary history.');
+        tx.delete(bRef);
+        tx.update(pRef,{allocatedQuantity:Math.max(0,Number(p.allocatedQuantity||0)-Number(b.allocatedQuantity||0)),beneficiaryCount:Math.max(0,Number(p.beneficiaryCount||0)-1),updatedAt:new Date()});
+      });
+      await addDoc(collection(db,'distributionAudit'),{programmeId:managedProgrammeId,memberId,action:'beneficiary_removed',performedBy:auth.currentUser.uid,timestamp:serverTimestamp()});
+      $('beneficiaryManageStatus').textContent='Member removed from this programme. The main member record was not deleted.';
+      await refreshManagedBeneficiaries();await loadProgrammes();
+    }catch(err){$('beneficiaryManageStatus').textContent='Could not remove beneficiary: '+err.message;remove.disabled=false;}
+  }
+});
+
 $('programEditForm').onsubmit=async e=>{
   e.preventDefault();
   const id=$('editProgramId').value;
